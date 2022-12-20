@@ -1,8 +1,15 @@
-.App {
-  text-align: center;
+@import url('https://fonts.googleapis.com/css?family=Nunito:400,700');
+
+body {
+  font-family: Nunito, sanf-serif;
 }
 
-.App-logo {
+.App {
+
+}
+
+
+/* .App-logo {
   height: 40vmin;
   pointer-events: none;
 }
@@ -35,4 +42,4 @@
   to {
     transform: rotate(360deg);
   }
-}
+} */

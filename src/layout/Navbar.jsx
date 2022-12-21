@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
-import Query from "../page/Query";
+import { DbContext } from "../db-context";
 
-export default class Navbar extends Component {
+ class Navbar extends Component {
     state = {
         open: false
     }
@@ -13,18 +13,11 @@ export default class Navbar extends Component {
     }
 
     handleLogout = () => {
-        if (this.props.app.db !== null) {
-            this.props.app.db.close();
-            this.props.app.db = null;
+        if (this.context !== null) {
+            this.context.close();
+            this.context = null;
         }
-        this.props.app.setState({
-            logged: false
-        });
-    }
-
-    handleAddCQL = () => {
-        const i = this.props.app.state.tabs.filter(tab => tab.title.indexOf('CQL') === 0).length + 1;
-        this.props.app.addTab('CQL#' + i, null, <Query app={this.props.app} />, true);
+        this.props.handleLogout();
     }
 
     render() {
@@ -47,7 +40,7 @@ export default class Navbar extends Component {
                     <div className="navbar-end">
                         <div className="navbar-item">
                             <div className="buttons">
-                                <a className="button is-primary" onClick={this.handleAddCQL}>
+                                <a className="button is-primary" onClick={this.props.handleAddCQL}>
                                     <span className="icon"><i className="fas fa-plus" aria-hidden="true"></i></span>
                                     <strong>CQL</strong>
                                 </a>
@@ -62,3 +55,7 @@ export default class Navbar extends Component {
         )
     }
 }
+
+Navbar.contextType = DbContext
+
+export default Navbar

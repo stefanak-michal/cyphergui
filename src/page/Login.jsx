@@ -30,10 +30,7 @@ export default class Login extends Component {
             await session.run('RETURN 1 as num');
             await session.close();
 
-            this.props.app.db = driver;
-            this.props.app.setState({
-                logged: true
-            });
+            this.props.setDB(driver);
         } catch (err) {
             console.log(err);
             this.setState({

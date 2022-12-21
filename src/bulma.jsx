@@ -12,7 +12,7 @@ export class Input extends Component {
                         type={this.props.type || 'text'}
                         placeholder={this.props.placeholder || ''}
                         onChange={this.props.onChange}
-                        value={this.props.value}
+                        defaultValue={this.props.value}
                     />
                 </div>
             </div>

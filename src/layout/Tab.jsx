@@ -1,14 +1,9 @@
 import React, { Component } from 'react'
 
 export default class Tab extends Component {
-    handleClick = (e) => {
-        e.preventDefault();
-        this.props.app.setActiveTab(this.props.title);
-    }
-
     render() {
         return (
-            <li className={this.props.active ? 'is-active' : ''} onClick={this.handleClick}>
+            <li className={this.props.active ? 'is-active' : ''} onClick={() => this.props.handleClick(this.props.title)}>
                 <a>
                     {this.props.icon &&
                         <span className="icon is-small"><i className={this.props.icon} aria-hidden="true"></i></span>

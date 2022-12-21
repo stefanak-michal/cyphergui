@@ -1,11 +1,20 @@
 import React, { Component } from 'react'
 
 export default class Start extends Component {
+    componentDidMount() {
+        console.log('a');
+    }
+
     render() {
         return (
-            <div id="start">
+            <>
                 start content
-            </div>
+
+                Node labels
+                Relationship labels
+
+                some buttons?
+            </>
         )
     }
 }

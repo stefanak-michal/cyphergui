@@ -2,25 +2,45 @@ import React, { Component } from 'react'
 import './Login.css'
 
 import { Input } from '../bulma'
+
 const neo4j = require('neo4j-driver')
 
 export default class Login extends Component {
     state = {
-        url: '',
+        url: 'bolt://localhost:7687',
         username: '',
-        password: ''
+        password: '',
+        submitted: false,
+        error: null
     }
-//todo is-loading on btn on click
-    handleSubmit = (event) => {
-        event.preventDefault();
-        this.props.app.db = neo4j.driver(
-            this.state.url,
-            neo4j.auth.basic(this.state.username, this.state.password)
-        )
 
-        this.props.app.setState({
-            logged: true
-        })
+    handleSubmit = async (event) => {
+        event.preventDefault();
+        this.setState({ submitted: true });
+
+        try {
+            let driver = neo4j.driver(
+                this.state.url,
+                neo4j.auth.basic(this.state.username, this.state.password),
+                { userAgent: 'bolt-admin' }
+            );
+
+            //there is no better way how to verify credentials than running a first query?
+            let session = driver.session();
+            await session.run('RETURN 1 as num');
+            await session.close();
+
+            this.props.app.db = driver;
+            this.props.app.setState({
+                logged: true
+            });
+        } catch (err) {
+            console.log(err);
+            this.setState({
+                submitted: false,
+                error: '[' + err.name + '] ' + err.message
+            });
+        }
     }
 
     handleInputChange = (event) => {
@@ -34,6 +54,13 @@ export default class Login extends Component {
         });
     }
 
+    componentDidMount() {
+        this.setState({
+            submitted: false,
+            error: null
+        });
+    }
+
     render() {
         return (
             <section className='mt-5'>
@@ -41,10 +68,19 @@ export default class Login extends Component {
                     <h1 className='title has-text-centered'>Bolt Admin</h1>
                     <form id="login" className="columns mt-6" onSubmit={this.handleSubmit}>
                         <div className="column is-one-third is-offset-one-third">
-                            <Input label='URL' name='url' onChange={this.handleInputChange} value='bolt://localhost:7687' />
-                            <Input label='Username' name='username' onChange={this.handleInputChange} />
+                            <Input label='URL' name='url' onChange={this.handleInputChange} value={this.state.url} />
+                            <Input label='Username' name='username' onChange={this.handleInputChange} value={this.state.username} />
                             <Input label='Password' name='password' type='password' onChange={this.handleInputChange} />
-                            <button className="button is-primary">Login</button>
+
+                            {this.state.error &&
+                                <div className="notification is-danger">
+                                    {this.state.error}
+                                </div>
+                            }
+
+                            <button className={"button is-primary " + (this.state.submitted ? 'is-loading' : '')}>
+                                Login
+                            </button>
                         </div>
                     </form>
                 </div>

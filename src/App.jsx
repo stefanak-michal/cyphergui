@@ -21,14 +21,14 @@ export default class App extends Component {
         ]
     }
 
-    contents = {
-        Start: { component: Start, props: {} }
-    }
+    contents = [
+        { title: 'Start', component: Start, props: {} }
+    ]
 
     db = null;
 
     addTab = (title, icon, component, props, active = false) => {
-        this.contents[title] = { component: component, props: props };
+        this.contents.push({ title: title, component: component, props: props });
         let data = { tabs: this.state.tabs.concat({ title: title, icon: icon }) };
         if (active) {
             data.activeTab = title;
@@ -64,9 +64,6 @@ export default class App extends Component {
                 <Tab key={'tab-' + tab.title} {...tab} active={tab.title === this.state.activeTab} handleClick={this.setActiveTab} />
             )
 
-            const content = this.contents[this.state.activeTab];
-            const MyComponent = content.component;
-
             return (
                 <DbContext.Provider value={this.db}>
                     <Navbar handleLogout={this.handleLogout} handleAddCQL={this.handleAddCQL} />
@@ -74,7 +71,10 @@ export default class App extends Component {
                         <ul>{tabs}</ul>
                     </section>
                     <section className="content container is-fluid">
-                        <MyComponent key={'content-' + this.state.activeTab} {...content.props} />
+                        {this.contents.map(content => {
+                            const MyComponent = content.component;
+                            return <MyComponent key={'content-' + content.title} {...content.props} active={content.title === this.state.activeTab} />
+                        })}
                     </section>
                 </DbContext.Provider>
             )

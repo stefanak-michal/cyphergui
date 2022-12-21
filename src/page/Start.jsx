@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-
 import { DbContext } from "../db-context"
 
 class Start extends Component {
@@ -8,41 +7,39 @@ class Start extends Component {
         types: []
     }
 
-    componentDidMount() {
-        if (!this.session1) {
-            this.session1 = this.context.session();
-            this.session1
-                .run('CALL db.labels()')
-                .then(result => {
-                    this.setState({ labels: result.records.map(record => record.get('label')) });
-                })
-                .catch(error => {
-                    console.error(error);
-                })
-                .then(() => {
-                    this.session1.close();
-                    this.session1 = null;
-                });
+    shouldComponentUpdate(nextProps, nextState, nextContext) {
+        if (nextProps.active && this.props.active !== nextProps.active) {
+            this.requestData();
         }
+        return true;
+    }
 
-        if (!this.session2) {
-            this.session2 = this.context.session();
-            this.session2
-                .run('CALL db.relationshipTypes()')
-                .then(result => {
-                    this.setState({ types: result.records.map(record => record.get('relationshipType')) });
-                })
-                .catch(error => {
-                    console.error(error);
-                })
-                .then(() => {
-                    this.session2.close()
-                    this.session2 = null;
-                });
-        }
+    requestData = () => {
+        this.context.session()
+            .run('CALL db.labels()')
+            .then(result => {
+                this.setState({ labels: result.records.map(record => record.get('label')) });
+            })
+            .catch(error => {
+                console.error(error);
+            })
+
+        this.context.session()
+            .run('CALL db.relationshipTypes()')
+            .then(result => {
+                this.setState({ types: result.records.map(record => record.get('relationshipType')) });
+            })
+            .catch(error => {
+                console.error(error);
+            })
+    }
+
+    componentDidMount() {
+        this.requestData();
     }
 
     render() {
+        if (!this.props.active) return;
         return (
             <>
                 <div className="subtitle mb-2">Node labels</div>

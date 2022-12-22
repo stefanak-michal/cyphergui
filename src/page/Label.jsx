@@ -2,6 +2,12 @@ import React, { Component } from 'react'
 import Pagination from "./block/Pagination";
 import { neo4j, getDriver } from '../db'
 
+/**
+ * List all nodes with specific label
+ * @todo add events to actions in td row
+ * @todo test additional labels and add buttons
+ * @todo put toggle somewhere to switch between table and graph
+ */
 export default class Label extends Component {
     perPage = 20
 
@@ -108,7 +114,17 @@ export default class Label extends Component {
                                     </td>
                                 )}
                                 <td>{row.labels.filter(value => value !== this.props.label).join(', ')}</td>
-                                <td>actions</td>
+                                <td>
+                                    <span className="icon" title="Show relationships">
+                                        <i className="fa-solid fa-circle-nodes"></i>
+                                    </span>
+                                    <span className="icon" title="Edit">
+                                        <i className="fa-solid fa-pen-clip"></i>
+                                    </span>
+                                    <span className="icon" title="Delete">
+                                        <i className="fa-solid fa-trash-can"></i>
+                                    </span>
+                                </td>
                             </tr>
                         )}
                         </tbody>
@@ -117,9 +133,6 @@ export default class Label extends Component {
 
                 <Pagination page={this.state.page} pages={Math.ceil(this.state.total / this.perPage)} action={this.handleChangePage} />
             </>
-
-            //todo test additional labels and add buttons
-            //todo put toggle somewhere to switch between table and graph
         )
     }
 }

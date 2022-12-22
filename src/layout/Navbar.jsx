@@ -1,6 +1,10 @@
 import React, { Component } from 'react'
 import { disconnect } from "../db";
 
+/**
+ * Navbar
+ * @todo change logo and title
+ */
 export default class Navbar extends Component {
     state = {
         open: false
@@ -25,7 +29,11 @@ export default class Navbar extends Component {
                         <img src="https://bulma.io/images/bulma-logo.png" width="112" height="28" />
                     </a>
 
-                    <a role="button" className={'navbar-burger ' + (this.state.open ? 'is-active' : '')} aria-label="menu" aria-expanded="false" data-target="basicNavbar" onClick={this.handleOpen}>
+                    <a role="button" className={'navbar-burger ' + (this.state.open ? 'is-active' : '')}
+                       aria-label="menu"
+                       aria-expanded="false"
+                       data-target="basicNavbar"
+                       onClick={this.handleOpen}>
                         <span aria-hidden="true"></span>
                         <span aria-hidden="true"></span>
                         <span aria-hidden="true"></span>

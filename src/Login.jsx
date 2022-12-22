@@ -2,6 +2,12 @@ import React, { Component } from 'react'
 import { Input } from './bulma'
 import { neo4j, setDriver } from './db'
 
+/**
+ * Login page
+ * @todo add additional info
+ * @todo update logo
+ * @todo add link to github at the bottom
+ */
 export default class Login extends Component {
     state = {
         url: 'bolt://localhost:7687',

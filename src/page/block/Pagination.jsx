@@ -23,8 +23,14 @@ export default class Pagination extends Component {
 
         return (
             <nav className="pagination is-centered" role="navigation" aria-label="pagination">
-                <button className="pagination-previous button" disabled={this.props.page === 1} onClick={() => this.props.action(this.props.page - 1)}>Previous</button>
-                <button className="pagination-next button" disabled={this.props.page === this.props.pages} onClick={() => this.props.action(this.props.page + 1)}>Next page</button>
+                <button className="pagination-previous button"
+                        disabled={this.props.page === 1}
+                        onClick={() => this.props.action(this.props.page - 1)}>Previous
+                </button>
+                <button className="pagination-next button"
+                        disabled={this.props.page === this.props.pages}
+                        onClick={() => this.props.action(this.props.page + 1)}>Next page
+                </button>
                 <ul className="pagination-list">
                     {links.map(value =>
                         <li>

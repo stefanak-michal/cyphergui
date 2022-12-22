@@ -4,6 +4,9 @@ import Navbar from "./layout/Navbar";
 import Start from "./page/Start";
 import Query from "./page/Query";
 
+/**
+ * Logged page with tab management
+ */
 export default class Logged extends Component {
     state = {
         activeTab: null,

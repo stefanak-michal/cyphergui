@@ -1,5 +1,8 @@
 import React, { Component } from 'react'
 
+/**
+ * Tab header
+ */
 export default class Tab extends Component {
     state = {
         delete: false

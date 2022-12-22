@@ -1,7 +1,9 @@
 import React, { Component } from 'react'
-import { DbContext } from "../db-context"
+import Label from "./Label";
+import Type from "./Type";
+import { getDriver } from '../db'
 
-class Start extends Component {
+export default class Start extends Component {
     state = {
         labels: [],
         types: []
@@ -15,7 +17,7 @@ class Start extends Component {
     }
 
     requestData = () => {
-        this.context.session()
+        getDriver().session()
             .run('CALL db.labels()')
             .then(result => {
                 this.setState({ labels: result.records.map(record => record.get('label')) });
@@ -24,7 +26,7 @@ class Start extends Component {
                 console.error(error);
             })
 
-        this.context.session()
+        getDriver().session()
             .run('CALL db.relationshipTypes()')
             .then(result => {
                 this.setState({ types: result.records.map(record => record.get('relationshipType')) });
@@ -45,7 +47,9 @@ class Start extends Component {
                 <div className="subtitle mb-2">Node labels</div>
                 <div className="buttons are-small">
                     {this.state.labels.map(label =>
-                        <button className="button is-link is-rounded">{label}</button>
+                        <button className="button is-link is-rounded"
+                                onClick={() => this.props.addTab(label, 'fa-regular fa-circle', Label, { label: label })}
+                                key={label}>{label}</button>
                     )}
                 </div>
 
@@ -54,7 +58,9 @@ class Start extends Component {
                 <div className="subtitle mb-2">Relationship types</div>
                 <div className="buttons are-small">
                     {this.state.types.map(type =>
-                        <button className="button is-info is-rounded">{type}</button>
+                        <button className="button is-info is-rounded"
+                                onClick={() => this.props.addTab(type, 'fa-solid fa-arrows-left-right-to-line', Type, { type: type })}
+                                key={type}>{type}</button> //fa-solid fa-link alebo fa-arrows-left-right-to-line
                     )}
                 </div>
 
@@ -65,7 +71,3 @@ class Start extends Component {
         )
     }
 }
-
-Start.contextType = DbContext
-
-export default Start

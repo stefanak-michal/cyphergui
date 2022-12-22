@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
-import { DbContext } from "../db-context";
+import { disconnect } from "../db";
 
- class Navbar extends Component {
+export default class Navbar extends Component {
     state = {
         open: false
     }
@@ -13,10 +13,7 @@ import { DbContext } from "../db-context";
     }
 
     handleLogout = () => {
-        if (this.context !== null) {
-            this.context.close();
-            this.context = null;
-        }
+        disconnect();
         this.props.handleLogout();
     }
 
@@ -55,7 +52,3 @@ import { DbContext } from "../db-context";
         )
     }
 }
-
-Navbar.contextType = DbContext
-
-export default Navbar

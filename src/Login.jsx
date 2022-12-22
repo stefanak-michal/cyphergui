@@ -1,9 +1,6 @@
 import React, { Component } from 'react'
-import './Login.css'
-
-import { Input } from '../bulma'
-
-const neo4j = require('neo4j-driver')
+import { Input } from './bulma'
+import { neo4j, setDriver } from './db'
 
 export default class Login extends Component {
     state = {
@@ -30,7 +27,8 @@ export default class Login extends Component {
             await session.run('RETURN 1 as num');
             await session.close();
 
-            this.props.setDB(driver);
+            setDriver(driver);
+            this.props.handleLogin();
         } catch (err) {
             console.log(err);
             this.setState({

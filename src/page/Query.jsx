@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
-import { DbContext } from "../db-context"
+import { neo4j, getDriver } from "../db";
 
-class Query extends Component {
+export default class Query extends Component {
     render() {
         if (!this.props.active) return;
         return (
@@ -11,7 +11,3 @@ class Query extends Component {
         )
     }
 }
-
-Query.contextType = DbContext
-
-export default Query

@@ -5,6 +5,10 @@ body {
     margin-bottom: 100px;
 }
 
+.nowrap {
+    white-space: nowrap;
+}
+
 .App {
 
 }

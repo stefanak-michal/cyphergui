@@ -68,7 +68,7 @@ export default class Login extends Component {
                 <div className='container is-fluid'>
                     <h1 className='title has-text-centered'>Bolt Admin</h1>
                     <form id="login" className="columns mt-6" onSubmit={this.handleSubmit}>
-                        <div className="column is-one-third is-offset-one-third">
+                        <div className="column is-one-third is-offset-one-third box">
                             <Input label='URL' name='url' onChange={this.handleInputChange} value={this.state.url} />
                             <Input label='Username' name='username' onChange={this.handleInputChange} value={this.state.username} />
                             <Input label='Password' name='password' type='password' onChange={this.handleInputChange} />

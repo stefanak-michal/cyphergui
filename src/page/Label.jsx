@@ -103,7 +103,7 @@ export default class Label extends Component {
                             <tr>
                                 <td>{neo4j.integer.toString(row.identity)}</td>
                                 {this.state.rows.length && !!this.state.rows[0].elementId &&
-                                    <td>{row.elementId}</td>
+                                    <td className="nowrap">{row.elementId}</td>
                                 }
                                 {keys.map(key => <td>
                                         {row.properties.hasOwnProperty(key) && (
@@ -114,7 +114,7 @@ export default class Label extends Component {
                                     </td>
                                 )}
                                 <td>{row.labels.filter(value => value !== this.props.label).join(', ')}</td>
-                                <td>
+                                <td className="nowrap">
                                     <span className="icon" title="Show relationships">
                                         <i className="fa-solid fa-circle-nodes"></i>
                                     </span>

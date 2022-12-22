@@ -6,7 +6,8 @@ import { getDriver } from '../db'
 export default class Start extends Component {
     state = {
         labels: [],
-        types: []
+        types: [],
+        serverInfo: {}
     }
 
     shouldComponentUpdate(nextProps, nextState, nextContext) {
@@ -17,19 +18,23 @@ export default class Start extends Component {
     }
 
     requestData = () => {
-        getDriver().session()
-            .run('CALL db.labels()')
-            .then(result => {
-                this.setState({ labels: result.records.map(record => record.get('label')) });
-            })
-            .catch(error => {
-                console.error(error);
-            })
-
-        getDriver().session()
-            .run('CALL db.relationshipTypes()')
-            .then(result => {
-                this.setState({ types: result.records.map(record => record.get('relationshipType')) });
+        Promise
+            .all([
+                getDriver()
+                    .session()
+                    .run('MATCH (n) WITH DISTINCT labels(n) AS ll UNWIND ll AS l RETURN collect(DISTINCT l) AS c'),
+                getDriver()
+                    .session()
+                    .run('MATCH ()-[n]-() RETURN collect(DISTINCT type(n)) AS c'),
+                getDriver()
+                    .getServerInfo()
+            ])
+            .then(responses => {
+                this.setState({
+                    labels: responses[0].records[0].get('c'),
+                    types: responses[1].records[0].get('c'),
+                    serverInfo: responses[2]
+                });
             })
             .catch(error => {
                 console.error(error);
@@ -44,6 +49,14 @@ export default class Start extends Component {
         if (!this.props.active) return;
         return (
             <>
+                {Object.keys(this.state.serverInfo).length &&
+                    <>
+                        <div className="subtitle mb-2">Server</div>
+                        <div>Connected to <b>{this.state.serverInfo.address}</b> with protocol version <b>{this.state.serverInfo.protocolVersion}</b>.</div>
+                        <br />
+                    </>
+                }
+
                 <div className="subtitle mb-2">Node labels</div>
                 <div className="buttons are-small">
                     {this.state.labels.map(label =>
@@ -59,8 +72,8 @@ export default class Start extends Component {
                 <div className="buttons are-small">
                     {this.state.types.map(type =>
                         <button className="button is-info is-rounded"
-                                onClick={() => this.props.addTab(type, 'fa-solid fa-arrows-left-right-to-line', Type, { type: type })}
-                                key={type}>{type}</button> //fa-solid fa-link alebo fa-arrows-left-right-to-line
+                                onClick={() => this.props.addTab(type, 'fa-solid fa-arrow-right-long', Type, { type: type })}
+                                key={type}>{type}</button>
                     )}
                 </div>
 

@@ -79,6 +79,7 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/t
 - https://css-tricks.com/snippets/css/a-guide-to-flexbox/
 - https://github.com/neo4j/neo4j-javascript-driver
 - https://github.com/memgraph/orb
+- https://javascript.info/promise-api
 
 # todo
 

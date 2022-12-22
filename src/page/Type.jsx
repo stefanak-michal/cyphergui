@@ -4,6 +4,8 @@ import { neo4j, getDriver } from '../db'
 
 export default class Type extends Component {
     render() {
+        if (!this.props.active) return;
+
         return (
             <>
                 relationship type

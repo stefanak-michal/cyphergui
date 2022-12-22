@@ -7,7 +7,8 @@ import Query from "./page/Query";
 export default class Logged extends Component {
     state = {
         activeTab: null,
-        tabs: []
+        tabs: [],
+        contents: []
     }
 
     componentDidMount() {
@@ -15,12 +16,11 @@ export default class Logged extends Component {
             activeTab: 'Start',
             tabs: [
                 { title: 'Start', icon: 'fa-solid fa-play' }
+            ],
+            contents: [
+                { title: 'Start', component: Start, props: { } }
             ]
-        })
-
-        this.contents = [
-            { title: 'Start', component: Start, props: { } }
-        ]
+        });
     }
 
     addTab = (title, icon, component, props, active = true) => {
@@ -29,8 +29,10 @@ export default class Logged extends Component {
             return;
         }
 
-        this.contents.push({ title: title, component: component, props: props });
-        let data = { tabs: this.state.tabs.concat({ title: title, icon: icon }) };
+        let data = {
+            tabs: this.state.tabs.concat({ title: title, icon: icon }),
+            contents: this.state.contents.concat({ title: title, component: component, props: props })
+        };
         if (active) {
             data.activeTab = title;
         }
@@ -44,8 +46,25 @@ export default class Logged extends Component {
     }
 
     handleAddCQL = () => {
-        const i = this.state.tabs.filter(tab => tab.title.indexOf('CQL') === 0).length + 1;
-        this.addTab('CQL#' + i, 'fa-solid fa-terminal', Query, {});
+        let j = Math.max(...this.state.tabs.map(tab => /CQL#\d+/.test(tab.title)
+            ? parseInt(tab.title.match(/CQL#(\d+)/)[1])
+            : 0)) + 1;
+        this.addTab('CQL#' + j, 'fa-solid fa-terminal', Query, {});
+    }
+
+    removeTab = (title, e) => {
+        e.stopPropagation();
+        let data = {
+            tabs: this.state.tabs.filter(tab => title !== tab.title),
+            contents: this.state.contents.filter(content => title !== content.title)
+        };
+
+        if (this.state.activeTab === title) {
+            let i = this.state.tabs.map(tab => tab.title).indexOf(title);
+            data.activeTab = this.state.tabs[i - 1].title;
+        }
+
+        this.setState(data);
     }
 
     render() {
@@ -56,11 +75,11 @@ export default class Logged extends Component {
                 <Navbar handleLogout={this.props.handleLogout} handleAddCQL={this.handleAddCQL} />
                 <section className="tabs is-boxed">
                     <ul>{this.state.tabs.map(tab =>
-                        <Tab key={'tab-' + tab.title} {...tab} active={tab.title === this.state.activeTab} handleClick={this.setActiveTab} />
+                        <Tab key={'tab-' + tab.title} {...tab} active={tab.title === this.state.activeTab} handleClick={this.setActiveTab} handleRemove={this.removeTab} />
                     )}</ul>
                 </section>
                 <section className="container is-fluid">
-                    {this.contents.map(content => {
+                    {this.state.contents.map(content => {
                         const MyComponent = content.component;
                         return <MyComponent key={'content-' + content.title} {...content.props} active={content.title === this.state.activeTab} addTab={this.addTab} />
                     })}

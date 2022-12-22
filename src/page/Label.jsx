@@ -12,22 +12,22 @@ export default class Label extends Component {
     }
 
     requestData = () => {
-        getDriver().session()
-            .run('MATCH (n:' + this.props.label + ') RETURN n SKIP $s LIMIT $l', { s: neo4j.int((this.state.page - 1) * this.perPage), l: neo4j.int(this.perPage) })
-            .then(result => {
+        Promise
+            .all([
+                getDriver()
+                    .session()
+                    .run('MATCH (n:' + this.props.label + ') RETURN n SKIP $s LIMIT $l', {
+                        s: neo4j.int((this.state.page - 1) * this.perPage),
+                        l: neo4j.int(this.perPage)
+                    }),
+                getDriver()
+                    .session()
+                    .run('MATCH (n:' + this.props.label + ') RETURN COUNT(n) AS cnt')
+            ])
+            .then(responses => {
                 this.setState({
-                    rows: result.records.map(record => record.get('n'))
-                });
-            })
-            .catch(error => {
-                console.error(error);
-            })
-
-        getDriver().session()
-            .run('MATCH (n:' + this.props.label + ') RETURN COUNT(n) AS cnt')
-            .then(result => {
-                this.setState({
-                    total: result.records[0].get('cnt')
+                    rows: responses[0].records.map(record => record.get('n')),
+                    total: responses[1].records[0].get('cnt')
                 });
             })
             .catch(error => {
@@ -46,10 +46,15 @@ export default class Label extends Component {
         return true;
     }
 
+    handleChangePage = (page) => {
+        this.setState({
+            page: page
+        }, this.requestData);
+    }
+
     render() {
         if (!this.props.active) return;
 
-        // console.log(this.state.rows);
         let keys = [];
         for (let row of this.state.rows) {
             for (let k in row.properties) {
@@ -61,12 +66,13 @@ export default class Label extends Component {
 
         return (
             <>
-                <div>
-                    Query:
-                    <div className="control">
-                        <textarea className="textarea is-family-code" readOnly defaultValue="This content is readonly" rows="1" />
-                        button - edit query ..opens new Query tab
-                    </div>
+                <div className="mb-3">
+                    <span className="icon-text is-flex-wrap-nowrap">
+                        <span className="icon"><i className="fa-solid fa-terminal" aria-hidden="true"></i></span>
+                        <span className="is-family-code">
+                            {'MATCH (n:' + this.props.label + ') RETURN n SKIP ' + ((this.state.page - 1) * this.perPage) + ' LIMIT ' + this.perPage}
+                        </span>
+                    </span>
                 </div>
                 <div className="table-container">
                     <table className="table is-bordered is-striped is-narrow is-hoverable">
@@ -109,7 +115,7 @@ export default class Label extends Component {
                     </table>
                 </div>
 
-                <Pagination page={this.state.page} pages={Math.ceil(this.state.total / this.perPage)} />
+                <Pagination page={this.state.page} pages={Math.ceil(this.state.total / this.perPage)} action={this.handleChangePage} />
             </>
 
             //todo test additional labels and add buttons

@@ -23,16 +23,17 @@ export default class Pagination extends Component {
 
         return (
             <nav className="pagination is-centered" role="navigation" aria-label="pagination">
-                <button className="pagination-previous button" disabled={this.props.page === 1}>Previous</button>
-                <button className="pagination-next button" disabled={this.props.page === this.props.pages}>Next page</button>
+                <button className="pagination-previous button" disabled={this.props.page === 1} onClick={() => this.props.action(this.props.page - 1)}>Previous</button>
+                <button className="pagination-next button" disabled={this.props.page === this.props.pages} onClick={() => this.props.action(this.props.page + 1)}>Next page</button>
                 <ul className="pagination-list">
                     {links.map(value =>
-                        <li key={'pagination' + value}>
+                        <li>
                             {value === 'e'
                                 ? <span className="pagination-ellipsis">&hellip;</span>
                                 : <button className={"button pagination-link " + (this.props.page === value ? 'is-current' : '')}
-                                     aria-label={"Goto page " + value}
-                                     aria-current={this.props.page === value && 'page'}>{value}</button>
+                                          onClick={() => this.props.action(value)}
+                                          aria-label={"Goto page " + value}
+                                          aria-current={this.props.page === value && 'page'}>{value}</button>
                             }
                         </li>
                     )}

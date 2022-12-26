@@ -1,3 +1,10 @@
+# WIP
+
+GUI admin tool for graph databases with bolt protocol support (neo4j, memgraph, amazon neptune). Usable without knowledge of cypher query language. Inspired by phpmyadmin.
+
+<br/>
+<br/>
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
@@ -85,4 +92,3 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/t
 
 - everything
 - persistent data storage for login and open tabs
-- logout btn

@@ -74,9 +74,11 @@ export default class Label extends Component {
             .run('MATCH (n) WHERE ' + (this.hasElementId ? 'elementId(n)' : 'id(n)') + ' = $i ' + (this.state.delete.detach ? 'DETACH ' : '') + 'DELETE n', {
                 i: this.state.delete.id
             })
-            .then(() => {
-                this.requestData();
-                this.props.toast('Node deleted');
+            .then(response => {
+                if (response.summary.counters.updates().nodesDeleted > 0) {
+                    this.requestData();
+                    this.props.toast('Node deleted');
+                }
             })
             .catch(error => {
                 this.setState({

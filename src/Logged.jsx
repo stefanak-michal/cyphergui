@@ -15,8 +15,6 @@ export default class Logged extends Component {
         toasts: []
     }
 
-    toastInterval = null;
-
     componentDidMount() {
         this.setState({
             activeTab: 'Start',
@@ -27,28 +25,6 @@ export default class Logged extends Component {
                 { title: 'Start', component: Start, props: {} }
             ]
         });
-
-        this.toastInterval = setInterval(() => {
-            if (this.state.toasts.length > 0) {
-                let t = this.state.toasts;
-                for (let i = this.state.toasts.length - 1; i >= 0; i--) {
-                    if (t[i].timeout > 0) {
-                        t[i].timeout--;
-                    } else {
-                        t.splice(i, 1);
-                    }
-                }
-                this.setState({
-                    toasts: t
-                })
-            }
-        }, 1000);
-    }
-
-    componentWillUnmount() {
-        if (this.toastInterval !== null) {
-            clearInterval(this.toastInterval);
-        }
     }
 
     addTab = (title, icon, component, props, active = true) => {
@@ -73,7 +49,7 @@ export default class Logged extends Component {
         });
     }
 
-    handleAddCQL = () => {
+    handleAddQueryTab = () => {
         let j = Math.max(...this.state.tabs.map(tab => /Query#\d+/.test(tab.title)
             ? parseInt(tab.title.match(/Query#(\d+)/)[1])
             : 0)) + 1;
@@ -95,9 +71,22 @@ export default class Logged extends Component {
         this.setState(data);
     }
 
-    toast = (message, color = 'is-success', timeout = 3) => {
+    toast = (message, color = 'is-success', delay = 3) => {
+        const i = new Date().getTime();
         this.setState({
-            toasts: this.state.toasts.concat({ message: message, color: color, timeout: timeout })
+            toasts: this.state.toasts.concat({
+                key: i,
+                message: message,
+                color: color,
+                delay: delay,
+                timeout: setTimeout(() => this.discardToast(i), delay * 1000)
+            })
+        })
+    }
+
+    discardToast = (i) => {
+        this.setState({
+            toasts: this.state.toasts.filter(t => t.key !== i)
         })
     }
 
@@ -106,7 +95,7 @@ export default class Logged extends Component {
 
         return (
             <>
-                <Navbar handleLogout={this.props.handleLogout} handleAddCQL={this.handleAddCQL} />
+                <Navbar handleLogout={this.props.handleLogout} handleAddQueryTab={this.handleAddQueryTab} />
                 <section className="tabs is-boxed">
                     <ul>{this.state.tabs.map(tab =>
                         <Tab key={'tab-' + tab.title} {...tab} active={tab.title === this.state.activeTab} handleClick={this.setActiveTab} handleRemove={this.removeTab} />
@@ -119,8 +108,9 @@ export default class Logged extends Component {
                     })}
                 </section>
                 <section className="notifications">
-                    {this.state.toasts.map((toast, index) =>
-                        <div className={"notification " + toast.color}>
+                    {this.state.toasts.map(toast =>
+                        <div className={"notification fadeOut " + toast.color} style={{ animationDelay: (toast.delay - 1) + 's' }}>
+                            <button className="delete" onClick={() => this.discardToast(toast.key)}></button>
                             {toast.message}
                         </div>
                     )}

@@ -13,10 +13,25 @@ body {
 
 }
 
+@keyframes fadeOut {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+.fadeOut {
+    animation-timing-function: ease-out;
+    animation-name: fadeOut;
+    animation-fill-mode: both;
+}
+
 .notifications {
     position: fixed;
     right: 10px;
     bottom: 10px;
+}
+
+.notifications .notification {
+    animation-duration: 1s;
 }
 
 

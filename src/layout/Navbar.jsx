@@ -45,7 +45,7 @@ export default class Navbar extends Component {
                     <div className="navbar-end">
                         <div className="navbar-item">
                             <div className="buttons">
-                                <a className="button is-primary" onClick={this.props.handleAddCQL}>
+                                <a className="button is-primary" onClick={this.props.handleAddQueryTab}>
                                     <span className="icon"><i className="fas fa-plus" aria-hidden="true"></i></span>
                                     <strong>Query</strong>
                                 </a>

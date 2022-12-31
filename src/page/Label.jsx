@@ -3,7 +3,7 @@ import Pagination from "./block/Pagination";
 import Modal from "./block/Modal";
 import TableSortIcon from "./block/TableSortIcon";
 import Node from './Node';
-import { neo4j, getDriver } from '../db'
+import { neo4j, getActiveDb, getDriver } from '../db'
 import { Checkbox } from "../bulma";
 
 /**
@@ -12,28 +12,33 @@ import { Checkbox } from "../bulma";
  * @todo test additional labels and add buttons
  * @todo put toggle somewhere to switch between table and graph
  */
-export default class Label extends Component {
+class Label extends Component {
     perPage = 20
     hasElementId = false;
+    database = null;
 
-    state = {
-        rows: [],
-        page: 1,
-        total: 0,
-        sort: null
+    constructor(props) {
+        super(props);
+        this.state = {
+            rows: [],
+            page: 1,
+            total: 0,
+            sort: null
+        }
+        this.database = getActiveDb();
     }
 
     requestData = () => {
         Promise
             .all([
                 getDriver()
-                    .session()
+                    .session({ database: this.database, defaultAccessMode: neo4j.session.READ })
                     .run('MATCH (n:' + this.props.label + ') RETURN n ' + (this.state.sort !== null ? 'ORDER BY ' + this.state.sort : '') + ' SKIP $s LIMIT $l', {
                         s: neo4j.int((this.state.page - 1) * this.perPage),
                         l: neo4j.int(this.perPage)
                     }),
                 getDriver()
-                    .session()
+                    .session({ database: this.database, defaultAccessMode: neo4j.session.READ })
                     .run('MATCH (n:' + this.props.label + ') RETURN COUNT(n) AS cnt')
             ])
             .then(responses => {
@@ -73,7 +78,7 @@ export default class Label extends Component {
 
     handleDeleteModalConfirm = () => {
         getDriver()
-            .session()
+            .session({ database: this.database, defaultAccessMode: neo4j.session.WRITE })
             .run('MATCH (n) WHERE id(n) = $i ' + (this.state.delete.detach ? 'DETACH ' : '') + 'DELETE n', {
                 i: this.state.delete.id
             })
@@ -120,6 +125,7 @@ export default class Label extends Component {
 
     render() {
         if (!this.props.active) return;
+        document.title = this.props.label + ' label (db: ' + this.database + ')';
 
         let keys = [];
         for (let row of this.state.rows) {
@@ -244,3 +250,5 @@ export default class Label extends Component {
         )
     }
 }
+
+export default Label

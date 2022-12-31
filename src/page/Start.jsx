@@ -1,13 +1,21 @@
 import React, { Component } from 'react'
 import Label from "./Label";
 import Type from "./Type";
-import { getDriver } from '../db'
+import { neo4j, getActiveDb, getDriver, registerChangeDbCallback } from '../db'
 
-export default class Start extends Component {
-    state = {
-        labels: [],
-        types: [],
-        serverInfo: {}
+class Start extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            labels: [],
+            types: [],
+            serverInfo: {}
+        }
+    }
+
+    componentDidMount() {
+        registerChangeDbCallback(this.requestData);
+        this.requestData();
     }
 
     shouldComponentUpdate(nextProps, nextState, nextContext) {
@@ -21,10 +29,10 @@ export default class Start extends Component {
         Promise
             .all([
                 getDriver()
-                    .session()
+                    .session({ database: getActiveDb(), defaultAccessMode: neo4j.session.READ })
                     .run('MATCH (n) WITH DISTINCT labels(n) AS ll UNWIND ll AS l RETURN collect(DISTINCT l) AS c'),
                 getDriver()
-                    .session()
+                    .session({ database: getActiveDb(), defaultAccessMode: neo4j.session.READ })
                     .run('MATCH ()-[n]-() RETURN collect(DISTINCT type(n)) AS c'),
                 getDriver()
                     .getServerInfo()
@@ -41,12 +49,10 @@ export default class Start extends Component {
             })
     }
 
-    componentDidMount() {
-        this.requestData();
-    }
-
     render() {
         if (!this.props.active) return;
+        document.title = 'Start';
+
         return (
             <>
                 <div className="subtitle mb-2">Server</div>
@@ -58,22 +64,28 @@ export default class Start extends Component {
 
                 <div className="subtitle mb-2">Node labels</div>
                 <div className="buttons are-small">
-                    {this.state.labels.map(label =>
-                        <button className="button is-link is-rounded"
+                    {this.state.labels.length > 0
+                        ? this.state.labels.map(label =>
+                            <button className="button is-link is-rounded"
                                 onClick={() => this.props.addTab(label, 'fa-regular fa-circle', Label, { label: label })}
                                 key={label}>{label}</button>
-                    )}
+                        )
+                        : <span className="has-text-grey-light">none</span>
+                    }
                 </div>
 
                 <br />
 
                 <div className="subtitle mb-2">Relationship types</div>
                 <div className="buttons are-small">
-                    {this.state.types.map(type =>
-                        <button className="button is-info is-rounded"
+                    {this.state.types.length > 0
+                        ? this.state.types.map(type =>
+                            <button className="button is-info is-rounded"
                                 onClick={() => this.props.addTab(type, 'fa-solid fa-arrow-right-long', Type, { type: type })}
                                 key={type}>{type}</button>
-                    )}
+                        )
+                        : <span className="has-text-grey-light">none</span>
+                    }
                 </div>
 
                 <br />
@@ -83,3 +95,5 @@ export default class Start extends Component {
         )
     }
 }
+
+export default Start

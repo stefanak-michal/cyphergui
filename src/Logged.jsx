@@ -7,12 +7,15 @@ import Query from "./page/Query";
 /**
  * Logged page with tab management
  */
-export default class Logged extends Component {
-    state = {
-        activeTab: null,
-        tabs: [],
-        contents: [],
-        toasts: []
+class Logged extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            activeTab: null,
+            tabs: [],
+            contents: [],
+            toasts: []
+        }
     }
 
     componentDidMount() {
@@ -137,3 +140,5 @@ export default class Logged extends Component {
         )
     }
 }
+
+export default Logged

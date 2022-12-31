@@ -3,10 +3,14 @@ import React, { Component } from 'react'
 /**
  * Tab header
  */
-export default class Tab extends Component {
-    state = {
-        delete: false
+class Tab extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            delete: false
+        }
     }
+
 
     showDelete = (e) => {
         this.setState({ delete: e.type === 'mouseenter' })
@@ -28,3 +32,5 @@ export default class Tab extends Component {
         )
     }
 }
+
+export default Tab

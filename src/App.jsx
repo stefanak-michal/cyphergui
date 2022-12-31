@@ -4,7 +4,7 @@ import './App.css'
 import Login from './Login'
 import Logged from './Logged'
 
-export default class App extends Component {
+class App extends Component {
     state = {
         logged: false
     }
@@ -32,3 +32,5 @@ export default class App extends Component {
         )
     }
 }
+
+export default App

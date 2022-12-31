@@ -5,10 +5,11 @@ import { neo4j, getDriver } from "../db";
  * Edit node by ID
  * @todo
  */
-export default class Node extends Component {
+class Node extends Component {
 
     render() {
         if (!this.props.active) return
+        document.title = 'Node #' + this.props.id;
 
         return (
             <>
@@ -17,3 +18,5 @@ export default class Node extends Component {
         )
     }
 }
+
+export default Node

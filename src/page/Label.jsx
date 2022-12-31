@@ -1,6 +1,8 @@
 import React, { Component } from 'react'
 import Pagination from "./block/Pagination";
+import Modal from "./block/Modal";
 import { neo4j, getDriver } from '../db'
+import { Checkbox } from "../bulma";
 
 /**
  * List all nodes with specific label
@@ -10,6 +12,7 @@ import { neo4j, getDriver } from '../db'
  */
 export default class Label extends Component {
     perPage = 20
+    hasElementId = false;
 
     state = {
         rows: [],
@@ -35,6 +38,7 @@ export default class Label extends Component {
                     rows: responses[0].records.map(record => record.get('n')),
                     total: responses[1].records[0].get('cnt')
                 });
+                this.hasElementId = responses[0].records.length > 0 && !!responses[0].records[0].get('n').elementId;
             })
             .catch(error => {
                 console.error(error);
@@ -58,6 +62,50 @@ export default class Label extends Component {
         }, this.requestData);
     }
 
+    handleOpenDeleteModal = (id) => {
+        this.setState({
+            delete: { id: id }
+        })
+    }
+
+    handleDeleteModalConfirm = () => {
+        getDriver()
+            .session()
+            .run('MATCH (n) WHERE ' + (this.hasElementId ? 'elementId(n)' : 'id(n)') + ' = $i ' + (this.state.delete.detach ? 'DETACH ' : '') + 'DELETE n', {
+                i: this.state.delete.id
+            })
+            .then(() => {
+                this.requestData();
+                this.props.toast('Node deleted');
+            })
+            .catch(error => {
+                this.setState({
+                    error: error.message
+                })
+            })
+            .finally(() => {
+                this.handleDeleteModalCancel();
+            })
+    }
+
+    handleDeleteModalCancel = () => {
+        this.setState({
+            delete: null
+        })
+    }
+
+    handleDeleteModalDetachCheckbox = (e) => {
+        this.setState({
+            delete: { ...this.state.delete, detach: e.target.checked }
+        })
+    }
+
+    handleClearError = () => {
+        this.setState({
+            error: null
+        })
+    }
+
     render() {
         if (!this.props.active) return;
 
@@ -72,6 +120,30 @@ export default class Label extends Component {
 
         return (
             <>
+                {this.state.delete &&
+                    <Modal title="Are you sure?" color="is-danger" handleClose={this.handleDeleteModalCancel}>
+                        <div className="mb-3">
+                            <Checkbox name="detachDelete" onChange={this.handleDeleteModalDetachCheckbox} label="Detach delete?" checked={this.state.delete.detach} />
+                        </div>
+                        <div className="buttons is-justify-content-flex-end">
+                            <button className="button is-danger" onClick={this.handleDeleteModalConfirm}>Confirm</button>
+                            <button className="button is-secondary" onClick={this.handleDeleteModalCancel}>Cancel</button>
+                        </div>
+                    </Modal>
+                }
+
+                {this.state.error &&
+                    <div className="message is-danger">
+                        <div className="message-header">
+                            <p>Error</p>
+                            <button className="delete" aria-label="delete" onClick={this.handleClearError}></button>
+                        </div>
+                        <div className="message-body">
+                            {this.state.error}
+                        </div>
+                    </div>
+                }
+
                 <div className="mb-3">
                     <span className="icon-text is-flex-wrap-nowrap">
                         <span className="icon"><i className="fa-solid fa-terminal" aria-hidden="true"></i></span>
@@ -84,13 +156,13 @@ export default class Label extends Component {
                     <table className="table is-bordered is-striped is-narrow is-hoverable">
                         <thead>
                         <tr>
+                            <th rowSpan="2"></th>
                             <th rowSpan="2">ID</th>
-                            {this.state.rows.length && !!this.state.rows[0].elementId &&
+                            {this.hasElementId &&
                                 <th rowSpan="2">elementId</th>
                             }
-                            <th colSpan={keys.length}>properties</th>
                             <th rowSpan="2"><abbr title={"Additional node labels besides :" + this.props.label}>labels</abbr></th>
-                            <th rowSpan="2"></th>
+                            <th colSpan={keys.length}>properties</th>
                         </tr>
                         <tr>
                             {keys.map(key =>
@@ -101,10 +173,30 @@ export default class Label extends Component {
                         <tbody>
                         {this.state.rows.map(row =>
                             <tr>
+                                <td>
+                                    <div className="is-flex-wrap-nowrap buttons">
+                                        <button className="button">
+                                        <span className="icon is-small" title="Show relationships">
+                                            <i className="fa-solid fa-circle-nodes"></i>
+                                        </span>
+                                        </button>
+                                        <button className="button">
+                                        <span className="icon is-small" title="Edit">
+                                            <i className="fa-solid fa-pen-clip"></i>
+                                        </span>
+                                        </button>
+                                        <button className="button" onClick={() => this.handleOpenDeleteModal(this.hasElementId ? row.elementId : row.identity)}>
+                                        <span className="icon is-small" title="Delete">
+                                            <i className="fa-solid fa-trash-can"></i>
+                                        </span>
+                                        </button>
+                                    </div>
+                                </td>
                                 <td>{neo4j.integer.toString(row.identity)}</td>
-                                {this.state.rows.length && !!this.state.rows[0].elementId &&
+                                {this.hasElementId &&
                                     <td className="nowrap">{row.elementId}</td>
                                 }
+                                <td>{row.labels.filter(value => value !== this.props.label).join(', ')}</td>
                                 {keys.map(key => <td>
                                         {row.properties.hasOwnProperty(key) && (
                                             row.properties[key].hasOwnProperty('low') && row.properties[key].hasOwnProperty('high')
@@ -113,18 +205,6 @@ export default class Label extends Component {
                                         )}
                                     </td>
                                 )}
-                                <td>{row.labels.filter(value => value !== this.props.label).join(', ')}</td>
-                                <td className="nowrap">
-                                    <span className="icon" title="Show relationships">
-                                        <i className="fa-solid fa-circle-nodes"></i>
-                                    </span>
-                                    <span className="icon" title="Edit">
-                                        <i className="fa-solid fa-pen-clip"></i>
-                                    </span>
-                                    <span className="icon" title="Delete">
-                                        <i className="fa-solid fa-trash-can"></i>
-                                    </span>
-                                </td>
                             </tr>
                         )}
                         </tbody>

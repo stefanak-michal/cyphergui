@@ -47,7 +47,7 @@ export default class Navbar extends Component {
                             <div className="buttons">
                                 <a className="button is-primary" onClick={this.props.handleAddCQL}>
                                     <span className="icon"><i className="fas fa-plus" aria-hidden="true"></i></span>
-                                    <strong>CQL</strong>
+                                    <strong>Query</strong>
                                 </a>
                                 <a className="button is-light" onClick={this.handleLogout}>
                                     Log out

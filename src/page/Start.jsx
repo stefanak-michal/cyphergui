@@ -49,13 +49,12 @@ export default class Start extends Component {
         if (!this.props.active) return;
         return (
             <>
-                {Object.keys(this.state.serverInfo).length &&
-                    <>
-                        <div className="subtitle mb-2">Server</div>
-                        <div>Connected to <b>{this.state.serverInfo.address}</b> with protocol version <b>{this.state.serverInfo.protocolVersion}</b>.</div>
-                        <br />
-                    </>
+                <div className="subtitle mb-2">Server</div>
+                {Object.keys(this.state.serverInfo).length
+                    ? <div>Connected to <b>{this.state.serverInfo.address}</b> with protocol version <b>{this.state.serverInfo.protocolVersion}</b>.</div>
+                    : <div>Loading ...</div>
                 }
+                <br />
 
                 <div className="subtitle mb-2">Node labels</div>
                 <div className="buttons are-small">

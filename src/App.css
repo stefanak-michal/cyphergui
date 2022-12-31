@@ -13,6 +13,12 @@ body {
 
 }
 
+.notifications {
+    position: fixed;
+    right: 10px;
+    bottom: 10px;
+}
+
 
 /* .App-logo {
   height: 40vmin;

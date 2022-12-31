@@ -11,8 +11,11 @@ export default class Logged extends Component {
     state = {
         activeTab: null,
         tabs: [],
-        contents: []
+        contents: [],
+        toasts: []
     }
+
+    toastInterval = null;
 
     componentDidMount() {
         this.setState({
@@ -21,9 +24,31 @@ export default class Logged extends Component {
                 { title: 'Start', icon: 'fa-solid fa-play' }
             ],
             contents: [
-                { title: 'Start', component: Start, props: { } }
+                { title: 'Start', component: Start, props: {} }
             ]
         });
+
+        this.toastInterval = setInterval(() => {
+            if (this.state.toasts.length > 0) {
+                let t = this.state.toasts;
+                for (let i = this.state.toasts.length - 1; i >= 0; i--) {
+                    if (t[i].timeout > 0) {
+                        t[i].timeout--;
+                    } else {
+                        t.splice(i, 1);
+                    }
+                }
+                this.setState({
+                    toasts: t
+                })
+            }
+        }, 1000);
+    }
+
+    componentWillUnmount() {
+        if (this.toastInterval !== null) {
+            clearInterval(this.toastInterval);
+        }
     }
 
     addTab = (title, icon, component, props, active = true) => {
@@ -49,10 +74,10 @@ export default class Logged extends Component {
     }
 
     handleAddCQL = () => {
-        let j = Math.max(...this.state.tabs.map(tab => /CQL#\d+/.test(tab.title)
-            ? parseInt(tab.title.match(/CQL#(\d+)/)[1])
+        let j = Math.max(...this.state.tabs.map(tab => /Query#\d+/.test(tab.title)
+            ? parseInt(tab.title.match(/Query#(\d+)/)[1])
             : 0)) + 1;
-        this.addTab('CQL#' + j, 'fa-solid fa-terminal', Query, {});
+        this.addTab('Query#' + j, 'fa-solid fa-terminal', Query, {});
     }
 
     removeTab = (title, e) => {
@@ -70,6 +95,12 @@ export default class Logged extends Component {
         this.setState(data);
     }
 
+    toast = (message, color = 'is-success', timeout = 3) => {
+        this.setState({
+            toasts: this.state.toasts.concat({ message: message, color: color, timeout: timeout })
+        })
+    }
+
     render() {
         if (this.state.tabs.length === 0 || this.state.activeTab === null) return
 
@@ -84,8 +115,15 @@ export default class Logged extends Component {
                 <section className="container is-fluid">
                     {this.state.contents.map(content => {
                         const MyComponent = content.component;
-                        return <MyComponent key={'content-' + content.title} {...content.props} active={content.title === this.state.activeTab} addTab={this.addTab} />
+                        return <MyComponent key={'content-' + content.title} {...content.props} active={content.title === this.state.activeTab} addTab={this.addTab} toast={this.toast} />
                     })}
+                </section>
+                <section className="notifications">
+                    {this.state.toasts.map((toast, index) =>
+                        <div className={"notification " + toast.color}>
+                            {toast.message}
+                        </div>
+                    )}
                 </section>
             </>
         )

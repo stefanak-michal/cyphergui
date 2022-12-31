@@ -2,7 +2,6 @@
 
 body {
     font-family: Nunito, Helvetica, Arial, serif;
-    margin-bottom: 100px;
 }
 
 .nowrap {
@@ -11,6 +10,10 @@ body {
 
 .App {
 
+}
+
+.is-sortable {
+    cursor: n-resize;
 }
 
 @keyframes fadeOut {

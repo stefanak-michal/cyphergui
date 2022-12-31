@@ -1,4 +1,4 @@
-import { Component } from "react";
+import React, { Component } from "react";
 import Tab from "./layout/Tab";
 import Navbar from "./layout/Navbar";
 import Start from "./page/Start";
@@ -49,15 +49,8 @@ export default class Logged extends Component {
         });
     }
 
-    handleAddQueryTab = () => {
-        let j = Math.max(...this.state.tabs.map(tab => /Query#\d+/.test(tab.title)
-            ? parseInt(tab.title.match(/Query#(\d+)/)[1])
-            : 0)) + 1;
-        this.addTab('Query#' + j, 'fa-solid fa-terminal', Query, {});
-    }
-
     removeTab = (title, e) => {
-        e.stopPropagation();
+        !!e && e.stopPropagation();
         let data = {
             tabs: this.state.tabs.filter(tab => title !== tab.title),
             contents: this.state.contents.filter(content => title !== content.title)
@@ -69,6 +62,13 @@ export default class Logged extends Component {
         }
 
         this.setState(data);
+    }
+
+    handleAddQueryTab = () => {
+        let j = Math.max(...this.state.tabs.map(tab => /Query#\d+/.test(tab.title)
+            ? parseInt(tab.title.match(/Query#(\d+)/)[1])
+            : 0)) + 1;
+        this.addTab('Query#' + j, 'fa-solid fa-terminal', Query, {});
     }
 
     toast = (message, color = 'is-success', delay = 3) => {
@@ -104,7 +104,14 @@ export default class Logged extends Component {
                 <section className="container is-fluid">
                     {this.state.contents.map(content => {
                         const MyComponent = content.component;
-                        return <MyComponent key={'content-' + content.title} {...content.props} active={content.title === this.state.activeTab} addTab={this.addTab} toast={this.toast} />
+                        return <MyComponent
+                            key={'content-' + content.title}
+                            {...content.props}
+                            active={content.title === this.state.activeTab}
+                            addTab={this.addTab}
+                            removeTab={this.removeTab}
+                            toast={this.toast}
+                        />
                     })}
                 </section>
                 <section className="notifications">
@@ -115,6 +122,17 @@ export default class Logged extends Component {
                         </div>
                     )}
                 </section>
+                <footer className="footer mt-6">
+                    <div className="content has-text-centered">
+                        <b>Bolt-Admin</b> by Michal Stefanak.<br/>
+                        <a href="https://github.com/stefanak-michal/bolt-admin" target="_blank" className="icon-text">
+                            <span className="icon">
+                                <i className="fa-brands fa-github"></i>
+                            </span>
+                            <span>GitHub</span>
+                        </a>
+                    </div>
+                </footer>
             </>
         )
     }

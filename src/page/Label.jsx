@@ -1,6 +1,8 @@
 import React, { Component } from 'react'
 import Pagination from "./block/Pagination";
 import Modal from "./block/Modal";
+import TableSortIcon from "./block/TableSortIcon";
+import Node from './Node';
 import { neo4j, getDriver } from '../db'
 import { Checkbox } from "../bulma";
 
@@ -17,7 +19,8 @@ export default class Label extends Component {
     state = {
         rows: [],
         page: 1,
-        total: 0
+        total: 0,
+        sort: null
     }
 
     requestData = () => {
@@ -25,7 +28,7 @@ export default class Label extends Component {
             .all([
                 getDriver()
                     .session()
-                    .run('MATCH (n:' + this.props.label + ') RETURN n SKIP $s LIMIT $l', {
+                    .run('MATCH (n:' + this.props.label + ') RETURN n ' + (this.state.sort !== null ? 'ORDER BY ' + this.state.sort : '') + ' SKIP $s LIMIT $l', {
                         s: neo4j.int((this.state.page - 1) * this.perPage),
                         l: neo4j.int(this.perPage)
                     }),
@@ -71,12 +74,13 @@ export default class Label extends Component {
     handleDeleteModalConfirm = () => {
         getDriver()
             .session()
-            .run('MATCH (n) WHERE ' + (this.hasElementId ? 'elementId(n)' : 'id(n)') + ' = $i ' + (this.state.delete.detach ? 'DETACH ' : '') + 'DELETE n', {
+            .run('MATCH (n) WHERE id(n) = $i ' + (this.state.delete.detach ? 'DETACH ' : '') + 'DELETE n', {
                 i: this.state.delete.id
             })
             .then(response => {
                 if (response.summary.counters.updates().nodesDeleted > 0) {
                     this.requestData();
+                    this.props.removeTab('Node#' + neo4j.integer.toString(this.state.delete.id));
                     this.props.toast('Node deleted');
                 }
             })
@@ -108,6 +112,12 @@ export default class Label extends Component {
         })
     }
 
+    handleSetSort = (value) => {
+        this.setState({
+            sort: this.state.sort === value + ' DESC' ? null : (this.state.sort === value ? value + ' DESC' : value)
+        }, this.requestData)
+    }
+
     render() {
         if (!this.props.active) return;
 
@@ -119,6 +129,7 @@ export default class Label extends Component {
                 }
             }
         }
+        keys.sort();
 
         return (
             <>
@@ -150,7 +161,10 @@ export default class Label extends Component {
                     <span className="icon-text is-flex-wrap-nowrap">
                         <span className="icon"><i className="fa-solid fa-terminal" aria-hidden="true"></i></span>
                         <span className="is-family-code">
-                            {'MATCH (n:' + this.props.label + ') RETURN n SKIP ' + ((this.state.page - 1) * this.perPage) + ' LIMIT ' + this.perPage}
+                            {'MATCH (n:' + this.props.label + ') RETURN n '
+                                + (this.state.sort !== null ? 'ORDER BY ' + this.state.sort : '')
+                                + ' SKIP ' + ((this.state.page - 1) * this.perPage)
+                                + ' LIMIT ' + this.perPage}
                         </span>
                     </span>
                 </div>
@@ -159,16 +173,22 @@ export default class Label extends Component {
                         <thead>
                         <tr>
                             <th rowSpan="2"></th>
-                            <th rowSpan="2">ID</th>
+                            <th rowSpan="2" className="nowrap is-sortable" onClick={() => this.handleSetSort('id(n)')}>
+                                ID <TableSortIcon sort="id(n)" current={this.state.sort} />
+                            </th>
                             {this.hasElementId &&
-                                <th rowSpan="2">elementId</th>
+                                <th rowSpan="2" className="nowrap is-sortable" onClick={() => this.handleSetSort('elementId(n)')}>
+                                    elementId <TableSortIcon sort="elementId(n)" current={this.state.sort} />
+                                </th>
                             }
                             <th rowSpan="2"><abbr title={"Additional node labels besides :" + this.props.label}>labels</abbr></th>
                             <th colSpan={keys.length}>properties</th>
                         </tr>
                         <tr>
                             {keys.map(key =>
-                                <th>{key}</th>
+                                <th className="nowrap is-sortable" onClick={() => this.handleSetSort('n.' + key)}>
+                                    {key} <TableSortIcon sort={'n.' + key} current={this.state.sort} />
+                                </th>
                             )}
                         </tr>
                         </thead>
@@ -178,19 +198,24 @@ export default class Label extends Component {
                                 <td>
                                     <div className="is-flex-wrap-nowrap buttons">
                                         <button className="button">
-                                        <span className="icon is-small" title="Show relationships">
-                                            <i className="fa-solid fa-circle-nodes"></i>
-                                        </span>
+                                            <span className="icon is-small" title="Show relationships">
+                                                <i className="fa-solid fa-circle-nodes"></i>
+                                            </span>
                                         </button>
-                                        <button className="button">
-                                        <span className="icon is-small" title="Edit">
-                                            <i className="fa-solid fa-pen-clip"></i>
-                                        </span>
+                                        <button className="button" onClick={() => this.props.addTab(
+                                            'Node#' + neo4j.integer.toString(row.identity),
+                                            'fa-solid fa-pen-to-square',
+                                            Node,
+                                            { id: row.identity }
+                                        )}>
+                                            <span className="icon is-small" title="Edit">
+                                                <i className="fa-solid fa-pen-clip"></i>
+                                            </span>
                                         </button>
-                                        <button className="button" onClick={() => this.handleOpenDeleteModal(this.hasElementId ? row.elementId : row.identity)}>
-                                        <span className="icon is-small" title="Delete">
-                                            <i className="fa-solid fa-trash-can"></i>
-                                        </span>
+                                        <button className="button" onClick={() => this.handleOpenDeleteModal(row.identity)}>
+                                            <span className="icon is-small" title="Delete">
+                                                <i className="fa-solid fa-trash-can"></i>
+                                            </span>
                                         </button>
                                     </div>
                                 </td>
@@ -199,7 +224,8 @@ export default class Label extends Component {
                                     <td className="nowrap">{row.elementId}</td>
                                 }
                                 <td>{row.labels.filter(value => value !== this.props.label).join(', ')}</td>
-                                {keys.map(key => <td>
+                                {keys.map(key =>
+                                    <td>
                                         {row.properties.hasOwnProperty(key) && (
                                             row.properties[key].hasOwnProperty('low') && row.properties[key].hasOwnProperty('high')
                                                 ? neo4j.integer.toString(row.properties[key])

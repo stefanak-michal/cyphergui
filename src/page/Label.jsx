@@ -23,7 +23,7 @@ class Label extends Component {
             rows: [],
             page: 1,
             total: 0,
-            sort: null
+            sort: []
         }
         this.database = getActiveDb();
     }
@@ -33,7 +33,7 @@ class Label extends Component {
             .all([
                 getDriver()
                     .session({ database: this.database, defaultAccessMode: neo4j.session.READ })
-                    .run('MATCH (n:' + this.props.label + ') RETURN n ' + (this.state.sort !== null ? 'ORDER BY ' + this.state.sort : '') + ' SKIP $s LIMIT $l', {
+                    .run('MATCH (n:' + this.props.label + ') RETURN n ' + (this.state.sort.length ? 'ORDER BY ' + this.state.sort.join(', ') : '') + ' SKIP $s LIMIT $l', {
                         s: neo4j.int((this.state.page - 1) * this.perPage),
                         l: neo4j.int(this.perPage)
                     }),
@@ -118,9 +118,21 @@ class Label extends Component {
     }
 
     handleSetSort = (value) => {
+        let i = this.state.sort.indexOf(value),
+            j = this.state.sort.indexOf(value + ' DESC');
+        let copy = [...this.state.sort];
+
+        if (i !== -1) {
+            copy[i] = value + ' DESC';
+        } else if (j !== -1) {
+            copy.splice(i, 1);
+        } else {
+            copy.push(value);
+        }
+
         this.setState({
-            sort: this.state.sort === value + ' DESC' ? null : (this.state.sort === value ? value + ' DESC' : value)
-        }, this.requestData)
+            sort: copy
+        }, this.requestData);
     }
 
     render() {
@@ -168,7 +180,7 @@ class Label extends Component {
                         <span className="icon"><i className="fa-solid fa-terminal" aria-hidden="true"></i></span>
                         <span className="is-family-code">
                             {'MATCH (n:' + this.props.label + ') RETURN n '
-                                + (this.state.sort !== null ? 'ORDER BY ' + this.state.sort : '')
+                                + (this.state.sort.length ? 'ORDER BY ' + this.state.sort.join(', ') : '')
                                 + ' SKIP ' + ((this.state.page - 1) * this.perPage)
                                 + ' LIMIT ' + this.perPage}
                         </span>

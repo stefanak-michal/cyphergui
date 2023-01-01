@@ -51,7 +51,7 @@ class Start extends Component {
 
     render() {
         if (!this.props.active) return;
-        document.title = 'Start';
+        document.title = 'Start (db: ' + getActiveDb() + ')';
 
         return (
             <>

@@ -4,7 +4,7 @@ import Modal from "./block/Modal";
 import TableSortIcon from "./block/TableSortIcon";
 import Node from './Node';
 import { neo4j, getActiveDb, getDriver } from '../db'
-import { Checkbox } from "../bulma";
+import { Checkbox } from "../form";
 
 /**
  * List all nodes with specific label
@@ -15,7 +15,6 @@ import { Checkbox } from "../bulma";
 class Label extends Component {
     perPage = 20
     hasElementId = false;
-    database = null;
 
     constructor(props) {
         super(props);
@@ -25,20 +24,19 @@ class Label extends Component {
             total: 0,
             sort: []
         }
-        this.database = getActiveDb();
     }
 
     requestData = () => {
         Promise
             .all([
                 getDriver()
-                    .session({ database: this.database, defaultAccessMode: neo4j.session.READ })
+                    .session({ database: this.props.database, defaultAccessMode: neo4j.session.READ })
                     .run('MATCH (n:' + this.props.label + ') RETURN n ' + (this.state.sort.length ? 'ORDER BY ' + this.state.sort.join(', ') : '') + ' SKIP $s LIMIT $l', {
                         s: neo4j.int((this.state.page - 1) * this.perPage),
                         l: neo4j.int(this.perPage)
                     }),
                 getDriver()
-                    .session({ database: this.database, defaultAccessMode: neo4j.session.READ })
+                    .session({ database: this.props.database, defaultAccessMode: neo4j.session.READ })
                     .run('MATCH (n:' + this.props.label + ') RETURN COUNT(n) AS cnt')
             ])
             .then(responses => {
@@ -78,7 +76,7 @@ class Label extends Component {
 
     handleDeleteModalConfirm = () => {
         getDriver()
-            .session({ database: this.database, defaultAccessMode: neo4j.session.WRITE })
+            .session({ database: this.props.database, defaultAccessMode: neo4j.session.WRITE })
             .run('MATCH (n) WHERE id(n) = $i ' + (this.state.delete.detach ? 'DETACH ' : '') + 'DELETE n', {
                 i: this.state.delete.id
             })
@@ -137,7 +135,7 @@ class Label extends Component {
 
     render() {
         if (!this.props.active) return;
-        document.title = this.props.label + ' label (db: ' + this.database + ')';
+        document.title = this.props.label + ' label (db: ' + this.props.database + ')';
 
         let keys = [];
         for (let row of this.state.rows) {
@@ -154,7 +152,7 @@ class Label extends Component {
                 {this.state.delete &&
                     <Modal title="Are you sure?" color="is-danger" handleClose={this.handleDeleteModalCancel}>
                         <div className="mb-3">
-                            <Checkbox name="detachDelete" onChange={this.handleDeleteModalDetachCheckbox} label="Detach delete?" checked={this.state.delete.detach} />
+                            <Checkbox name="detachDelete" onChange={this.handleDeleteModalDetachCheckbox} label="Detach delete?" checked={this.state.delete.detach} color="is-danger" />
                         </div>
                         <div className="buttons is-justify-content-flex-end">
                             <button className="button is-danger" onClick={this.handleDeleteModalConfirm}>Confirm</button>
@@ -224,7 +222,7 @@ class Label extends Component {
                                             'Node#' + neo4j.integer.toString(row.identity),
                                             'fa-solid fa-pen-to-square',
                                             Node,
-                                            { id: row.identity }
+                                            { id: row.identity, database: this.props.database }
                                         )}>
                                             <span className="icon is-small" title="Edit">
                                                 <i className="fa-solid fa-pen-clip"></i>

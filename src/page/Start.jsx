@@ -67,7 +67,7 @@ class Start extends Component {
                     {this.state.labels.length > 0
                         ? this.state.labels.map(label =>
                             <button className="button is-link is-rounded"
-                                onClick={() => this.props.addTab(label, 'fa-regular fa-circle', Label, { label: label })}
+                                onClick={() => this.props.addTab(label, 'fa-regular fa-circle', Label, { label: label, database: getActiveDb() })}
                                 key={label}>{label}</button>
                         )
                         : <span className="has-text-grey-light">none</span>
@@ -81,7 +81,7 @@ class Start extends Component {
                     {this.state.types.length > 0
                         ? this.state.types.map(type =>
                             <button className="button is-info is-rounded"
-                                onClick={() => this.props.addTab(type, 'fa-solid fa-arrow-right-long', Type, { type: type })}
+                                onClick={() => this.props.addTab(type, 'fa-solid fa-arrow-right-long', Type, { type: type, database: getActiveDb() })}
                                 key={type}>{type}</button>
                         )
                         : <span className="has-text-grey-light">none</span>

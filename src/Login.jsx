@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Input } from './bulma'
+import { Input } from './form'
 import { neo4j, setDriver } from './db'
 
 /**
@@ -64,27 +64,25 @@ export default class Login extends Component {
 
     render() {
         return (
-            <section className='mt-5'>
-                <div className='container is-fluid'>
-                    <h1 className='title has-text-centered'>Bolt Admin</h1>
-                    <form id="login" className="columns mt-6" onSubmit={this.handleSubmit}>
-                        <div className="column is-one-third is-offset-one-third box">
-                            <Input label='URL' name='url' onChange={this.handleInputChange} value={this.state.url} />
-                            <Input label='Username' name='username' onChange={this.handleInputChange} value={this.state.username} />
-                            <Input label='Password' name='password' type='password' onChange={this.handleInputChange} />
+            <section className='mt-5 container is-fluid'>
+                <h1 className='title has-text-centered'>Bolt Admin</h1>
+                <form id="login" className="columns mt-6" onSubmit={this.handleSubmit}>
+                    <div className="column is-one-third is-offset-one-third box">
+                        <Input label='URL' name='url' onChange={this.handleInputChange} value={this.state.url} />
+                        <Input label='Username' name='username' onChange={this.handleInputChange} value={this.state.username} />
+                        <Input label='Password' name='password' type='password' onChange={this.handleInputChange} />
 
-                            {this.state.error &&
-                                <div className="notification is-danger">
-                                    {this.state.error}
-                                </div>
-                            }
+                        {this.state.error &&
+                            <div className="notification is-danger">
+                                {this.state.error}
+                            </div>
+                        }
 
-                            <button className={"button is-primary " + (this.state.submitted ? 'is-loading' : '')}>
-                                Login
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                        <button className={"button is-primary " + (this.state.submitted ? 'is-loading' : '')}>
+                            Login
+                        </button>
+                    </div>
+                </form>
             </section>
         )
     }

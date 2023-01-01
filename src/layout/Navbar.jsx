@@ -66,7 +66,7 @@ class Navbar extends Component {
         return (
             <nav className="navbar" role="navigation" aria-label="main navigation">
                 <div className="navbar-brand">
-                    <a className="navbar-item icon-text title">
+                    <a className="navbar-item icon-text is-size-3">
                         <span className="icon is-large"><i className="fa-solid fa-cloud-bolt "></i></span>
                         <span>BOLT ADMIN</span>
                     </a>
@@ -100,7 +100,7 @@ class Navbar extends Component {
 
                         <div className="navbar-item">
                             <div className="buttons">
-                                <a className="button is-primary" onClick={this.props.handleAddQueryTab}>
+                                <a className="button is-info" onClick={this.props.handleAddQueryTab}>
                                     <span className="icon"><i className="fas fa-plus" aria-hidden="true"></i></span>
                                     <strong>Query</strong>
                                 </a>

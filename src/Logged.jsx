@@ -125,17 +125,6 @@ class Logged extends Component {
                         </div>
                     )}
                 </section>
-                <footer className="footer mt-6">
-                    <div className="content has-text-centered">
-                        <b>Bolt-Admin</b> by Michal Stefanak.<br/>
-                        <a href="https://github.com/stefanak-michal/bolt-admin" target="_blank" className="icon-text">
-                            <span className="icon">
-                                <i className="fa-brands fa-github"></i>
-                            </span>
-                            <span>GitHub</span>
-                        </a>
-                    </div>
-                </footer>
             </>
         )
     }

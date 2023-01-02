@@ -1,5 +1,5 @@
-import React, { Component } from 'react'
-import {neo4j} from "./db";
+import React, { Component } from "react";
+import { neo4j } from "./db";
 
 export class Input extends Component {
     render() {
@@ -10,14 +10,14 @@ export class Input extends Component {
                     <input
                         className="input"
                         name={this.props.name}
-                        type={this.props.type || 'text'}
-                        placeholder={this.props.placeholder || ''}
+                        type={this.props.type || "text"}
+                        placeholder={this.props.placeholder || ""}
                         onChange={this.props.onChange}
                         defaultValue={this.props.value}
                     />
                 </div>
             </div>
-        )
+        );
     }
 }
 
@@ -25,18 +25,12 @@ export class Checkbox extends Component {
     render() {
         return (
             <div className="field">
-                <label className={"switch " + (this.props.color || '')}>
-                    <input
-                        type="checkbox"
-                        name={this.props.name}
-                        onChange={this.props.onChange}
-                        defaultChecked={this.props.checked || false}
-                        defaultValue={this.props.value || ''}
-                    />
+                <label className={"switch " + (this.props.color || "")}>
+                    <input type="checkbox" name={this.props.name} onChange={this.props.onChange} defaultChecked={this.props.checked || false} defaultValue={this.props.value || ""} />
                     <span className="slider" /> {this.props.label}
                 </label>
             </div>
-        )
+        );
     }
 }
 
@@ -44,26 +38,26 @@ class PropertyType extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            types: ['string', 'integer', 'float', 'bool']
-        }
+            types: ["string", "integer", "float", "bool"],
+        };
     }
 
     render() {
         return (
             <div className="select">
                 <select value={this.props.selected} onChange={this.props.onTypeChange}>
-                    {this.state.types.map(type =>
+                    {this.state.types.map(type => (
                         <option key={type}>{type}</option>
-                    )}
+                    ))}
                 </select>
             </div>
-        )
+        );
     }
 }
 
 export class Property extends Component {
     render() {
-        if (typeof this.props.value === 'object' && this.props.value.hasOwnProperty('low') && this.props.value.hasOwnProperty('high')) {
+        if (typeof this.props.value === "object" && this.props.value.hasOwnProperty("low") && this.props.value.hasOwnProperty("high")) {
             return (
                 <>
                     <div className="field is-grouped">
@@ -78,8 +72,8 @@ export class Property extends Component {
                         </div>
                     </div>
                 </>
-            )
-        } else if (typeof this.props.value === 'string') {
+            );
+        } else if (typeof this.props.value === "string") {
             return (
                 <>
                     <div className="field is-grouped">
@@ -94,8 +88,8 @@ export class Property extends Component {
                         </div>
                     </div>
                 </>
-            )
-        } else if (typeof this.props.value === 'boolean') {
+            );
+        } else if (typeof this.props.value === "boolean") {
             return (
                 <div className="field is-grouped">
                     <div className="control">
@@ -111,8 +105,8 @@ export class Property extends Component {
                         <PropertyType selected="bool" onTypeChange={this.props.onTypeChange} />
                     </div>
                 </div>
-            )
-        } else if (typeof this.props.value === 'number') {
+            );
+        } else if (typeof this.props.value === "number") {
             return (
                 <>
                     <div className="field is-grouped">
@@ -127,7 +121,7 @@ export class Property extends Component {
                         </div>
                     </div>
                 </>
-            )
+            );
         }
     }
 }

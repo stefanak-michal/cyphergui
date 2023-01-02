@@ -6,14 +6,9 @@ import { neo4j, getDriver } from "../db";
  * @todo
  */
 export default class Relationship extends Component {
-
     render() {
-        if (!this.props.active) return
+        if (!this.props.active) return;
 
-        return (
-            <>
-                Relationship edit
-            </>
-        )
+        return <>Relationship edit</>;
     }
 }

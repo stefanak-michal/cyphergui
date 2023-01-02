@@ -14,19 +14,15 @@ class Logged extends Component {
             activeTab: null,
             tabs: [],
             contents: [],
-            toasts: []
-        }
+            toasts: [],
+        };
     }
 
     componentDidMount() {
         this.setState({
-            activeTab: 'Start',
-            tabs: [
-                { title: 'Start', icon: 'fa-solid fa-play' }
-            ],
-            contents: [
-                { title: 'Start', component: Start, props: {} }
-            ]
+            activeTab: "Start",
+            tabs: [{ title: "Start", icon: "fa-solid fa-play" }],
+            contents: [{ title: "Start", component: Start, props: {} }],
         });
     }
 
@@ -38,25 +34,25 @@ class Logged extends Component {
 
         let data = {
             tabs: this.state.tabs.concat({ title: title, icon: icon }),
-            contents: this.state.contents.concat({ title: title, component: component, props: props })
+            contents: this.state.contents.concat({ title: title, component: component, props: props }),
         };
         if (active) {
             data.activeTab = title;
         }
         this.setState(data);
-    }
+    };
 
-    setActiveTab = (title) => {
+    setActiveTab = title => {
         this.setState({
-            activeTab: title
+            activeTab: title,
         });
-    }
+    };
 
     removeTab = (title, e) => {
         !!e && e.stopPropagation();
         let data = {
             tabs: this.state.tabs.filter(tab => title !== tab.title),
-            contents: this.state.contents.filter(content => title !== content.title)
+            contents: this.state.contents.filter(content => title !== content.title),
         };
 
         if (this.state.activeTab === title) {
@@ -65,16 +61,14 @@ class Logged extends Component {
         }
 
         this.setState(data);
-    }
+    };
 
     handleAddQueryTab = () => {
-        let j = Math.max(...this.state.tabs.map(tab => /Query#\d+/.test(tab.title)
-            ? parseInt(tab.title.match(/Query#(\d+)/)[1])
-            : 0)) + 1;
-        this.addTab('Query#' + j, 'fa-solid fa-terminal', Query, {});
-    }
+        let j = Math.max(...this.state.tabs.map(tab => (/Query#\d+/.test(tab.title) ? parseInt(tab.title.match(/Query#(\d+)/)[1]) : 0))) + 1;
+        this.addTab("Query#" + j, "fa-solid fa-terminal", Query, {});
+    };
 
-    toast = (message, color = 'is-success', delay = 3) => {
+    toast = (message, color = "is-success", delay = 3) => {
         const i = new Date().getTime();
         this.setState({
             toasts: this.state.toasts.concat({
@@ -82,52 +76,56 @@ class Logged extends Component {
                 message: message,
                 color: color,
                 delay: delay,
-                timeout: setTimeout(() => this.discardToast(i), delay * 1000)
-            })
-        })
-    }
+                timeout: setTimeout(() => this.discardToast(i), delay * 1000),
+            }),
+        });
+    };
 
-    discardToast = (i) => {
+    discardToast = i => {
         this.setState({
-            toasts: this.state.toasts.filter(t => t.key !== i)
-        })
-    }
+            toasts: this.state.toasts.filter(t => t.key !== i),
+        });
+    };
 
     render() {
-        if (this.state.tabs.length === 0 || this.state.activeTab === null) return
+        if (this.state.tabs.length === 0 || this.state.activeTab === null) return;
 
         return (
             <>
                 <Navbar handleLogout={this.props.handleLogout} handleAddQueryTab={this.handleAddQueryTab} />
                 <section className="tabs is-boxed">
-                    <ul>{this.state.tabs.map(tab =>
-                        <Tab key={'tab-' + tab.title} {...tab} active={tab.title === this.state.activeTab} handleClick={this.setActiveTab} handleRemove={this.removeTab} />
-                    )}</ul>
+                    <ul>
+                        {this.state.tabs.map(tab => (
+                            <Tab key={"tab-" + tab.title} {...tab} active={tab.title === this.state.activeTab} handleClick={this.setActiveTab} handleRemove={this.removeTab} />
+                        ))}
+                    </ul>
                 </section>
                 <section className="container is-fluid">
                     {this.state.contents.map(content => {
                         const MyComponent = content.component;
-                        return <MyComponent
-                            key={'content-' + content.title}
-                            {...content.props}
-                            active={content.title === this.state.activeTab}
-                            addTab={this.addTab}
-                            removeTab={this.removeTab}
-                            toast={this.toast}
-                        />
+                        return (
+                            <MyComponent
+                                key={"content-" + content.title}
+                                {...content.props}
+                                active={content.title === this.state.activeTab}
+                                addTab={this.addTab}
+                                removeTab={this.removeTab}
+                                toast={this.toast}
+                            />
+                        );
                     })}
                 </section>
                 <section className="notifications">
-                    {this.state.toasts.map(toast =>
-                        <div className={"notification fadeOut " + toast.color} style={{ animationDelay: (toast.delay - 1) + 's' }}>
+                    {this.state.toasts.map(toast => (
+                        <div className={"notification fadeOut " + toast.color} style={{ animationDelay: toast.delay - 1 + "s" }}>
                             <button className="delete" onClick={() => this.discardToast(toast.key)}></button>
                             {toast.message}
                         </div>
-                    )}
+                    ))}
                 </section>
             </>
-        )
+        );
     }
 }
 
-export default Logged
+export default Logged;

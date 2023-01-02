@@ -1,4 +1,4 @@
-const neo4j = require('neo4j-driver')
+const neo4j = require("neo4j-driver");
 
 let driver = null;
 let db = null;
@@ -13,15 +13,13 @@ function getDriver() {
 }
 
 function disconnect() {
-    if (driver !== null)
-        driver.close();
+    if (driver !== null) driver.close();
     driver = null;
 }
 
 function setActiveDb(d) {
     db = d;
-    for (let fn of changeDbCallbacks)
-        fn(db);
+    for (let fn of changeDbCallbacks) fn(db);
 }
 
 function getActiveDb() {
@@ -29,10 +27,9 @@ function getActiveDb() {
 }
 
 function registerChangeDbCallback(fn) {
-    if (changeDbCallbacks.indexOf(fn) === -1)
-        changeDbCallbacks.push(fn);
+    if (changeDbCallbacks.indexOf(fn) === -1) changeDbCallbacks.push(fn);
 }
 
 //todo bookmark manager
 
-export { neo4j, getDriver, setDriver, disconnect, setActiveDb, getActiveDb, registerChangeDbCallback }
+export { neo4j, getDriver, setDriver, disconnect, setActiveDb, getActiveDb, registerChangeDbCallback };

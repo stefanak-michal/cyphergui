@@ -36,6 +36,7 @@ footer
   position: fixed
   right: 10px
   bottom: 10px
+
   .notification
     animation-duration: 1s
 
@@ -70,8 +71,10 @@ footer
     opacity: 0
     width: 0
     height: 0
+
     &:checked + .slider
       background-color: #2196F3
+
       &:before
         transform: translateX(20px)
 
@@ -81,5 +84,6 @@ footer
     &.is-#{$name}
       input:checked + .slider
         background-color: $color
+
         &:before
           background-color: $color-invert

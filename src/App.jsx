@@ -1,39 +1,37 @@
-import React, { Component } from 'react'
-import './main.sass'
-import Login from './Login'
-import Logged from './Logged'
+import React, { Component } from "react";
+import "./main.sass";
+import Login from "./Login";
+import Logged from "./Logged";
 
 class App extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            logged: false
-        }
+            logged: false,
+        };
     }
 
     handleLogin = () => {
         this.setState({
-            logged: true
+            logged: true,
         });
-    }
+    };
 
     handleLogout = () => {
         this.setState({
-            logged: false
+            logged: false,
         });
-    }
+    };
 
     render() {
         return (
             <>
-                {this.state.logged
-                    ? <Logged handleLogout={this.handleLogout} />
-                    : <Login handleLogin={this.handleLogin} />
-                }
+                {this.state.logged ? <Logged handleLogout={this.handleLogout} /> : <Login handleLogin={this.handleLogin} />}
 
                 <footer className="footer">
                     <div className="content has-text-centered">
-                        <b>Bolt-Admin</b> by Michal Stefanak<br/>
+                        <b>Bolt-Admin</b> by Michal Stefanak
+                        <br />
                         <a href="https://github.com/stefanak-michal/bolt-admin" target="_blank" className="icon-text">
                             <span className="icon">
                                 <i className="fa-brands fa-github"></i>
@@ -43,8 +41,8 @@ class App extends Component {
                     </div>
                 </footer>
             </>
-        )
+        );
     }
 }
 
-export default App
+export default App;

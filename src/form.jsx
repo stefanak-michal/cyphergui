@@ -45,7 +45,7 @@ class PropertyType extends Component {
     render() {
         return (
             <div className="select">
-                <select value={this.props.selected} onChange={this.props.onTypeChange}>
+                <select name={"type." + this.props.name} value={this.props.selected} onChange={this.props.onTypeChange}>
                     {this.state.types.map(type => (
                         <option key={type}>{type}</option>
                     ))}
@@ -57,70 +57,108 @@ class PropertyType extends Component {
 
 export class Property extends Component {
     render() {
+        let deleteButton;
+        if (!!this.props.onDelete) {
+            deleteButton = (
+                <div className="control">
+                    <button className="button" onClick={() => this.props.onDelete(this.props.name)}>
+                        <span className="icon is-small" title="Delete">
+                            <i className="fa-solid fa-trash-can"></i>
+                        </span>
+                    </button>
+                </div>
+            );
+        }
+
+        const nameInput = (
+            <div className="control">
+                <input
+                    name={"key." + this.props.name}
+                    autoFocus={this.props.focus === "key." + this.props.name}
+                    className="input"
+                    type="text"
+                    value={this.props.name}
+                    onChange={this.props.onKeyChange}
+                />
+            </div>
+        );
+
         if (typeof this.props.value === "object" && this.props.value.hasOwnProperty("low") && this.props.value.hasOwnProperty("high")) {
             return (
-                <>
-                    <div className="field is-grouped">
-                        <div className="control">
-                            <input className="input" type="text" defaultValue={this.props.name} />
-                        </div>
-                        <div className="control is-expanded">
-                            <input className="input" type="number" defaultValue={neo4j.integer.toString(this.props.value)} step="1" onChange={this.props.onChange} />
-                        </div>
-                        <div className="control">
-                            <PropertyType selected="integer" onTypeChange={this.props.onTypeChange} />
-                        </div>
+                <div className="field is-grouped">
+                    {nameInput}
+                    <div className="control is-expanded">
+                        <input
+                            name={this.props.name}
+                            className="input"
+                            type="number"
+                            value={neo4j.integer.toString(this.props.value)}
+                            step="1"
+                            autoFocus={this.props.focus === this.props.name}
+                            onChange={e => this.props.onValueChange(e, "integer")}
+                        />
                     </div>
-                </>
+                    <div className="control">
+                        <PropertyType name={this.props.name} selected="integer" onTypeChange={this.props.onTypeChange} />
+                    </div>
+                    {deleteButton}
+                </div>
             );
         } else if (typeof this.props.value === "string") {
             return (
-                <>
-                    <div className="field is-grouped">
-                        <div className="control">
-                            <input className="input" type="text" defaultValue={this.props.name} />
-                        </div>
-                        <div className="control is-expanded">
-                            <textarea className="textarea" rows="1" defaultValue={this.props.value} onChange={this.props.onChange} />
-                        </div>
-                        <div className="control">
-                            <PropertyType selected="string" onTypeChange={this.props.onTypeChange} />
-                        </div>
+                <div className="field is-grouped">
+                    {nameInput}
+                    <div className="control is-expanded">
+                        <textarea
+                            name={this.props.name}
+                            className="textarea"
+                            rows="1"
+                            value={this.props.value}
+                            onChange={e => this.props.onValueChange(e, "string")}
+                            autoFocus={this.props.focus === this.props.name}
+                        />
                     </div>
-                </>
+                    <div className="control">
+                        <PropertyType name={this.props.name} selected="string" onTypeChange={this.props.onTypeChange} />
+                    </div>
+                    {deleteButton}
+                </div>
             );
         } else if (typeof this.props.value === "boolean") {
             return (
                 <div className="field is-grouped">
-                    <div className="control">
-                        <input className="input" type="text" defaultValue={this.props.name} />
-                    </div>
+                    {nameInput}
                     <div className="control is-expanded">
                         <label className="switch">
-                            <input type="checkbox" defaultChecked={this.props.value} />
+                            <input name={this.props.name} type="checkbox" checked={this.props.value} onChange={e => this.props.onValueChange(e, "bool")} />
                             <span className="slider" />
                         </label>
                     </div>
                     <div className="control">
-                        <PropertyType selected="bool" onTypeChange={this.props.onTypeChange} />
+                        <PropertyType name={this.props.name} selected="bool" onTypeChange={this.props.onTypeChange} />
                     </div>
+                    {deleteButton}
                 </div>
             );
         } else if (typeof this.props.value === "number") {
             return (
-                <>
-                    <div className="field is-grouped">
-                        <div className="control">
-                            <input className="input" type="text" defaultValue={this.props.name} />
-                        </div>
-                        <div className="control is-expanded">
-                            <input className="input" type="number" defaultValue={this.props.value} onChange={this.props.onChange} />
-                        </div>
-                        <div className="control">
-                            <PropertyType selected="float" onTypeChange={this.props.onTypeChange} />
-                        </div>
+                <div className="field is-grouped">
+                    {nameInput}
+                    <div className="control is-expanded">
+                        <input
+                            name={this.props.name}
+                            className="input"
+                            type="number"
+                            value={this.props.value}
+                            onChange={e => this.props.onValueChange(e, "float")}
+                            autoFocus={this.props.focus === this.props.name}
+                        />
                     </div>
-                </>
+                    <div className="control">
+                        <PropertyType name={this.props.name} selected="float" onTypeChange={this.props.onTypeChange} />
+                    </div>
+                    {deleteButton}
+                </div>
             );
         }
     }

@@ -1,0 +1,85 @@
+@charset "utf-8"
+
+@import url('https://fonts.googleapis.com/css?family=Nunito:400,700')
+$family-sans-serif: Nunito, Helvetica, Arial, serif
+
+@import "../node_modules/bulma/bulma"
+
+#root
+  display: flex
+  flex-direction: column
+  min-height: 100vh
+
+footer
+  align-self: flex-end
+  width: 100%
+  margin-top: 3rem
+
+.nowrap
+  white-space: nowrap
+
+.is-sortable
+  cursor: n-resize
+
+@keyframes fadeOut
+  0%
+    opacity: 1
+  100%
+    opacity: 0
+
+.fadeOut
+  animation-timing-function: ease-out
+  animation-name: fadeOut
+  animation-fill-mode: both
+
+.notifications
+  position: fixed
+  right: 10px
+  bottom: 10px
+  .notification
+    animation-duration: 1s
+
+// Checkbox switch
+.switch
+  cursor: pointer
+
+  .slider
+    position: relative
+    cursor: pointer
+    display: inline-block
+    background-color: #ccc
+    transition: .4s
+    border-radius: 4px
+    width: 44px
+    height: 24px
+    top: 0.4rem
+    margin-right: 0.3rem
+
+    &:before
+      position: absolute
+      content: ""
+      height: 16px
+      width: 16px
+      left: 4px
+      bottom: 4px
+      background-color: white
+      transition: .3s
+      border-radius: 2px
+
+  input
+    opacity: 0
+    width: 0
+    height: 0
+    &:checked + .slider
+      background-color: #2196F3
+      &:before
+        transform: translateX(20px)
+
+  @each $name, $pair in $colors
+    $color: nth($pair, 1)
+    $color-invert: nth($pair, 2)
+    &.is-#{$name}
+      input:checked + .slider
+        background-color: $color
+        &:before
+          background-color: $color-invert

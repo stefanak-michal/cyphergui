@@ -1,13 +1,14 @@
 import React, { Component } from 'react'
-import 'bulma/css/bulma.css'
-import 'bulma-switch/dist/css/bulma-switch.min.css'
-import './App.css'
+import './main.sass'
 import Login from './Login'
 import Logged from './Logged'
 
 class App extends Component {
-    state = {
-        logged: false
+    constructor(props) {
+        super(props);
+        this.state = {
+            logged: false
+        }
     }
 
     handleLogin = () => {

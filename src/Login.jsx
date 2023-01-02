@@ -6,15 +6,17 @@ import { neo4j, setDriver } from './db'
  * Login page
  * @todo add additional info
  * @todo update logo
- * @todo add link to github at the bottom
  */
-export default class Login extends Component {
-    state = {
-        url: 'bolt://localhost:7687',
-        username: '',
-        password: '',
-        submitted: false,
-        error: null
+class Login extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            url: 'bolt://localhost:7687',
+            username: '',
+            password: '',
+            submitted: false,
+            error: null
+        }
     }
 
     handleSubmit = async (event) => {
@@ -87,3 +89,5 @@ export default class Login extends Component {
         )
     }
 }
+
+export default Login

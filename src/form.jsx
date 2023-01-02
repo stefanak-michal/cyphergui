@@ -23,19 +23,18 @@ export class Input extends Component {
 
 export class Checkbox extends Component {
     render() {
-        const id = 'checkbox-' + new Date().getTime();
         return (
             <div className="field">
-                <input
-                    id={id}
-                    type="checkbox"
-                    className={"switch " + (this.props.color || '')}
-                    name={this.props.name}
-                    onChange={this.props.onChange}
-                    defaultChecked={this.props.checked || false}
-                    defaultValue={this.props.value || ''}
-                />
-                <label htmlFor={id}>{this.props.label}</label>
+                <label className={"switch " + (this.props.color || '')}>
+                    <input
+                        type="checkbox"
+                        name={this.props.name}
+                        onChange={this.props.onChange}
+                        defaultChecked={this.props.checked || false}
+                        defaultValue={this.props.value || ''}
+                    />
+                    <span className="slider" /> {this.props.label}
+                </label>
             </div>
         )
     }
@@ -67,8 +66,10 @@ export class Property extends Component {
         if (typeof this.props.value === 'object' && this.props.value.hasOwnProperty('low') && this.props.value.hasOwnProperty('high')) {
             return (
                 <>
-                    <label className="label">{this.props.name}</label>
                     <div className="field is-grouped">
+                        <div className="control">
+                            <input className="input" type="text" defaultValue={this.props.name} />
+                        </div>
                         <div className="control is-expanded">
                             <input className="input" type="number" defaultValue={neo4j.integer.toString(this.props.value)} step="1" onChange={this.props.onChange} />
                         </div>
@@ -81,8 +82,10 @@ export class Property extends Component {
         } else if (typeof this.props.value === 'string') {
             return (
                 <>
-                    <label className="label">{this.props.name}</label>
                     <div className="field is-grouped">
+                        <div className="control">
+                            <input className="input" type="text" defaultValue={this.props.name} />
+                        </div>
                         <div className="control is-expanded">
                             <textarea className="textarea" rows="1" defaultValue={this.props.value} onChange={this.props.onChange} />
                         </div>
@@ -95,11 +98,14 @@ export class Property extends Component {
         } else if (typeof this.props.value === 'boolean') {
             return (
                 <div className="field is-grouped">
+                    <div className="control">
+                        <input className="input" type="text" defaultValue={this.props.name} />
+                    </div>
                     <div className="control is-expanded">
-                        <div className="field">
-                            <input id={"switch-" + this.props.name} type="checkbox" className="switch is-success" defaultChecked={this.props.value} onChange={this.props.onChange} />
-                            <label className="has-text-weight-bold" htmlFor={"switch-" + this.props.name}>{this.props.name}</label>
-                        </div>
+                        <label className="switch">
+                            <input type="checkbox" defaultChecked={this.props.value} />
+                            <span className="slider" />
+                        </label>
                     </div>
                     <div className="control">
                         <PropertyType selected="bool" onTypeChange={this.props.onTypeChange} />
@@ -109,8 +115,10 @@ export class Property extends Component {
         } else if (typeof this.props.value === 'number') {
             return (
                 <>
-                    <label className="label">{this.props.name}</label>
                     <div className="field is-grouped">
+                        <div className="control">
+                            <input className="input" type="text" defaultValue={this.props.name} />
+                        </div>
                         <div className="control is-expanded">
                             <input className="input" type="number" defaultValue={this.props.value} onChange={this.props.onChange} />
                         </div>

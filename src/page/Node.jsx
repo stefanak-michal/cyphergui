@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import { neo4j, getDriver } from "../db";
-import Label from "./Label";
 import { Button, Property } from "../form";
 import Modal from "./block/Modal";
 
@@ -280,7 +279,7 @@ class Node extends Component {
                         <div className="buttons tags">
                             {this.state.labels.map(label => (
                                 <span className="tag is-link is-medium mr-3 is-rounded">
-                                    <a className="has-text-white mr-1" onClick={() => this.props.addTab(label, "fa-regular fa-circle", Label, { label: label, database: this.props.database })}>
+                                    <a className="has-text-white mr-1" onClick={() => this.props.addTab(label, "fa-regular fa-circle", "label", { label: label, database: this.props.database })}>
                                         {label}
                                     </a>
                                     <button className="delete" onClick={this.handleLabelDelete}></button>

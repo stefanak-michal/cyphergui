@@ -33,7 +33,7 @@ export default class Pagination extends Component {
                 </button>
                 <ul className="pagination-list">
                     {links.map(value => (
-                        <li>
+                        <li key={"li-" + value}>
                             {value === "e" ? (
                                 <span className="pagination-ellipsis">&hellip;</span>
                             ) : (

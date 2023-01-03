@@ -3,6 +3,9 @@ import Tab from "./layout/Tab";
 import Navbar from "./layout/Navbar";
 import Start from "./page/Start";
 import Query from "./page/Query";
+import Node from "./page/Node";
+import Label from "./page/Label";
+import Type from "./page/Type";
 
 /**
  * Logged page with tab management
@@ -18,11 +21,19 @@ class Logged extends Component {
         };
     }
 
+    components = {
+        start: Start,
+        query: Query,
+        node: Node,
+        label: Label,
+        type: Type,
+    };
+
     componentDidMount() {
         this.setState({
             activeTab: "Start",
             tabs: [{ title: "Start", icon: "fa-solid fa-play" }],
-            contents: [{ title: "Start", component: Start, props: {} }],
+            contents: [{ title: "Start", component: "start", props: {} }],
         });
     }
 
@@ -108,7 +119,7 @@ class Logged extends Component {
                 </section>
                 <section className="container is-fluid">
                     {this.state.contents.map(content => {
-                        const MyComponent = content.component;
+                        const MyComponent = this.components[content.component];
                         return (
                             <MyComponent
                                 key={"content-" + content.title}

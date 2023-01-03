@@ -1,6 +1,4 @@
 import React, { Component } from "react";
-import Label from "./Label";
-import Type from "./Type";
 import { neo4j, getActiveDb, getDriver, registerChangeDbCallback } from "../db";
 import { Button } from "../form";
 
@@ -65,7 +63,7 @@ class Start extends Component {
                         this.state.labels.map(label => (
                             <Button
                                 color="tag is-link is-rounded is-medium px-3"
-                                onClick={() => this.props.addTab(label, "fa-regular fa-circle", Label, { label: label, database: getActiveDb() })}
+                                onClick={() => this.props.addTab(label, "fa-regular fa-circle", "label", { label: label, database: getActiveDb() })}
                                 key={label}
                                 text={label}
                             />
@@ -81,7 +79,7 @@ class Start extends Component {
                         this.state.types.map(type => (
                             <Button
                                 color="tag is-info is-rounded is-medium px-3"
-                                onClick={() => this.props.addTab(type, "fa-solid fa-arrow-right-long", Type, { type: type, database: getActiveDb() })}
+                                onClick={() => this.props.addTab(type, "fa-solid fa-arrow-right-long", "type", { type: type, database: getActiveDb() })}
                                 key={type}
                                 text={type}
                             />

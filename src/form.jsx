@@ -70,6 +70,10 @@ class PropertyType extends Component {
     }
 }
 
+/*
+@todo add additional property types (point, datetime, ...)
+ */
+
 export class Property extends Component {
     render() {
         let deleteButton;

@@ -117,7 +117,7 @@ class Logged extends Component {
                 </section>
                 <section className="notifications">
                     {this.state.toasts.map(toast => (
-                        <div className={"notification fadeOut " + toast.color} style={{ animationDelay: toast.delay - 1 + "s" }}>
+                        <div key={toast.key} className={"notification fadeOut " + toast.color} style={{ animationDelay: toast.delay - 1 + "s" }}>
                             <button className="delete" onClick={() => this.discardToast(toast.key)}></button>
                             {toast.message}
                         </div>

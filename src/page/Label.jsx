@@ -164,6 +164,8 @@ class Label extends Component {
         }
         keys.sort();
 
+        const additionalLabels = this.state.rows.filter(row => row.labels.length > 1).length > 0;
+
         return (
             <>
                 {this.state.delete && (
@@ -218,9 +220,11 @@ class Label extends Component {
                                         elementId <TableSortIcon sort="elementId(n)" current={this.state.sort} />
                                     </th>
                                 )}
-                                <th rowSpan="2">
-                                    <abbr title={"Additional node labels besides :" + this.props.label}>labels</abbr>
-                                </th>
+                                {additionalLabels && (
+                                    <th rowSpan="2">
+                                        <abbr title={"Additional node labels besides :" + this.props.label}>labels</abbr>
+                                    </th>
+                                )}
                                 <th colSpan={keys.length}>properties</th>
                             </tr>
                             <tr>
@@ -252,7 +256,22 @@ class Label extends Component {
                                     </td>
                                     <td>{neo4j.integer.toString(row.identity)}</td>
                                     {this.hasElementId && <td className="nowrap">{row.elementId}</td>}
-                                    <td>{row.labels.filter(value => value !== this.props.label).join(", ")}</td>
+                                    {additionalLabels && (
+                                        <td>
+                                            <span className="buttons">
+                                                {row.labels
+                                                    .filter(value => value !== this.props.label)
+                                                    .map(label => (
+                                                        <Button
+                                                            color="tag is-link is-rounded px-2"
+                                                            onClick={() => this.props.addTab(label, "fa-regular fa-circle", Label, { label: label, database: this.props.database })}
+                                                            key={label}
+                                                            text={label}
+                                                        />
+                                                    ))}
+                                            </span>
+                                        </td>
+                                    )}
                                     {keys.map(key => (
                                         <td>
                                             {row.properties.hasOwnProperty(key) &&

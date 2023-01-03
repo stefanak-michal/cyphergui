@@ -60,11 +60,11 @@ class Start extends Component {
                 )}
                 <br />
                 <div className="subtitle mb-2">Node labels</div>
-                <div className="buttons are-small">
+                <div className="buttons">
                     {this.state.labels.length > 0 ? (
                         this.state.labels.map(label => (
                             <Button
-                                color="is-link is-rounded"
+                                color="tag is-link is-rounded is-medium px-3"
                                 onClick={() => this.props.addTab(label, "fa-regular fa-circle", Label, { label: label, database: getActiveDb() })}
                                 key={label}
                                 text={label}
@@ -76,11 +76,11 @@ class Start extends Component {
                 </div>
                 <br />
                 <div className="subtitle mb-2">Relationship types</div>
-                <div className="buttons are-small">
+                <div className="buttons">
                     {this.state.types.length > 0 ? (
                         this.state.types.map(type => (
                             <Button
-                                color="is-info is-rounded"
+                                color="tag is-info is-rounded is-medium px-3"
                                 onClick={() => this.props.addTab(type, "fa-solid fa-arrow-right-long", Type, { type: type, database: getActiveDb() })}
                                 key={type}
                                 text={type}

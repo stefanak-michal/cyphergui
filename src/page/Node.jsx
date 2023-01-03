@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { neo4j, getDriver } from "../db";
 import Label from "./Label";
-import { Property } from "../form";
+import { Button, Property } from "../form";
 
 /**
  * Edit node by ID
@@ -13,6 +13,7 @@ class Node extends Component {
         this.state = {
             node: null,
             focus: null,
+            properties: [],
         };
     }
 
@@ -26,8 +27,13 @@ class Node extends Component {
                 i: this.props.id,
             })
             .then(response => {
+                const node = response.records[0].get("n");
+                let props = [];
+                const t = new Date().getTime();
+                for (let key in node.properties) props.push({ name: key + t, key: key, value: node.properties[key] });
                 this.setState({
-                    node: response.records[0].get("n"),
+                    node: node,
+                    properties: props,
                 });
             })
             .catch(error => {
@@ -47,16 +53,10 @@ class Node extends Component {
     // }
 
     handlePropertyKeyChange = e => {
-        const name = e.target.name.substring(4);
-        console.log(this.state.node.properties);
-        let tmp = { ...this.state.node.properties };
-        const value = tmp[name];
-        delete tmp[name];
-        tmp[e.target.value] = value;
-        this.state.node.properties = tmp;
+        this.state.properties.filter(p => "key." + p.name === e.target.name)[0].key = e.target.value;
         this.setState({
-            node: this.state.node,
-            focus: "key." + e.target.value,
+            properties: this.state.properties,
+            focus: e.target.name,
         });
     };
 
@@ -73,37 +73,51 @@ class Node extends Component {
                 value = parseFloat(value);
                 break;
         }
-        this.state.node.properties[e.target.name] = value;
+        this.state.properties.filter(p => p.name === e.target.name)[0].value = value;
         this.setState({
-            node: this.state.node,
+            properties: this.state.properties,
+            focus: e.target.name,
         });
     };
 
     handlePropertyTypeChange = e => {
-        const name = e.target.name.substring(5);
+        const i = this.state.properties.findIndex(p => "type." + p.name === e.target.name);
         switch (e.target.value) {
             case "bool":
-                this.state.node.properties[name] = !!this.state.node.properties[name];
+                this.state.properties[i].value = !!this.state.properties[i].value;
                 break;
             case "integer":
-                this.state.node.properties[name] = neo4j.int(this.state.node.properties[name]);
+                this.state.properties[i].value = neo4j.int(this.state.properties[i].value);
                 break;
             case "float":
-                this.state.node.properties[name] = parseFloat(this.state.node.properties[name]);
+                this.state.properties[i].value = parseFloat(this.state.properties[i].value);
                 break;
             case "string":
-                this.state.node.properties[name] = this.state.node.properties[name].toString();
+                this.state.properties[i].value = this.state.properties[i].value.toString();
                 break;
         }
         this.setState({
-            node: this.state.node,
+            properties: this.state.properties,
+            focus: e.target.name,
         });
     };
 
     handlePropertyDelete = name => {
-        delete this.state.node.properties[name];
+        this.state.properties.splice(
+            this.state.properties.findIndex(p => p.name === name),
+            1
+        );
         this.setState({
-            node: this.state.node,
+            properties: this.state.properties,
+        });
+    };
+
+    handlePropertyAdd = () => {
+        const i = new Date().getTime().toString();
+        this.state.properties.push({ name: i, key: "", value: "" });
+        this.setState({
+            properties: this.state.properties,
+            focus: "key." + i,
         });
     };
 
@@ -166,38 +180,27 @@ class Node extends Component {
 
                 <fieldset className="box">
                     <legend className="tag is-dark">Properties</legend>
-                    {Object.keys(this.state.node.properties)
-                        .sort()
-                        .map(key => (
-                            <Property
-                                key={key}
-                                name={key}
-                                focus={this.state.focus}
-                                value={this.state.node.properties[key]}
-                                onKeyChange={this.handlePropertyKeyChange}
-                                onValueChange={this.handlePropertyValueChange}
-                                onTypeChange={this.handlePropertyTypeChange}
-                                onDelete={this.handlePropertyDelete}
-                            />
-                        ))}
+                    {this.state.properties.map(p => (
+                        <Property
+                            key={p.name}
+                            name={p.name}
+                            mapKey={p.key}
+                            focus={this.state.focus}
+                            value={p.value}
+                            onKeyChange={this.handlePropertyKeyChange}
+                            onValueChange={this.handlePropertyValueChange}
+                            onTypeChange={this.handlePropertyTypeChange}
+                            onDelete={this.handlePropertyDelete}
+                        />
+                    ))}
 
-                    <button className="button">todo add button</button>
+                    <Button icon="fa-solid fa-plus" text="Add property" onClick={this.handlePropertyAdd} />
                 </fieldset>
 
                 <div className="field">
                     <div className="control buttons is-justify-content-flex-end">
-                        <button type="submit" className="button is-success">
-                            <span className="icon">
-                                <i className="fa-solid fa-check"></i>
-                            </span>
-                            <span>Save</span>
-                        </button>
-                        <button className="button" onClick={this.requestData}>
-                            <span className="icon">
-                                <i className="fa-solid fa-refresh"></i>
-                            </span>
-                            <span>Revert</span>
-                        </button>
+                        <Button color="is-success" type="submit" icon="fa-solid fa-check" text="Save" />
+                        <Button icon="fa-solid fa-refresh" text="Revert" onClick={this.requestData} />
                     </div>
                 </div>
             </form>

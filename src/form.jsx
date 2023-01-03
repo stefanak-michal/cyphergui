@@ -34,6 +34,21 @@ export class Checkbox extends Component {
     }
 }
 
+export class Button extends Component {
+    render() {
+        return (
+            <button className={"button " + (this.props.color || "")} onClick={this.props.onClick} type={this.props.type || "button"}>
+                {this.props.icon && (
+                    <span className="icon">
+                        <i className={this.props.icon} />
+                    </span>
+                )}
+                {this.props.text && <span>{this.props.text}</span>}
+            </button>
+        );
+    }
+}
+
 class PropertyType extends Component {
     constructor(props) {
         super(props);
@@ -61,11 +76,7 @@ export class Property extends Component {
         if (!!this.props.onDelete) {
             deleteButton = (
                 <div className="control">
-                    <button className="button" onClick={() => this.props.onDelete(this.props.name)}>
-                        <span className="icon is-small" title="Delete">
-                            <i className="fa-solid fa-trash-can"></i>
-                        </span>
-                    </button>
+                    <Button icon="fa-solid fa-trash-can" onClick={() => this.props.onDelete(this.props.name)} />
                 </div>
             );
         }
@@ -77,8 +88,9 @@ export class Property extends Component {
                     autoFocus={this.props.focus === "key." + this.props.name}
                     className="input"
                     type="text"
-                    value={this.props.name}
+                    value={this.props.mapKey}
                     onChange={this.props.onKeyChange}
+                    placeholder="Key"
                 />
             </div>
         );
@@ -96,6 +108,7 @@ export class Property extends Component {
                             step="1"
                             autoFocus={this.props.focus === this.props.name}
                             onChange={e => this.props.onValueChange(e, "integer")}
+                            placeholder="Value"
                         />
                     </div>
                     <div className="control">
@@ -112,10 +125,11 @@ export class Property extends Component {
                         <textarea
                             name={this.props.name}
                             className="textarea"
-                            rows="1"
+                            rows="2"
                             value={this.props.value}
                             onChange={e => this.props.onValueChange(e, "string")}
                             autoFocus={this.props.focus === this.props.name}
+                            placeholder="Value"
                         />
                     </div>
                     <div className="control">
@@ -130,7 +144,7 @@ export class Property extends Component {
                     {nameInput}
                     <div className="control is-expanded">
                         <label className="switch">
-                            <input name={this.props.name} type="checkbox" checked={this.props.value} onChange={e => this.props.onValueChange(e, "bool")} />
+                            <input name={this.props.name} type="checkbox" checked={this.props.value} onChange={e => this.props.onValueChange(e, "bool")} placeholder="Value" />
                             <span className="slider" />
                         </label>
                     </div>
@@ -152,6 +166,7 @@ export class Property extends Component {
                             value={this.props.value}
                             onChange={e => this.props.onValueChange(e, "float")}
                             autoFocus={this.props.focus === this.props.name}
+                            placeholder="Value"
                         />
                     </div>
                     <div className="control">

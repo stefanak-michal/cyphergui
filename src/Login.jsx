@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Input } from "./form";
+import { Button, Input } from "./form";
 import { neo4j, setDriver } from "./db";
 
 /**
@@ -69,10 +69,8 @@ class Login extends Component {
                         <Input label="URL" name="url" onChange={this.handleInputChange} value={this.state.url} />
                         <Input label="Username" name="username" onChange={this.handleInputChange} value={this.state.username} />
                         <Input label="Password" name="password" type="password" onChange={this.handleInputChange} />
-
                         {this.state.error && <div className="notification is-danger">{this.state.error}</div>}
-
-                        <button className={"button is-primary " + (this.state.submitted ? "is-loading" : "")}>Login</button>
+                        <Button text="Login" icon="fa-solid fa-bolt" color={"is-primary " + (this.state.submitted ? "is-loading" : "")} type="submit" />
                     </div>
                 </form>
             </section>

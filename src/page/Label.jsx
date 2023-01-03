@@ -3,8 +3,8 @@ import Pagination from "./block/Pagination";
 import Modal from "./block/Modal";
 import TableSortIcon from "./block/TableSortIcon";
 import Node from "./Node";
-import { neo4j, getActiveDb, getDriver } from "../db";
-import { Checkbox } from "../form";
+import { neo4j, getDriver } from "../db";
+import { Button, Checkbox } from "../form";
 
 /**
  * List all nodes with specific label
@@ -172,12 +172,8 @@ class Label extends Component {
                             <Checkbox name="detachDelete" onChange={this.handleDeleteModalDetachCheckbox} label="Detach delete?" checked={this.state.delete.detach} color="is-danger" />
                         </div>
                         <div className="buttons is-justify-content-flex-end">
-                            <button className="button is-danger" onClick={this.handleDeleteModalConfirm}>
-                                Confirm
-                            </button>
-                            <button className="button is-secondary" onClick={this.handleDeleteModalCancel}>
-                                Cancel
-                            </button>
+                            <Button text="Confirm" onClick={this.handleDeleteModalConfirm} color="is-danger" />
+                            <Button text="Cancel" onClick={this.handleDeleteModalCancel} color="is-secondary" />
                         </div>
                     </Modal>
                 )}
@@ -240,28 +236,18 @@ class Label extends Component {
                                 <tr>
                                     <td>
                                         <div className="is-flex-wrap-nowrap buttons">
-                                            <button className="button">
-                                                <span className="icon is-small" title="Show relationships">
-                                                    <i className="fa-solid fa-circle-nodes"></i>
-                                                </span>
-                                            </button>
-                                            <button
-                                                className="button"
+                                            <Button icon="fa-solid fa-circle-nodes" title="Show relationships" />
+                                            <Button
+                                                icon="fa-solid fa-pen-clip"
+                                                title="Edit"
                                                 onClick={() =>
                                                     this.props.addTab("Node#" + neo4j.integer.toString(row.identity), "fa-solid fa-pen-to-square", Node, {
                                                         id: row.identity,
                                                         database: this.props.database,
                                                     })
-                                                }>
-                                                <span className="icon is-small" title="Edit">
-                                                    <i className="fa-solid fa-pen-clip"></i>
-                                                </span>
-                                            </button>
-                                            <button className="button" onClick={() => this.handleOpenDeleteModal(row.identity)}>
-                                                <span className="icon is-small" title="Delete">
-                                                    <i className="fa-solid fa-trash-can"></i>
-                                                </span>
-                                            </button>
+                                                }
+                                            />
+                                            <Button icon="fa-solid fa-trash-can" title="Delete" onClick={() => this.handleOpenDeleteModal(row.identity)} />
                                         </div>
                                     </td>
                                     <td>{neo4j.integer.toString(row.identity)}</td>

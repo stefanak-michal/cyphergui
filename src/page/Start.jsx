@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import Label from "./Label";
 import Type from "./Type";
 import { neo4j, getActiveDb, getDriver, registerChangeDbCallback } from "../db";
+import { Button } from "../form";
 
 class Start extends Component {
     constructor(props) {
@@ -62,12 +63,12 @@ class Start extends Component {
                 <div className="buttons are-small">
                     {this.state.labels.length > 0 ? (
                         this.state.labels.map(label => (
-                            <button
-                                className="button is-link is-rounded"
+                            <Button
+                                color="is-link is-rounded"
                                 onClick={() => this.props.addTab(label, "fa-regular fa-circle", Label, { label: label, database: getActiveDb() })}
-                                key={label}>
-                                {label}
-                            </button>
+                                key={label}
+                                text={label}
+                            />
                         ))
                     ) : (
                         <span className="has-text-grey-light">none</span>
@@ -78,12 +79,12 @@ class Start extends Component {
                 <div className="buttons are-small">
                     {this.state.types.length > 0 ? (
                         this.state.types.map(type => (
-                            <button
-                                className="button is-info is-rounded"
+                            <Button
+                                color="is-info is-rounded"
                                 onClick={() => this.props.addTab(type, "fa-solid fa-arrow-right-long", Type, { type: type, database: getActiveDb() })}
-                                key={type}>
-                                {type}
-                            </button>
+                                key={type}
+                                text={type}
+                            />
                         ))
                     ) : (
                         <span className="has-text-grey-light">none</span>

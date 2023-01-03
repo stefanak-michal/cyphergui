@@ -37,7 +37,7 @@ export class Checkbox extends Component {
 export class Button extends Component {
     render() {
         return (
-            <button className={"button " + (this.props.color || "")} onClick={this.props.onClick} type={this.props.type || "button"}>
+            <button className={"button " + (this.props.color || "")} onClick={this.props.onClick} type={this.props.type || "button"} title={this.props.title || ""}>
                 {this.props.icon && (
                     <span className="icon">
                         <i className={this.props.icon} />

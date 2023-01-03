@@ -32,8 +32,14 @@ class Logged extends Component {
             return;
         }
 
+        //open new tab next to current active tab
+        const i = this.state.tabs.findIndex(t => t.title === this.state.activeTab);
+        let tabs = [...this.state.tabs];
+        if (i !== -1) tabs.splice(i + 1, 0, { title: title, icon: icon });
+        else tabs.push({ title: title, icon: icon });
+
         let data = {
-            tabs: this.state.tabs.concat({ title: title, icon: icon }),
+            tabs: tabs,
             contents: this.state.contents.concat({ title: title, component: component, props: props }),
         };
         if (active) {

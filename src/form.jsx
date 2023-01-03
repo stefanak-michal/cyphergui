@@ -80,7 +80,7 @@ export class Property extends Component {
         if (!!this.props.onDelete) {
             deleteButton = (
                 <div className="control">
-                    <Button icon="fa-solid fa-trash-can" onClick={() => this.props.onDelete(this.props.name)} />
+                    <Button icon="fa-regular fa-trash-can" onClick={() => this.props.onDelete(this.props.name)} />
                 </div>
             );
         }

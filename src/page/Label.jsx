@@ -162,6 +162,11 @@ class Label extends Component {
                 }
             }
         }
+        //add sorted keys which are not available in visible rows
+        for (let s of this.state.sort) {
+            s = s.replace(/^n\.([^ ]+)(?: DESC)?$/, "$1");
+            if (keys.indexOf(s) === -1) keys.push(s);
+        }
         keys.sort();
 
         const additionalLabels = this.state.rows.filter(row => row.labels.length > 1).length > 0;
@@ -174,8 +179,8 @@ class Label extends Component {
                             <Checkbox name="detachDelete" onChange={this.handleDeleteModalDetachCheckbox} label="Detach delete?" checked={this.state.delete.detach} color="is-danger" />
                         </div>
                         <div className="buttons is-justify-content-flex-end">
-                            <Button text="Confirm" onClick={this.handleDeleteModalConfirm} color="is-danger" />
-                            <Button text="Cancel" onClick={this.handleDeleteModalCancel} color="is-secondary" />
+                            <Button text="Confirm" icon="fa-solid fa-check" onClick={this.handleDeleteModalConfirm} color="is-danger" />
+                            <Button text="Cancel" icon="fa-solid fa-xmark" onClick={this.handleDeleteModalCancel} color="is-secondary" />
                         </div>
                     </Modal>
                 )}
@@ -251,7 +256,7 @@ class Label extends Component {
                                                     })
                                                 }
                                             />
-                                            <Button icon="fa-solid fa-trash-can" title="Delete" onClick={() => this.handleOpenDeleteModal(row.identity)} />
+                                            <Button icon="fa-regular fa-trash-can" color="is-danger is-outlined" title="Delete" onClick={() => this.handleOpenDeleteModal(row.identity)} />
                                         </div>
                                     </td>
                                     <td>{neo4j.integer.toString(row.identity)}</td>

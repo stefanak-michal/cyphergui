@@ -12,14 +12,16 @@ class Node extends Component {
         this.state = {
             node: null,
             focus: null,
-            labels: [],
+            labels: !!props.label ? [props.label] : [],
             properties: [],
             labelModal: false,
             labelModalInput: "",
+            error: null,
         };
     }
 
     requestData = () => {
+        if (this.props.id === null) return;
         getDriver()
             .session({
                 database: this.props.database,
@@ -51,7 +53,7 @@ class Node extends Component {
      * Check if node still exists when switching on this tab
      */
     shouldComponentUpdate(nextProps, nextState, nextContext) {
-        if (nextProps.active && this.props.active !== nextProps.active) {
+        if (this.props.id !== null && nextProps.active && this.props.active !== nextProps.active) {
             getDriver()
                 .session({
                     database: this.props.database,
@@ -62,7 +64,7 @@ class Node extends Component {
                 })
                 .then(response => {
                     if (neo4j.integer.toNumber(response.records[0].get("c")) !== 1) {
-                        this.props.removeTab("Node#" + neo4j.integer.toString(this.props.id));
+                        this.props.removeTab(this.props.tabName);
                     }
                 })
                 .catch(console.error);
@@ -155,19 +157,12 @@ class Node extends Component {
     };
 
     handleLabelSelect = label => {
-        if (label.length > 0 && this.state.labels.indexOf(label) === -1) {
-            this.state.labels.push(label);
-            this.setState({
-                node: this.state.node,
-                labelModal: false,
-                labelModalInput: "",
-            });
-        } else {
-            this.setState({
-                labelModal: false,
-                labelModalInput: "",
-            });
-        }
+        if (this.state.labels.indexOf(label) === -1) this.state.labels.push(label);
+        this.setState({
+            labels: this.state.labels,
+            labelModal: false,
+            labelModalInput: "",
+        });
     };
 
     handleLabelDelete = label => {
@@ -175,7 +170,7 @@ class Node extends Component {
         if (i === -1) return;
         this.state.labels.splice(i, 1);
         this.setState({
-            node: this.state.node,
+            labels: this.state.labels,
         });
     };
 
@@ -188,9 +183,9 @@ class Node extends Component {
     handleSubmit = e => {
         e.preventDefault();
 
-        let setLabels = this.state.labels.filter(l => this.state.node.labels.indexOf(l) === -1).join(":");
+        let setLabels = this.props.id === null ? this.state.labels.join(":") : this.state.labels.filter(l => this.state.node.labels.indexOf(l) === -1).join(":");
         if (setLabels.length > 0) setLabels = "SET n:" + setLabels;
-        let removeLabels = this.state.node.labels.filter(l => this.state.labels.indexOf(l) === -1).join(":");
+        let removeLabels = this.props.id === null ? "" : this.state.node.labels.filter(l => this.state.labels.indexOf(l) === -1).join(":");
         if (removeLabels.length > 0) removeLabels = "REMOVE n:" + removeLabels;
 
         //todo maybe do mutation instead of replace? https://neo4j.com/docs/cypher-manual/current/clauses/set/#set-setting-properties-using-map
@@ -206,24 +201,24 @@ class Node extends Component {
                 database: this.props.database,
                 defaultAccessMode: neo4j.session.WRITE,
             })
-            .run("MATCH (n) WHERE id(n) = $id " + setLabels + " " + removeLabels + " SET n = $p", {
+            .run((this.props.id === null ? "CREATE (n) " : "MATCH (n) WHERE id(n) = $id ") + setLabels + " " + removeLabels + " SET n = $p", {
                 id: this.props.id,
                 p: props,
             })
             .then(response => {
                 if (response.summary.counters.containsUpdates()) {
-                    this.props.toast("Node updated");
+                    this.props.toast(this.props.id === null ? "Node created" : "Node updated");
                 }
-                this.props.removeTab("Node#" + neo4j.integer.toString(this.props.id));
+                this.props.removeTab(this.props.tabName);
             })
             .catch(console.error);
     };
 
     render() {
         if (!this.props.active) return;
-        document.title = "Node #" + neo4j.integer.toString(this.props.id) + " (db: " + this.props.database + ")";
+        document.title = this.props.tabName + " (db: " + this.props.database + ")";
 
-        if (this.state.node === null) {
+        if (this.props.id !== null && this.state.node === null) {
             return <span className="has-text-grey-light">Loading...</span>;
         }
 
@@ -236,11 +231,24 @@ class Node extends Component {
                                 <Button text={label} color="is-link is-rounded" key={label} onClick={() => this.handleLabelSelect(label)} />
                             ))}
                         </div>
-                        <form onSubmit={() => this.handleLabelSelect(this.state.labelModalInput)}>
+                        <form
+                            onSubmit={e => {
+                                e.preventDefault();
+                                this.handleLabelSelect(this.state.labelModalInput);
+                                return true;
+                            }}>
                             <label className="label">Or specify new one</label>
                             <div className="field is-grouped">
                                 <div className="control is-expanded">
-                                    <input autoFocus className="input" type="text" value={this.state.labelModalInput} onChange={e => this.setState({ labelModalInput: e.target.value })} />
+                                    <input
+                                        autoFocus
+                                        pattern="^[A-Za-z][A-Za-z_0-9]*$"
+                                        required
+                                        className="input"
+                                        type="text"
+                                        value={this.state.labelModalInput}
+                                        onChange={e => this.setState({ labelModalInput: e.target.value })}
+                                    />
                                 </div>
                                 <div className="control">
                                     <Button icon="fa-solid fa-check" type="submit" />
@@ -251,29 +259,31 @@ class Node extends Component {
                 )}
 
                 <form onSubmit={this.handleSubmit}>
-                    <div className="columns">
-                        <div className="column is-half-desktop">
-                            <div className="field">
-                                <label className="label">identity</label>
-                                <div className="control">
-                                    <input className="input" disabled type="text" defaultValue={neo4j.integer.toString(this.state.node.identity)} />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="column is-half-desktop">
-                            {!!this.state.node.elementId && (
+                    {this.props.id !== null && (
+                        <div className="columns">
+                            <div className="column is-half-desktop">
                                 <div className="field">
-                                    <label className="label">elementId</label>
+                                    <label className="label">identity</label>
                                     <div className="control">
-                                        <input className="input" disabled type="text" defaultValue={this.state.node.elementId} />
+                                        <input className="input" disabled type="text" value={neo4j.integer.toString(this.state.node.identity)} />
                                     </div>
                                 </div>
-                            )}
+                            </div>
+                            <div className="column is-half-desktop">
+                                {!!this.state.node.elementId && (
+                                    <div className="field">
+                                        <label className="label">elementId</label>
+                                        <div className="control">
+                                            <input className="input" disabled type="text" value={this.state.node.elementId} />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     <fieldset className="box">
-                        <legend className="tag is-dark">
+                        <legend className="tag is-link is-light">
                             <i className="fa-solid fa-tags mr-2"></i>Labels
                         </legend>
                         <div className="buttons tags">
@@ -282,7 +292,7 @@ class Node extends Component {
                                     <a className="has-text-white mr-1" onClick={() => this.props.addTab(label, "fa-regular fa-circle", "label", { label: label, database: this.props.database })}>
                                         {label}
                                     </a>
-                                    <button className="delete" onClick={this.handleLabelDelete}></button>
+                                    <button className="delete" onClick={() => this.handleLabelDelete(label)}></button>
                                 </span>
                             ))}
                             <Button icon="fa-solid fa-plus" color="button tag is-medium" onClick={this.handleLabelOpenModal} />
@@ -290,7 +300,7 @@ class Node extends Component {
                     </fieldset>
 
                     <fieldset className="box">
-                        <legend className="tag is-dark">
+                        <legend className="tag is-link is-light">
                             <i className="fa-regular fa-rectangle-list mr-2"></i>Properties
                         </legend>
                         {this.state.properties.map(p => (
@@ -310,11 +320,18 @@ class Node extends Component {
                         <Button icon="fa-solid fa-plus" text="Add property" onClick={this.handlePropertyAdd} />
                     </fieldset>
 
+                    <fieldset className="box">
+                        <legend className="tag is-link is-light">
+                            <i className="fa-solid fa-circle-nodes mr-2"></i>Relationships
+                        </legend>
+                        todo
+                    </fieldset>
+
                     <div className="field">
                         <div className="control buttons is-justify-content-flex-end">
                             <Button color="is-success" type="submit" icon="fa-solid fa-check" text="Save" />
-                            <Button icon="fa-solid fa-refresh" text="Reload" onClick={this.requestData} />
-                            <Button icon="fa-solid fa-xmark" text="Close" onClick={e => this.props.removeTab("Node#" + neo4j.integer.toString(this.props.id), e)} />
+                            {this.props.id !== null && <Button icon="fa-solid fa-refresh" text="Reload" onClick={this.requestData} />}
+                            <Button icon="fa-solid fa-xmark" text="Close" onClick={e => this.props.removeTab(this.props.tabName, e)} />
                         </div>
                     </div>
                 </form>

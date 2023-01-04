@@ -72,6 +72,14 @@ class Start extends Component {
                         <span className="has-text-grey-light">none</span>
                     )}
                 </div>
+                <div className="buttons">
+                    <Button
+                        icon="fa-solid fa-plus"
+                        text="Create node"
+                        color=""
+                        onClick={() => this.props.addTab(this.props.generateTabName("New node"), "fa-regular fa-square-plus", "node", { id: null, database: getActiveDb() })}
+                    />
+                </div>
                 <br />
                 <div className="subtitle mb-2">Relationship types</div>
                 <div className="buttons">
@@ -89,7 +97,6 @@ class Start extends Component {
                     )}
                 </div>
                 <br />
-                some additional buttons?
             </>
         );
     }

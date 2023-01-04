@@ -37,7 +37,10 @@ class Logged extends Component {
         });
     }
 
-    addTab = (title, icon, component, props, active = true) => {
+    /**
+     * Tab title has to be unique ..if already exists is switched on it
+     */
+    addTab = (title, icon, component, props = {}, active = true) => {
         if (this.state.tabs.filter(value => value.title === title).length) {
             this.setActiveTab(title);
             return;
@@ -59,6 +62,14 @@ class Logged extends Component {
         this.setState(data);
     };
 
+    /**
+     * Create tab name with requested prefix and calculated index
+     */
+    generateTabName = prefix => {
+        const i = Math.max(0, ...this.state.tabs.filter(t => t.title.indexOf(prefix) === 0).map(t => parseInt(t.title.split("#")[1]))) + 1;
+        return prefix + "#" + i;
+    };
+
     setActiveTab = title => {
         this.setState({
             activeTab: title,
@@ -78,11 +89,6 @@ class Logged extends Component {
         }
 
         this.setState(data);
-    };
-
-    handleAddQueryTab = () => {
-        let j = Math.max(...this.state.tabs.map(tab => (/Query#\d+/.test(tab.title) ? parseInt(tab.title.match(/Query#(\d+)/)[1]) : 0))) + 1;
-        this.addTab("Query#" + j, "fa-solid fa-terminal", Query, {});
     };
 
     toast = (message, color = "is-success", delay = 3) => {
@@ -109,25 +115,27 @@ class Logged extends Component {
 
         return (
             <>
-                <Navbar handleLogout={this.props.handleLogout} handleAddQueryTab={this.handleAddQueryTab} />
+                <Navbar handleLogout={this.props.handleLogout} handleAddQueryTab={() => this.addTab(this.generateTabName("Query"), "fa-solid fa-terminal", "query")} />
                 <section className="tabs is-boxed">
                     <ul>
                         {this.state.tabs.map(tab => (
-                            <Tab key={"tab-" + tab.title} {...tab} active={tab.title === this.state.activeTab} handleClick={this.setActiveTab} handleRemove={this.removeTab} />
+                            <Tab key={"tab-" + tab.title} active={tab.title === this.state.activeTab} handleClick={this.setActiveTab} handleRemove={this.removeTab} {...tab} />
                         ))}
                     </ul>
                 </section>
-                <section className="container is-fluid">
+                <section className={"container " + (this.state.activeTab === "Start" ? "" : "is-fluid")}>
                     {this.state.contents.map(content => {
                         const MyComponent = this.components[content.component];
                         return (
                             <MyComponent
                                 key={"content-" + content.title}
-                                {...content.props}
                                 active={content.title === this.state.activeTab}
+                                tabName={content.title}
                                 addTab={this.addTab}
                                 removeTab={this.removeTab}
+                                generateTabName={this.generateTabName}
                                 toast={this.toast}
+                                {...content.props}
                             />
                         );
                     })}

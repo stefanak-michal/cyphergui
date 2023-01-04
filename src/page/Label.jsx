@@ -211,7 +211,14 @@ class Label extends Component {
                 </div>
 
                 <div className="buttons mb-1">
-                    <Button icon="fa-solid fa-plus" text="Create node" color="is-primary" />
+                    <Button
+                        icon="fa-solid fa-plus"
+                        text="Create node"
+                        color="is-primary"
+                        onClick={() =>
+                            this.props.addTab(this.props.generateTabName("New node"), "fa-regular fa-square-plus", "node", { id: null, database: this.props.database, label: this.props.label })
+                        }
+                    />
                 </div>
 
                 <div className="table-container">
@@ -220,18 +227,14 @@ class Label extends Component {
                             <tr>
                                 <th rowSpan="2"></th>
                                 <th rowSpan="2" className="nowrap is-clickable" onClick={() => this.handleSetSort("id(n)")}>
-                                    ID <TableSortIcon sort="id(n)" current={this.state.sort} />
+                                    id <TableSortIcon sort="id(n)" current={this.state.sort} />
                                 </th>
                                 {this.hasElementId && (
                                     <th rowSpan="2" className="nowrap is-clickable" onClick={() => this.handleSetSort("elementId(n)")}>
                                         elementId <TableSortIcon sort="elementId(n)" current={this.state.sort} />
                                     </th>
                                 )}
-                                {additionalLabels && (
-                                    <th rowSpan="2">
-                                        <abbr title={"Additional node labels besides :" + this.props.label}>labels</abbr>
-                                    </th>
-                                )}
+                                {additionalLabels && <th rowSpan="2">additional labels</th>}
                                 <th colSpan={keys.length}>properties</th>
                             </tr>
                             <tr>
@@ -244,16 +247,50 @@ class Label extends Component {
                         </thead>
                         <tbody>
                             {this.state.rows.map(row => (
-                                <Row
-                                    row={row}
-                                    label={this.props.label}
-                                    addTab={this.props.addTab}
-                                    database={this.props.database}
-                                    additionalLabels={additionalLabels}
-                                    handleOpenDeleteModal={this.handleOpenDeleteModal}
-                                    hasElementId={this.hasElementId}
-                                    keys={keys}
-                                />
+                                <tr>
+                                    <td>
+                                        <div className="is-flex-wrap-nowrap buttons">
+                                            <Button icon="fa-solid fa-circle-nodes" title="Show relationships" />
+                                            <Button
+                                                icon="fa-solid fa-pen-clip"
+                                                title="Edit"
+                                                onClick={() =>
+                                                    this.props.addTab("Node#" + neo4j.integer.toString(row.identity), "fa-solid fa-pen-to-square", "node", {
+                                                        id: row.identity,
+                                                        database: this.props.database,
+                                                    })
+                                                }
+                                            />
+                                            <Button icon="fa-regular fa-trash-can" color="is-danger is-outlined" title="Delete" onClick={() => this.handleOpenDeleteModal(row.identity)} />
+                                        </div>
+                                    </td>
+                                    <td>{neo4j.integer.toString(row.identity)}</td>
+                                    {this.hasElementId && <td className="nowrap is-size-7">{row.elementId}</td>}
+                                    {additionalLabels && (
+                                        <td>
+                                            <span className="buttons">
+                                                {row.labels
+                                                    .filter(value => value !== this.props.label)
+                                                    .map(label => (
+                                                        <Button
+                                                            color="tag is-link is-rounded px-2"
+                                                            onClick={() => this.props.addTab(label, "fa-regular fa-circle", "label", { label: label, database: this.props.database })}
+                                                            key={label}
+                                                            text={label}
+                                                        />
+                                                    ))}
+                                            </span>
+                                        </td>
+                                    )}
+                                    {keys.map(key => (
+                                        <td key={"td-" + key}>
+                                            {row.properties.hasOwnProperty(key) &&
+                                                (row.properties[key].hasOwnProperty("low") && row.properties[key].hasOwnProperty("high")
+                                                    ? neo4j.integer.toString(row.properties[key])
+                                                    : row.properties[key].toString())}
+                                        </td>
+                                    ))}
+                                </tr>
                             ))}
                         </tbody>
                     </table>
@@ -261,57 +298,6 @@ class Label extends Component {
 
                 <Pagination page={this.state.page} pages={Math.ceil(this.state.total / this.perPage)} action={this.handleChangePage} />
             </>
-        );
-    }
-}
-
-class Row extends Component {
-    render() {
-        return (
-            <tr>
-                <td>
-                    <div className="is-flex-wrap-nowrap buttons">
-                        <Button icon="fa-solid fa-circle-nodes" title="Show relationships" />
-                        <Button
-                            icon="fa-solid fa-pen-clip"
-                            title="Edit"
-                            onClick={() =>
-                                this.props.addTab("Node#" + neo4j.integer.toString(this.props.row.identity), "fa-solid fa-pen-to-square", "node", {
-                                    id: this.props.row.identity,
-                                    database: this.props.database,
-                                })
-                            }
-                        />
-                        <Button icon="fa-regular fa-trash-can" color="is-danger is-outlined" title="Delete" onClick={() => this.props.handleOpenDeleteModal(this.props.row.identity)} />
-                    </div>
-                </td>
-                <td>{neo4j.integer.toString(this.props.row.identity)}</td>
-                {this.props.hasElementId && <td className="nowrap">{this.props.row.elementId}</td>}
-                {this.props.additionalLabels && (
-                    <td>
-                        <span className="buttons">
-                            {this.props.row.labels
-                                .filter(value => value !== this.props.label)
-                                .map(label => (
-                                    <Button
-                                        color="tag is-link is-rounded px-2"
-                                        onClick={() => this.props.addTab(label, "fa-regular fa-circle", "label", { label: label, database: this.props.database })}
-                                        key={label}
-                                        text={label}
-                                    />
-                                ))}
-                        </span>
-                    </td>
-                )}
-                {this.props.keys.map(key => (
-                    <td key={"td-" + key}>
-                        {this.props.row.properties.hasOwnProperty(key) &&
-                            (this.props.row.properties[key].hasOwnProperty("low") && this.props.row.properties[key].hasOwnProperty("high")
-                                ? neo4j.integer.toString(this.props.row.properties[key])
-                                : this.props.row.properties[key].toString())}
-                    </td>
-                ))}
-            </tr>
         );
     }
 }

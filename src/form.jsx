@@ -95,6 +95,8 @@ export class Property extends Component {
                     value={this.props.mapKey}
                     onChange={this.props.onKeyChange}
                     placeholder="Key"
+                    pattern="^[A-Za-z][A-Za-z_0-9]*$"
+                    required
                 />
             </div>
         );

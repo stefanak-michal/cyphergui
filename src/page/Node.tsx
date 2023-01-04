@@ -120,22 +120,23 @@ class Node extends React.Component<INodeProps, INodeState> {
     handlePropertyTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         e.preventDefault();
         const i = this.state.properties.findIndex(p => "type." + p.name === e.currentTarget.name);
+        let props = [...this.state.properties];
         switch (e.currentTarget.value) {
             case "bool":
-                this.state.properties[i].value = !!this.state.properties[i].value;
+                props[i].value = !!props[i].value;
                 break;
             case "integer":
-                this.state.properties[i].value = neo4j.int(this.state.properties[i].value);
+                props[i].value = neo4j.int(props[i].value);
                 break;
             case "float":
-                this.state.properties[i].value = parseFloat(this.state.properties[i].value);
+                props[i].value = parseFloat(props[i].value);
                 break;
             case "string":
-                this.state.properties[i].value = this.state.properties[i].value.toString();
+                props[i].value = props[i].value.toString();
                 break;
         }
         this.setState({
-            properties: this.state.properties,
+            properties: props,
             focus: e.currentTarget.name,
         });
     };
@@ -208,9 +209,7 @@ class Node extends React.Component<INodeProps, INodeState> {
 
         //todo maybe do mutation instead of replace? https://neo4j.com/docs/cypher-manual/current/clauses/set/#set-setting-properties-using-map
         let props = {};
-        this.state.properties.map(p => {
-            props[p.key] = p.value;
-        });
+        for (let p of this.state.properties) props[p.key] = p.value;
 
         //todo show query while making modifications in form?
         //todo log query somewhere? create log terminal?
@@ -306,7 +305,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                         </legend>
                         <div className="buttons tags">
                             {this.state.labels.map(label => (
-                                <span className="tag is-link is-medium mr-3 is-rounded">
+                                <span key={"label-" + label} className="tag is-link is-medium mr-3 is-rounded">
                                     <a className="has-text-white mr-1" onClick={() => this.props.addTab(label, "fa-regular fa-circle", "label", { label: label, database: this.props.database })}>
                                         {label}
                                     </a>

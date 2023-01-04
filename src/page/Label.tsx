@@ -248,7 +248,7 @@ class Label extends React.Component<ILabelProps> {
                             </tr>
                             <tr>
                                 {keys.map(key => (
-                                    <th className="nowrap is-clickable" onClick={() => this.handleSetSort("n." + key)}>
+                                    <th key={"th-" + key} className="nowrap is-clickable" onClick={() => this.handleSetSort("n." + key)}>
                                         {key} <TableSortIcon sort={"n." + key} current={this.state.sort} />
                                     </th>
                                 ))}

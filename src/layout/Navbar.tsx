@@ -68,14 +68,21 @@ class Navbar extends React.Component<INavbarProps> {
         return (
             <nav className="navbar" role="navigation" aria-label="main navigation">
                 <div className="navbar-brand">
-                    <a className="navbar-item icon-text is-size-3">
+                    <span className="navbar-item icon-text is-size-3">
                         <span className="icon is-large">
                             <i className="fa-solid fa-cloud-bolt "></i>
                         </span>
                         <span>BOLT ADMIN</span>
-                    </a>
+                    </span>
 
-                    <a role="button" className={"navbar-burger " + (this.state.open ? "is-active" : "")} aria-label="menu" aria-expanded="false" data-target="basicNavbar" onClick={this.handleOpen}>
+                    <a
+                        href="#"
+                        role="button"
+                        className={"navbar-burger " + (this.state.open ? "is-active" : "")}
+                        aria-label="menu"
+                        aria-expanded="false"
+                        data-target="basicNavbar"
+                        onClick={this.handleOpen}>
                         <span aria-hidden="true"></span>
                         <span aria-hidden="true"></span>
                         <span aria-hidden="true"></span>
@@ -87,10 +94,14 @@ class Navbar extends React.Component<INavbarProps> {
                     <div className="navbar-end">
                         {this.state.databases !== null && this.state.databases.length > 1 && (
                             <div className="navbar-item has-dropdown is-hoverable">
-                                <a className="navbar-link">DB</a>
+                                <span className="navbar-link">DB</span>
                                 <div className="navbar-dropdown">
                                     {this.state.databases.map(name => (
-                                        <a key={"navbar-item-" + name} className={(this.state.activeDb === name ? "is-active" : "") + " navbar-item"} onClick={() => this.handleChangeDb(name)}>
+                                        <a
+                                            href="#"
+                                            key={"navbar-item-" + name}
+                                            className={(this.state.activeDb === name ? "is-active" : "") + " navbar-item"}
+                                            onClick={() => this.handleChangeDb(name)}>
                                             {name}
                                         </a>
                                     ))}
@@ -100,15 +111,15 @@ class Navbar extends React.Component<INavbarProps> {
 
                         <div className="navbar-item">
                             <div className="buttons">
-                                <a className="button is-info" onClick={this.props.handleAddQueryTab}>
+                                <button className="button is-info" onClick={this.props.handleAddQueryTab}>
                                     <span className="icon">
                                         <i className="fas fa-plus" aria-hidden="true"></i>
                                     </span>
                                     <strong>Query</strong>
-                                </a>
-                                <a className="button is-light" onClick={this.handleLogout}>
+                                </button>
+                                <button className="button is-light" onClick={this.handleLogout}>
                                     Log out
-                                </a>
+                                </button>
                             </div>
                         </div>
                     </div>

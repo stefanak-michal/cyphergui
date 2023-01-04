@@ -78,6 +78,7 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/t
 
 # links
 
+
 - https://fontawesome.com/search?o=r&m=free
 - https://bulma.io/documentation/
 - https://reactjs.org/docs/getting-started.html
@@ -87,7 +88,8 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/t
 - https://github.com/neo4j/neo4j-javascript-driver
 - https://github.com/memgraph/orb
 - https://javascript.info/promise-api
-
+- https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/forms_and_events/
+- 
 # todo
 
 - everything

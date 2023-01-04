@@ -1,24 +1,39 @@
-import React, { Component } from "react";
+import * as React from "react";
 import { neo4j, getDriver } from "../db";
 import { Button, Property } from "../form";
 import Modal from "./block/Modal";
+import IPageProps from "./IPageProps";
+import { Integer, Node as Neo4jNode } from "neo4j-driver";
+
+interface INodeProps extends IPageProps {
+    database: string;
+    label: string;
+    id: Integer;
+}
+
+interface INodeState {
+    node: Neo4jNode | null;
+    focus: string | null;
+    labels: string[];
+    properties: { name: string; key: string; value: any }[];
+    labelModal: boolean | string[];
+    labelModalInput: string;
+    error: string | null;
+}
 
 /**
  * Edit node by ID
  */
-class Node extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            node: null,
-            focus: null,
-            labels: !!props.label ? [props.label] : [],
-            properties: [],
-            labelModal: false,
-            labelModalInput: "",
-            error: null,
-        };
-    }
+class Node extends React.Component<INodeProps, INodeState> {
+    state: INodeState = {
+        node: null,
+        focus: null,
+        labels: !!this.props.label ? [this.props.label] : [],
+        properties: [],
+        labelModal: false,
+        labelModalInput: "",
+        error: null,
+    };
 
     requestData = () => {
         if (this.props.id === null) return;
@@ -72,37 +87,40 @@ class Node extends Component {
         return true;
     }
 
-    handlePropertyKeyChange = e => {
-        this.state.properties.filter(p => "key." + p.name === e.target.name)[0].key = e.target.value;
+    handlePropertyKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        e.preventDefault();
+        this.state.properties.filter(p => "key." + p.name === e.currentTarget.name)[0].key = e.currentTarget.value;
         this.setState({
             properties: this.state.properties,
-            focus: e.target.name,
+            focus: e.currentTarget.name,
         });
     };
 
-    handlePropertyValueChange = (e, type) => {
-        let value = e.target.value;
+    handlePropertyValueChange = (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
+        e.preventDefault();
+        let value: any = e.currentTarget.value;
         switch (type) {
             case "bool":
-                value = e.target.checked;
+                value = e.currentTarget.checked;
                 break;
             case "integer":
-                value = neo4j.int(value);
+                value = neo4j.int(e.currentTarget.valueAsNumber);
                 break;
             case "float":
-                value = parseFloat(value);
+                value = e.currentTarget.valueAsNumber;
                 break;
         }
-        this.state.properties.filter(p => p.name === e.target.name)[0].value = value;
+        this.state.properties.filter(p => p.name === e.currentTarget.name)[0].value = value;
         this.setState({
             properties: this.state.properties,
-            focus: e.target.name,
+            focus: e.currentTarget.name,
         });
     };
 
-    handlePropertyTypeChange = e => {
-        const i = this.state.properties.findIndex(p => "type." + p.name === e.target.name);
-        switch (e.target.value) {
+    handlePropertyTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        e.preventDefault();
+        const i = this.state.properties.findIndex(p => "type." + p.name === e.currentTarget.name);
+        switch (e.currentTarget.value) {
             case "bool":
                 this.state.properties[i].value = !!this.state.properties[i].value;
                 break;
@@ -118,11 +136,11 @@ class Node extends Component {
         }
         this.setState({
             properties: this.state.properties,
-            focus: e.target.name,
+            focus: e.currentTarget.name,
         });
     };
 
-    handlePropertyDelete = name => {
+    handlePropertyDelete = (name: string) => {
         this.state.properties.splice(
             this.state.properties.findIndex(p => p.name === name),
             1
@@ -156,7 +174,7 @@ class Node extends Component {
             .catch(console.error);
     };
 
-    handleLabelSelect = label => {
+    handleLabelSelect = (label: string) => {
         if (this.state.labels.indexOf(label) === -1) this.state.labels.push(label);
         this.setState({
             labels: this.state.labels,
@@ -165,7 +183,7 @@ class Node extends Component {
         });
     };
 
-    handleLabelDelete = label => {
+    handleLabelDelete = (label: string) => {
         const i = this.state.labels.indexOf(label);
         if (i === -1) return;
         this.state.labels.splice(i, 1);
@@ -180,7 +198,7 @@ class Node extends Component {
         });
     };
 
-    handleSubmit = e => {
+    handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
         let setLabels = this.props.id === null ? this.state.labels.join(":") : this.state.labels.filter(l => this.state.node.labels.indexOf(l) === -1).join(":");
@@ -224,7 +242,7 @@ class Node extends Component {
 
         return (
             <>
-                {this.state.labelModal !== false && (
+                {Array.isArray(this.state.labelModal) && (
                     <Modal title="Add label" handleClose={this.handleLabelModalClose}>
                         <div className="buttons">
                             {this.state.labelModal.map(label => (
@@ -247,7 +265,7 @@ class Node extends Component {
                                         className="input"
                                         type="text"
                                         value={this.state.labelModalInput}
-                                        onChange={e => this.setState({ labelModalInput: e.target.value })}
+                                        onChange={e => this.setState({ labelModalInput: e.currentTarget.value })}
                                     />
                                 </div>
                                 <div className="control">

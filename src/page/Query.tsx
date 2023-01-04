@@ -1,19 +1,19 @@
-import React, { Component } from "react";
+import * as React from "react";
 import { neo4j, getDriver } from "../db";
 import { Button } from "../form";
+import IPageProps from "./IPageProps";
+
+interface IQueryProps extends IPageProps {}
 
 /**
  * Execute custom query
  * @todo
  * @todo use https://github.com/memgraph/orb to draw graph
  */
-export default class Query extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            view: 1,
-        };
-    }
+class Query extends React.Component<IQueryProps> {
+    state = {
+        view: 1,
+    };
 
     render() {
         if (!this.props.active) return;
@@ -35,3 +35,5 @@ export default class Query extends Component {
 //         </div>
 //     </div>
 // </div>
+
+export default Query;

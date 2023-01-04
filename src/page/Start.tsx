@@ -1,16 +1,14 @@
-import React, { Component } from "react";
+import * as React from "react";
 import { neo4j, getActiveDb, getDriver, registerChangeDbCallback } from "../db";
 import { Button } from "../form";
+import IPageProps from "./IPageProps";
 
-class Start extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            labels: [],
-            types: [],
-            serverInfo: {},
-        };
-    }
+class Start extends React.Component<IPageProps> {
+    state = {
+        labels: [],
+        types: [],
+        serverInfo: {},
+    };
 
     componentDidMount() {
         registerChangeDbCallback(this.requestData);
@@ -51,7 +49,7 @@ class Start extends Component {
                 <div className="subtitle mb-2">Server</div>
                 {Object.keys(this.state.serverInfo).length ? (
                     <div>
-                        Connected to <b>{this.state.serverInfo.address}</b> with protocol version <b>{this.state.serverInfo.protocolVersion}</b>.
+                        Connected to <b>{this.state.serverInfo["address"] || ""}</b> with protocol version <b>{this.state.serverInfo["protocolVersion"] || ""}</b>.
                     </div>
                 ) : (
                     <div>Loading ...</div>

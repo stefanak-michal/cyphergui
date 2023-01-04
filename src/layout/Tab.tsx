@@ -1,17 +1,22 @@
-import React, { Component } from "react";
+import * as React from "react";
+
+interface ITabProps {
+    active: boolean;
+    icon?: string;
+    title: string;
+    handleClick: (title: string) => void;
+    handleRemove: (title: string, e?: any) => void;
+}
 
 /**
  * Tab header
  */
-class Tab extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            delete: false,
-        };
-    }
+class Tab extends React.Component<ITabProps> {
+    state = {
+        delete: false,
+    };
 
-    showDelete = e => {
+    showDelete = (e: React.MouseEvent) => {
         this.setState({ delete: e.type === "mouseenter" });
     };
 

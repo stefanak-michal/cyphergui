@@ -1,15 +1,12 @@
-import React, { Component } from "react";
+import * as React from "react";
 import "./main.sass";
 import Login from "./Login";
 import Logged from "./Logged";
 
-class App extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            logged: false,
-        };
-    }
+class App extends React.Component {
+    state = {
+        logged: false,
+    };
 
     handleLogin = () => {
         this.setState({

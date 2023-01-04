@@ -1,56 +1,65 @@
-import React, { Component } from "react";
+import * as React from "react";
 import Pagination from "./block/Pagination";
 import Modal from "./block/Modal";
 import TableSortIcon from "./block/TableSortIcon";
-import { neo4j, getDriver } from "../db";
+import { neo4j, getDriver, isInteger } from "../db";
 import { Button, Checkbox } from "../form";
+import IPageProps from "./IPageProps";
+import { Integer } from "neo4j-driver";
+
+interface ILabelProps extends IPageProps {
+    database: string;
+    label: string;
+}
 
 /**
  * List all nodes with specific label
  * @todo add events to actions in td row
  */
-class Label extends Component {
-    perPage = 20;
-    hasElementId = false;
+class Label extends React.Component<ILabelProps> {
+    perPage: number = 20;
+    hasElementId: boolean = false;
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            rows: [],
-            page: 1,
-            total: 0,
-            sort: [],
-        };
-    }
+    state = {
+        rows: [],
+        page: 1,
+        total: 0,
+        sort: [],
+        delete: null,
+        error: null,
+    };
 
     requestData = () => {
-        Promise.all([
-            getDriver()
-                .session({
-                    database: this.props.database,
-                    defaultAccessMode: neo4j.session.READ,
-                })
-                .run("MATCH (n:" + this.props.label + ") RETURN n " + (this.state.sort.length ? "ORDER BY " + this.state.sort.join(", ") : "") + " SKIP $s LIMIT $l", {
-                    s: neo4j.int((this.state.page - 1) * this.perPage),
-                    l: neo4j.int(this.perPage),
-                }),
-            getDriver()
-                .session({
-                    database: this.props.database,
-                    defaultAccessMode: neo4j.session.READ,
-                })
-                .run("MATCH (n:" + this.props.label + ") RETURN COUNT(n) AS cnt"),
-        ])
-            .then(responses => {
-                this.setState({
-                    rows: responses[0].records.map(record => record.get("n")),
-                    total: responses[1].records[0].get("cnt"),
-                });
-                this.hasElementId = responses[0].records.length > 0 && !!responses[0].records[0].get("n").elementId;
+        getDriver()
+            .session({
+                database: this.props.database,
+                defaultAccessMode: neo4j.session.READ,
             })
-            .catch(error => {
-                console.error(error);
-            });
+            .run("MATCH (n:" + this.props.label + ") RETURN COUNT(n) AS cnt")
+            .then(response1 => {
+                const cnt: number = response1.records[0].get("cnt");
+                const page: number = this.state.page >= Math.ceil(cnt / this.perPage) ? Math.ceil(cnt / this.perPage) : this.state.page;
+
+                getDriver()
+                    .session({
+                        database: this.props.database,
+                        defaultAccessMode: neo4j.session.READ,
+                    })
+                    .run("MATCH (n:" + this.props.label + ") RETURN n " + (this.state.sort.length ? "ORDER BY " + this.state.sort.join(", ") : "") + " SKIP $s LIMIT $l", {
+                        s: neo4j.int((page - 1) * this.perPage),
+                        l: neo4j.int(this.perPage),
+                    })
+                    .then(response2 => {
+                        this.setState({
+                            rows: response2.records.map(record => record.get("n")),
+                            total: cnt,
+                            page: page,
+                        });
+                        this.hasElementId = response2.records.length > 0 && !!response2.records[0].get("n").elementId;
+                    })
+                    .catch(console.error);
+            })
+            .catch(console.error);
     };
 
     componentDidMount() {
@@ -64,7 +73,7 @@ class Label extends Component {
         return true;
     }
 
-    handleChangePage = page => {
+    handleChangePage = (page: number) => {
         this.setState(
             {
                 page: page,
@@ -73,7 +82,7 @@ class Label extends Component {
         );
     };
 
-    handleOpenDeleteModal = id => {
+    handleOpenDeleteModal = (id: Integer) => {
         this.setState({
             delete: { id: id },
         });
@@ -111,11 +120,11 @@ class Label extends Component {
         });
     };
 
-    handleDeleteModalDetachCheckbox = e => {
+    handleDeleteModalDetachCheckbox = (e: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({
             delete: {
                 ...this.state.delete,
-                detach: e.target.checked,
+                detach: e.currentTarget.checked,
             },
         });
     };
@@ -126,7 +135,7 @@ class Label extends Component {
         });
     };
 
-    handleSetSort = value => {
+    handleSetSort = (value: string) => {
         let i = this.state.sort.indexOf(value),
             j = this.state.sort.indexOf(value + " DESC");
         let copy = [...this.state.sort];
@@ -182,7 +191,7 @@ class Label extends Component {
                     </Modal>
                 )}
 
-                {this.state.error && (
+                {typeof this.state.error === "string" && (
                     <div className="message is-danger">
                         <div className="message-header">
                             <p>Error</p>
@@ -225,16 +234,16 @@ class Label extends Component {
                     <table className="table is-bordered is-striped is-narrow is-hoverable">
                         <thead>
                             <tr>
-                                <th rowSpan="2"></th>
-                                <th rowSpan="2" className="nowrap is-clickable" onClick={() => this.handleSetSort("id(n)")}>
+                                <th rowSpan={2}></th>
+                                <th rowSpan={2} className="nowrap is-clickable" onClick={() => this.handleSetSort("id(n)")}>
                                     id <TableSortIcon sort="id(n)" current={this.state.sort} />
                                 </th>
                                 {this.hasElementId && (
-                                    <th rowSpan="2" className="nowrap is-clickable" onClick={() => this.handleSetSort("elementId(n)")}>
+                                    <th rowSpan={2} className="nowrap is-clickable" onClick={() => this.handleSetSort("elementId(n)")}>
                                         elementId <TableSortIcon sort="elementId(n)" current={this.state.sort} />
                                     </th>
                                 )}
-                                {additionalLabels && <th rowSpan="2">additional labels</th>}
+                                {additionalLabels && <th rowSpan={2}>additional labels</th>}
                                 <th colSpan={keys.length}>properties</th>
                             </tr>
                             <tr>
@@ -284,10 +293,7 @@ class Label extends Component {
                                     )}
                                     {keys.map(key => (
                                         <td key={"td-" + key}>
-                                            {row.properties.hasOwnProperty(key) &&
-                                                (row.properties[key].hasOwnProperty("low") && row.properties[key].hasOwnProperty("high")
-                                                    ? neo4j.integer.toString(row.properties[key])
-                                                    : row.properties[key].toString())}
+                                            {key in row.properties && (isInteger(row.properties[key]) ? neo4j.integer.toString(row.properties[key]) : row.properties[key].toString())}
                                         </td>
                                     ))}
                                 </tr>

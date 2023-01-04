@@ -1,6 +1,6 @@
-import { Component } from "react";
+import * as React from "react";
 
-export default class Pagination extends Component {
+export default class Pagination extends React.Component<{ pages: number; page: number; action: (i: number) => void }> {
     render() {
         if (this.props.pages === 1) return;
 
@@ -34,14 +34,13 @@ export default class Pagination extends Component {
                 <ul className="pagination-list">
                     {links.map(value => (
                         <li key={"li-" + value}>
-                            {value === "e" ? (
-                                <span className="pagination-ellipsis">&hellip;</span>
-                            ) : (
+                            {value === "e" && <span className="pagination-ellipsis">&hellip;</span>}
+                            {typeof value === "number" && (
                                 <button
                                     className={"button pagination-link " + (this.props.page === value ? "is-current" : "")}
                                     onClick={() => this.props.action(value)}
                                     aria-label={"Goto page " + value}
-                                    aria-current={this.props.page === value && "page"}>
+                                    aria-current={this.props.page === value ? "page" : false}>
                                     {value}
                                 </button>
                             )}

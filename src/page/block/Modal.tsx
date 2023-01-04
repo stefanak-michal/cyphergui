@@ -1,6 +1,6 @@
-import { Component } from "react";
+import * as React from "react";
 
-export default class Modal extends Component {
+export default class Modal extends React.Component<{ title: string; color?: string; handleClose: () => void; children: React.ReactNode }> {
     render() {
         return (
             <div className="modal is-active">

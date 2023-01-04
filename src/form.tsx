@@ -1,7 +1,7 @@
-import React, { Component } from "react";
-import { neo4j } from "./db";
+import * as React from "react";
+import { isInteger, neo4j } from "./db";
 
-export class Input extends Component {
+export class Input extends React.Component<{ label: string; name: string; type?: string; placeholder?: string; value?: any; onChange: (e: React.ChangeEvent) => void }> {
     render() {
         return (
             <div className="field">
@@ -13,7 +13,7 @@ export class Input extends Component {
                         type={this.props.type || "text"}
                         placeholder={this.props.placeholder || ""}
                         onChange={this.props.onChange}
-                        defaultValue={this.props.value}
+                        value={this.props.value}
                     />
                 </div>
             </div>
@@ -21,12 +21,12 @@ export class Input extends Component {
     }
 }
 
-export class Checkbox extends Component {
+export class Checkbox extends React.Component<{ name: string; label: string; color?: string; onChange: (e: React.ChangeEvent) => void; checked?: boolean }> {
     render() {
         return (
             <div className="field">
-                <label className={"switch " + (this.props.color || "")}>
-                    <input type="checkbox" name={this.props.name} onChange={this.props.onChange} defaultChecked={this.props.checked || false} defaultValue={this.props.value || ""} />
+                <label className={"switch " + this.props.color}>
+                    <input type="checkbox" name={this.props.name} onChange={this.props.onChange} checked={this.props.checked || false} />
                     <span className="slider" /> {this.props.label}
                 </label>
             </div>
@@ -34,7 +34,7 @@ export class Checkbox extends Component {
     }
 }
 
-export class Button extends Component {
+export class Button extends React.Component<{ text?: string; icon?: string; color?: string; onClick?: (e?: any) => void; type?: "submit" | "reset" | "button"; title?: string }> {
     render() {
         return (
             <button className={"button " + (this.props.color || "")} onClick={this.props.onClick} type={this.props.type || "button"} title={this.props.title || ""}>
@@ -49,13 +49,10 @@ export class Button extends Component {
     }
 }
 
-class PropertyType extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            types: ["string", "integer", "float", "bool"],
-        };
-    }
+class PropertyType extends React.Component<{ name: string; selected: string; onTypeChange: (e: React.ChangeEvent) => void }> {
+    state = {
+        types: ["string", "integer", "float", "bool"],
+    };
 
     render() {
         return (
@@ -74,7 +71,16 @@ class PropertyType extends Component {
 @todo add additional property types (point, datetime, ...)
  */
 
-export class Property extends Component {
+export class Property extends React.Component<{
+    name: string;
+    mapKey: string;
+    focus: string;
+    value: any;
+    onKeyChange: (e: React.ChangeEvent) => void;
+    onValueChange: (e: React.ChangeEvent, type: string) => void;
+    onTypeChange: (e: React.ChangeEvent) => void;
+    onDelete: (name: string) => void;
+}> {
     render() {
         let deleteButton;
         if (!!this.props.onDelete) {
@@ -101,7 +107,7 @@ export class Property extends Component {
             </div>
         );
 
-        if (typeof this.props.value === "object" && this.props.value.hasOwnProperty("low") && this.props.value.hasOwnProperty("high")) {
+        if (isInteger(this.props.value)) {
             return (
                 <div className="field is-grouped">
                     {nameInput}
@@ -131,7 +137,7 @@ export class Property extends Component {
                         <textarea
                             name={this.props.name}
                             className="textarea"
-                            rows="2"
+                            rows={2}
                             value={this.props.value}
                             onChange={e => this.props.onValueChange(e, "string")}
                             autoFocus={this.props.focus === this.props.name}

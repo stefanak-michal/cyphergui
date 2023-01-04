@@ -1,19 +1,21 @@
-import { Component } from "react";
+import * as React from "react";
 import { neo4j, setActiveDb, disconnect, getDriver, getActiveDb } from "../db";
+
+interface INavbarProps {
+    handleLogout: () => void;
+    handleAddQueryTab: () => void;
+}
 
 /**
  * Navbar
  * @todo change logo and title
  */
-class Navbar extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            open: false,
-            databases: [],
-            activeDb: getActiveDb(),
-        };
-    }
+class Navbar extends React.Component<INavbarProps> {
+    state = {
+        open: false,
+        databases: [],
+        activeDb: getActiveDb(),
+    };
 
     requestData = () => {
         getDriver()
@@ -55,7 +57,7 @@ class Navbar extends Component {
         this.props.handleLogout();
     };
 
-    handleChangeDb = name => {
+    handleChangeDb = (name: string) => {
         setActiveDb(name);
         this.setState({
             activeDb: name,

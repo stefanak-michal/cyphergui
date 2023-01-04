@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import * as React from "react";
 import { Button, Input } from "./form";
 import { neo4j, setDriver } from "./db";
 
@@ -7,19 +7,16 @@ import { neo4j, setDriver } from "./db";
  * @todo add additional info
  * @todo update logo
  */
-class Login extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            url: "bolt://localhost:7687",
-            username: "",
-            password: "",
-            submitted: false,
-            error: null,
-        };
-    }
+class Login extends React.Component<{ handleLogin: () => void }> {
+    state = {
+        url: "bolt://localhost:7687",
+        username: "",
+        password: "",
+        submitted: false,
+        error: null,
+    };
 
-    handleSubmit = async event => {
+    handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
         this.setState({ submitted: true });
 
@@ -42,10 +39,10 @@ class Login extends Component {
         }
     };
 
-    handleInputChange = event => {
+    handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
         event.preventDefault();
-        const target = event.target;
-        const value = target.type === "checkbox" ? target.checked : target.value;
+        const target = event.currentTarget;
+        const value = event.currentTarget.type === "checkbox" ? target.checked : target.value;
         const name = target.name;
 
         this.setState({

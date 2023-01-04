@@ -1,15 +1,20 @@
-import React, { Component } from "react";
+import * as React from "react";
 import Pagination from "./block/Pagination";
 import { neo4j, getDriver } from "../db";
+import IPageProps from "./IPageProps";
+
+interface ITypeProps extends IPageProps {}
 
 /**
  * List all relationships with specific relationshipType
  * @todo
  */
-export default class Type extends Component {
+class Type extends React.Component<ITypeProps> {
     render() {
         if (!this.props.active) return;
 
         return <>relationship type</>;
     }
 }
+
+export default Type;

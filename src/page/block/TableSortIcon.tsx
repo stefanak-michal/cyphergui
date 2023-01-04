@@ -1,6 +1,6 @@
-import React, { Component } from "react";
+import * as React from "react";
 
-export default class TableSortIcon extends Component {
+export default class TableSortIcon extends React.Component<{ current: string[]; sort: string }> {
     render() {
         return (
             <>

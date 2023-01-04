@@ -2,9 +2,9 @@
   "name": "boltadmin",
   "version": "0.1.0",
   "private": true,
+  "homepage": ".",
   "dependencies": {
     "@memgraph/orb": "^0.1.5",
-    "@types/jest": "^29.2.5",
     "@types/node": "^18.11.18",
     "@types/react": "^18.0.26",
     "@types/react-dom": "^18.0.10",
@@ -14,20 +14,13 @@
     "react-dom": "^18.2.0",
     "react-scripts": "^5.0.1",
     "sass": "^1.57.1",
-    "typescript": "^4.9.4",
-    "web-vitals": "^3.1.0"
+    "typescript": "^4.9.4"
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "tsc",
+    "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
   },
   "browserslist": {
     "production": [

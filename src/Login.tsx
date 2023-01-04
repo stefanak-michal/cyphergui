@@ -16,8 +16,8 @@ class Login extends React.Component<{ handleLogin: () => void }> {
         error: null,
     };
 
-    handleSubmit = async (event: React.FormEvent) => {
-        event.preventDefault();
+    handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
         this.setState({ submitted: true });
 
         try {
@@ -39,10 +39,10 @@ class Login extends React.Component<{ handleLogin: () => void }> {
         }
     };
 
-    handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-        event.preventDefault();
-        const target = event.currentTarget;
-        const value = event.currentTarget.type === "checkbox" ? target.checked : target.value;
+    handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        e.preventDefault();
+        const target = e.currentTarget;
+        const value = e.currentTarget.type === "checkbox" ? target.checked : target.value;
         const name = target.name;
 
         this.setState({

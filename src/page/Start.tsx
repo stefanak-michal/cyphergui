@@ -2,6 +2,7 @@ import * as React from "react";
 import { neo4j, getActiveDb, getDriver, registerChangeDbCallback } from "../db";
 import { Button } from "../form";
 import IPageProps from "./IPageProps";
+import { EPage } from "../enums";
 
 class Start extends React.Component<IPageProps> {
     state = {
@@ -61,7 +62,7 @@ class Start extends React.Component<IPageProps> {
                         this.state.labels.map(label => (
                             <Button
                                 color="tag is-link is-rounded is-medium px-3"
-                                onClick={() => this.props.addTab(label, "fa-regular fa-circle", "label", { label: label, database: getActiveDb() })}
+                                onClick={() => this.props.addTab(label, "fa-regular fa-circle", EPage.Label, { label: label, database: getActiveDb() })}
                                 key={label}
                                 text={label}
                             />
@@ -75,7 +76,7 @@ class Start extends React.Component<IPageProps> {
                         icon="fa-solid fa-plus"
                         text="Create node"
                         color=""
-                        onClick={() => this.props.addTab(this.props.generateTabName("New node"), "fa-regular fa-square-plus", "node", { id: null, database: getActiveDb() })}
+                        onClick={() => this.props.addTab(this.props.generateTabName("New node"), "fa-regular fa-square-plus", EPage.Node, { id: null, database: getActiveDb() })}
                     />
                 </div>
                 <br />
@@ -85,7 +86,7 @@ class Start extends React.Component<IPageProps> {
                         this.state.types.map(type => (
                             <Button
                                 color="tag is-info is-rounded is-medium px-3"
-                                onClick={() => this.props.addTab(type, "fa-solid fa-arrow-right-long", "type", { type: type, database: getActiveDb() })}
+                                onClick={() => this.props.addTab(type, "fa-solid fa-arrow-right-long", EPage.Type, { type: type, database: getActiveDb() })}
                                 key={type}
                                 text={type}
                             />

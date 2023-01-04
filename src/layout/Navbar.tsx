@@ -94,14 +94,10 @@ class Navbar extends React.Component<INavbarProps> {
                     <div className="navbar-end">
                         {this.state.databases !== null && this.state.databases.length > 1 && (
                             <div className="navbar-item has-dropdown is-hoverable">
-                                <span className="navbar-link">DB</span>
+                                <a className="navbar-link">DB</a>
                                 <div className="navbar-dropdown">
                                     {this.state.databases.map(name => (
-                                        <a
-                                            href="#"
-                                            key={"navbar-item-" + name}
-                                            className={(this.state.activeDb === name ? "is-active" : "") + " navbar-item"}
-                                            onClick={() => this.handleChangeDb(name)}>
+                                        <a key={"navbar-item-" + name} className={(this.state.activeDb === name ? "is-active" : "") + " navbar-item"} onClick={() => this.handleChangeDb(name)}>
                                             {name}
                                         </a>
                                     ))}

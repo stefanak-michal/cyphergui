@@ -4,6 +4,7 @@ import { Button, Property } from "../form";
 import Modal from "./block/Modal";
 import IPageProps from "./IPageProps";
 import { Integer, Node as Neo4jNode } from "neo4j-driver";
+import { EPage } from "../enums";
 
 interface INodeProps extends IPageProps {
     database: string;
@@ -306,7 +307,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                         <div className="buttons tags">
                             {this.state.labels.map(label => (
                                 <span key={"label-" + label} className="tag is-link is-medium mr-3 is-rounded">
-                                    <a className="has-text-white mr-1" onClick={() => this.props.addTab(label, "fa-regular fa-circle", "label", { label: label, database: this.props.database })}>
+                                    <a className="has-text-white mr-1" onClick={() => this.props.addTab(label, "fa-regular fa-circle", EPage.Label, { label: label, database: this.props.database })}>
                                         {label}
                                     </a>
                                     <button className="delete" onClick={() => this.handleLabelDelete(label)}></button>

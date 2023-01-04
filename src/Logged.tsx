@@ -7,18 +7,20 @@ import Node from "./page/Node";
 import Label from "./page/Label";
 import Type from "./page/Type";
 import Relationship from "./page/Relationship";
+import { EPage } from "./enums";
 
-type DataType = {
-    tabs: { title: string; icon: string | null }[];
-    contents: { title: string; component: string; props: object }[];
-    activeTab?: string;
-};
+interface ILoggedState {
+    activeTab: string | null;
+    tabs: { title: string; icon: string }[];
+    contents: { title: string; page: EPage; props: object }[];
+    toasts: { key: number; message: string; color: string; delay: number; timeout: NodeJS.Timeout }[];
+}
 
 /**
  * Logged page with tab management
  */
-class Logged extends React.Component<{ handleLogout: () => void }> {
-    state = {
+class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState> {
+    state: ILoggedState = {
         activeTab: null,
         tabs: [],
         contents: [],
@@ -26,26 +28,26 @@ class Logged extends React.Component<{ handleLogout: () => void }> {
     };
 
     components = {
-        start: Start,
-        query: Query,
-        node: Node,
-        label: Label,
-        type: Type,
-        rel: Relationship,
+        [EPage.Start]: Start,
+        [EPage.Query]: Query,
+        [EPage.Node]: Node,
+        [EPage.Label]: Label,
+        [EPage.Type]: Type,
+        [EPage.Rel]: Relationship,
     };
 
     componentDidMount() {
         this.setState({
             activeTab: "Start",
             tabs: [{ title: "Start", icon: "fa-solid fa-play" }],
-            contents: [{ title: "Start", component: "start", props: {} }],
+            contents: [{ title: "Start", page: EPage.Start, props: {} }],
         });
     }
 
     /**
      * Tab title has to be unique ..if already exists is switched on it
      */
-    addTab = (title: string, icon: string | null, component: string, props: object = {}, active: boolean = true) => {
+    addTab = (title: string, icon: string, page: EPage, props: object = {}, active: boolean = true) => {
         if (this.state.tabs.filter(value => value.title === title).length) {
             this.setActiveTab(title);
             return;
@@ -57,12 +59,12 @@ class Logged extends React.Component<{ handleLogout: () => void }> {
         if (i !== -1) tabs.splice(i + 1, 0, { title: title, icon: icon });
         else tabs.push({ title: title, icon: icon });
 
-        let data: DataType = {
+        let data: object = {
             tabs: tabs,
-            contents: this.state.contents.concat({ title: title, component: component, props: props }),
+            contents: this.state.contents.concat({ title: title, page: page, props: props }),
         };
         if (active) {
-            data.activeTab = title;
+            data["activeTab"] = title;
         }
         this.setState(data);
     };
@@ -83,20 +85,20 @@ class Logged extends React.Component<{ handleLogout: () => void }> {
 
     removeTab = (title: string, e?: React.PointerEvent) => {
         !!e && e.stopPropagation();
-        let data: DataType = {
+        let data: object = {
             tabs: this.state.tabs.filter(tab => title !== tab.title),
             contents: this.state.contents.filter(content => title !== content.title),
         };
 
         if (this.state.activeTab === title) {
             let i: number = this.state.tabs.map(tab => tab.title).indexOf(title);
-            data.activeTab = this.state.tabs[i - 1].title;
+            data["activeTab"] = this.state.tabs[i - 1].title;
         }
 
         this.setState(data);
     };
 
-    toast = (message, color = "is-success", delay = 3) => {
+    toast = (message: string, color = "is-success", delay = 3) => {
         const i: number = new Date().getTime();
         this.setState({
             toasts: this.state.toasts.concat({
@@ -120,7 +122,7 @@ class Logged extends React.Component<{ handleLogout: () => void }> {
 
         return (
             <>
-                <Navbar handleLogout={this.props.handleLogout} handleAddQueryTab={() => this.addTab(this.generateTabName("Query"), "fa-solid fa-terminal", "query")} />
+                <Navbar handleLogout={this.props.handleLogout} handleAddQueryTab={() => this.addTab(this.generateTabName("Query"), "fa-solid fa-terminal", EPage.Query)} />
                 <section className="tabs is-boxed">
                     <ul>
                         {this.state.tabs.map(tab => (
@@ -130,7 +132,7 @@ class Logged extends React.Component<{ handleLogout: () => void }> {
                 </section>
                 <section className={"container " + (this.state.activeTab === "Start" ? "" : "is-fluid")}>
                     {this.state.contents.map(content => {
-                        const MyComponent: string = this.components[content.component];
+                        const MyComponent: typeof React.Component = this.components[content.page];
                         return (
                             <MyComponent
                                 key={"content-" + content.title}

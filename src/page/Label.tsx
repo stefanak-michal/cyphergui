@@ -6,6 +6,7 @@ import { neo4j, getDriver, isInteger } from "../db";
 import { Button, Checkbox } from "../form";
 import IPageProps from "./IPageProps";
 import { Integer } from "neo4j-driver";
+import { EPage } from "../enums";
 
 interface ILabelProps extends IPageProps {
     database: string;
@@ -225,7 +226,11 @@ class Label extends React.Component<ILabelProps> {
                         text="Create node"
                         color="is-primary"
                         onClick={() =>
-                            this.props.addTab(this.props.generateTabName("New node"), "fa-regular fa-square-plus", "node", { id: null, database: this.props.database, label: this.props.label })
+                            this.props.addTab(this.props.generateTabName("New node"), "fa-regular fa-square-plus", EPage.Node, {
+                                id: null,
+                                database: this.props.database,
+                                label: this.props.label,
+                            })
                         }
                     />
                 </div>
@@ -264,7 +269,7 @@ class Label extends React.Component<ILabelProps> {
                                                 icon="fa-solid fa-pen-clip"
                                                 title="Edit"
                                                 onClick={() =>
-                                                    this.props.addTab("Node#" + neo4j.integer.toString(row.identity), "fa-solid fa-pen-to-square", "node", {
+                                                    this.props.addTab("Node#" + neo4j.integer.toString(row.identity), "fa-solid fa-pen-to-square", EPage.Node, {
                                                         id: row.identity,
                                                         database: this.props.database,
                                                     })
@@ -283,7 +288,7 @@ class Label extends React.Component<ILabelProps> {
                                                     .map(label => (
                                                         <Button
                                                             color="tag is-link is-rounded px-2"
-                                                            onClick={() => this.props.addTab(label, "fa-regular fa-circle", "label", { label: label, database: this.props.database })}
+                                                            onClick={() => this.props.addTab(label, "fa-regular fa-circle", EPage.Label, { label: label, database: this.props.database })}
                                                             key={label}
                                                             text={label}
                                                         />

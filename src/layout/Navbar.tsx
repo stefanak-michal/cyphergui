@@ -4,6 +4,7 @@ import { neo4j, setActiveDb, disconnect, getDriver, getActiveDb } from "../db";
 interface INavbarProps {
     handleLogout: () => void;
     handleAddQueryTab: () => void;
+    handleOpenSettings: () => void;
 }
 
 /**
@@ -90,8 +91,7 @@ class Navbar extends React.Component<INavbarProps> {
                 </div>
 
                 <div id="basicNavbar" className={"navbar-menu " + (this.state.open ? "is-active" : "")}>
-                    <div className="navbar-start"></div>
-                    <div className="navbar-end">
+                    <div className="navbar-start">
                         {this.state.databases !== null && this.state.databases.length > 1 && (
                             <div className="navbar-item has-dropdown is-hoverable">
                                 <a className="navbar-link">DB</a>
@@ -104,7 +104,8 @@ class Navbar extends React.Component<INavbarProps> {
                                 </div>
                             </div>
                         )}
-
+                    </div>
+                    <div className="navbar-end">
                         <div className="navbar-item">
                             <div className="buttons">
                                 <button className="button is-info" onClick={this.props.handleAddQueryTab}>
@@ -113,7 +114,13 @@ class Navbar extends React.Component<INavbarProps> {
                                     </span>
                                     <strong>Query</strong>
                                 </button>
-                                <button className="button is-light" onClick={this.handleLogout}>
+                                <button className="button" onClick={this.props.handleOpenSettings}>
+                                    <span className="icon">
+                                        <i className="fa-solid fa-gears" aria-hidden="true"></i>
+                                    </span>
+                                    <strong>Settings</strong>
+                                </button>
+                                <button className="button" onClick={this.handleLogout}>
                                     Log out
                                 </button>
                             </div>

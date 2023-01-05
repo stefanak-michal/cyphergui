@@ -6,3 +6,10 @@ export enum EPage {
     Type = "type",
     Rel = "relationship",
 }
+
+export enum EPropertyType {
+    String = "String",
+    Integer = "Integer",
+    Float = "Float",
+    Boolean = "Boolean",
+}

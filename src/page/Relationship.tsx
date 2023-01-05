@@ -1,6 +1,6 @@
 import * as React from "react";
 import { neo4j, getDriver } from "../db";
-import IPageProps from "./IPageProps";
+import { IPageProps } from "../interfaces";
 
 interface IRelationshipProps extends IPageProps {}
 

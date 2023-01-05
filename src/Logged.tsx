@@ -8,12 +8,19 @@ import Label from "./page/Label";
 import Type from "./page/Type";
 import Relationship from "./page/Relationship";
 import { EPage } from "./enums";
+import { neo4j, isInteger } from "./db";
+import Modal from "./page/block/Modal";
+import { Button, Checkbox } from "./form";
+import { ISettings, ITabManager } from "./interfaces";
+import { Integer } from "neo4j-driver";
 
 interface ILoggedState {
     activeTab: string | null;
-    tabs: { title: string; icon: string }[];
-    contents: { title: string; page: EPage; props: object }[];
+    tabs: { id: string; title: string; icon: string }[];
+    contents: { id: string; page: EPage; props: object }[];
     toasts: { key: number; message: string; color: string; delay: number; timeout: NodeJS.Timeout }[];
+    settingsModal: boolean;
+    settings: ISettings;
 }
 
 /**
@@ -25,6 +32,10 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         tabs: [],
         contents: [],
         toasts: [],
+        settingsModal: false,
+        settings: {
+            showElementId: true,
+        },
     };
 
     components = {
@@ -39,63 +50,70 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
     componentDidMount() {
         this.setState({
             activeTab: "Start",
-            tabs: [{ title: "Start", icon: "fa-solid fa-play" }],
-            contents: [{ title: "Start", page: EPage.Start, props: {} }],
+            tabs: [{ id: "Start", title: "Start", icon: "fa-solid fa-play" }],
+            contents: [{ id: "Start", page: EPage.Start, props: {} }],
         });
     }
 
-    /**
-     * Tab title has to be unique ..if already exists is switched on it
-     */
-    addTab = (title: string, icon: string, page: EPage, props: object = {}, active: boolean = true) => {
-        if (this.state.tabs.filter(value => value.title === title).length) {
-            this.setActiveTab(title);
-            return;
-        }
+    tabManager: ITabManager = {
+        /**
+         * If already exists is switches on it
+         */
+        add: (title: string, icon: string, page: EPage, props: object = {}, id?: string, active: boolean = true) => {
+            if (!id) {
+                //auto generate id from props or title if not provided
+                id = "id" in props ? (props.id instanceof Integer ? neo4j.integer.toString(props.id) : props.id.toString()) : title;
+                if ("database" in props) id += props.database;
+            }
 
-        //open new tab next to current active tab
-        const i: number = this.state.tabs.findIndex(t => t.title === this.state.activeTab);
-        let tabs = [...this.state.tabs];
-        if (i !== -1) tabs.splice(i + 1, 0, { title: title, icon: icon });
-        else tabs.push({ title: title, icon: icon });
+            if (this.state.tabs.find(value => value.id === id)) {
+                this.tabManager.setActive(id);
+                return;
+            }
 
-        let data: object = {
-            tabs: tabs,
-            contents: this.state.contents.concat({ title: title, page: page, props: props }),
-        };
-        if (active) {
-            data["activeTab"] = title;
-        }
-        this.setState(data);
-    };
+            //open new tab next to current active tab
+            const i: number = this.state.tabs.findIndex(t => t.id === this.state.activeTab);
+            let tabs = [...this.state.tabs];
+            const newTab = { id: id, title: title, icon: icon };
+            if (i !== -1) tabs.splice(i + 1, 0, newTab);
+            else tabs.push(newTab);
 
-    /**
-     * Create tab name with requested prefix and calculated index
-     */
-    generateTabName = (prefix: string) => {
-        const i: number = Math.max(0, ...this.state.tabs.filter(t => t.title.indexOf(prefix) === 0).map(t => parseInt(t.title.split("#")[1]))) + 1;
-        return prefix + "#" + i;
-    };
+            let data: object = {
+                tabs: tabs,
+                contents: this.state.contents.concat({ id: id, page: page, props: props }),
+            };
+            if (active) {
+                data["activeTab"] = id;
+            }
+            this.setState(data);
+        },
+        close: (id: string, e?: React.PointerEvent) => {
+            !!e && e.stopPropagation();
+            let data: object = {
+                tabs: this.state.tabs.filter(tab => id !== tab.id),
+                contents: this.state.contents.filter(content => id !== content.id),
+            };
 
-    setActiveTab = (title: string) => {
-        this.setState({
-            activeTab: title,
-        });
-    };
+            if (this.state.activeTab === id) {
+                let i: number = this.state.tabs.map(tab => tab.id).indexOf(id);
+                data["activeTab"] = this.state.tabs[i - 1].id;
+            }
 
-    removeTab = (title: string, e?: React.PointerEvent) => {
-        !!e && e.stopPropagation();
-        let data: object = {
-            tabs: this.state.tabs.filter(tab => title !== tab.title),
-            contents: this.state.contents.filter(content => title !== content.title),
-        };
-
-        if (this.state.activeTab === title) {
-            let i: number = this.state.tabs.map(tab => tab.title).indexOf(title);
-            data["activeTab"] = this.state.tabs[i - 1].title;
-        }
-
-        this.setState(data);
+            this.setState(data);
+        },
+        setActive: (id: string) => {
+            this.setState({
+                activeTab: id,
+            });
+        },
+        /**
+         * Create tab name with requested prefix and index (it's calculated if omitted)
+         */
+        generateName: (prefix: string, i?: any): string => {
+            if (i === undefined) i = Math.max(0, ...this.state.tabs.filter(t => t.title.indexOf(prefix) === 0).map(t => parseInt(t.title.split("#")[1]))) + 1;
+            else if (isInteger(i)) i = neo4j.integer.toString(i);
+            return prefix + "#" + i;
+        },
     };
 
     toast = (message: string, color = "is-success", delay = 3) => {
@@ -122,11 +140,15 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
 
         return (
             <>
-                <Navbar handleLogout={this.props.handleLogout} handleAddQueryTab={() => this.addTab(this.generateTabName("Query"), "fa-solid fa-terminal", EPage.Query)} />
+                <Navbar
+                    handleLogout={this.props.handleLogout}
+                    handleAddQueryTab={() => this.tabManager.add(this.tabManager.generateName("Query"), "fa-solid fa-terminal", EPage.Query)}
+                    handleOpenSettings={() => this.setState({ settingsModal: true })}
+                />
                 <section className="tabs is-boxed">
                     <ul>
                         {this.state.tabs.map(tab => (
-                            <Tab key={"tab-" + tab.title} active={tab.title === this.state.activeTab} handleClick={this.setActiveTab} handleRemove={this.removeTab} {...tab} />
+                            <Tab key={"tab-" + tab.id} active={tab.id === this.state.activeTab} handleClick={this.tabManager.setActive} handleRemove={this.tabManager.close} {...tab} />
                         ))}
                     </ul>
                 </section>
@@ -135,13 +157,13 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                         const MyComponent: typeof React.Component = this.components[content.page];
                         return (
                             <MyComponent
-                                key={"content-" + content.title}
-                                active={content.title === this.state.activeTab}
-                                tabName={content.title}
-                                addTab={this.addTab}
-                                removeTab={this.removeTab}
-                                generateTabName={this.generateTabName}
+                                key={"content-" + content.id}
+                                active={content.id === this.state.activeTab}
+                                tabName={this.state.tabs.filter(t => t.id === content.id)[0].title}
+                                tabId={content.id}
+                                tabManager={this.tabManager}
                                 toast={this.toast}
+                                settings={this.state.settings}
                                 {...content.props}
                             />
                         );
@@ -155,6 +177,23 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                         </div>
                     ))}
                 </section>
+
+                {this.state.settingsModal && (
+                    <Modal title="Settings" handleClose={() => this.setState({ settingsModal: false })}>
+                        <div className="mb-3">
+                            <Checkbox
+                                name="showElementId"
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.setState({ settings: { ...this.state.settings, showElementId: e.currentTarget.checked } })}
+                                label="Show elementId"
+                                checked={this.state.settings.showElementId}
+                                color="is-dark"
+                            />
+                        </div>
+                        <div className="buttons is-justify-content-flex-end">
+                            <Button text="Close" icon="fa-solid fa-xmark" onClick={() => this.setState({ settingsModal: false })} color="is-secondary" />
+                        </div>
+                    </Modal>
+                )}
             </>
         );
     }

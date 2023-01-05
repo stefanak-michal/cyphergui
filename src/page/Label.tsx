@@ -4,24 +4,33 @@ import Modal from "./block/Modal";
 import TableSortIcon from "./block/TableSortIcon";
 import { neo4j, getDriver, isInteger } from "../db";
 import { Button, Checkbox } from "../form";
-import IPageProps from "./IPageProps";
-import { Integer } from "neo4j-driver";
+import { Integer, Node as Neo4jNode } from "neo4j-driver";
 import { EPage } from "../enums";
+import { IPageProps } from "../interfaces";
 
 interface ILabelProps extends IPageProps {
     database: string;
     label: string;
 }
 
+interface ILabelState {
+    rows: Neo4jNode[];
+    page: number;
+    total: number;
+    sort: string[];
+    delete: { id: Integer | string; detach: boolean } | null;
+    error: string | null;
+}
+
 /**
  * List all nodes with specific label
  * @todo add events to actions in td row
  */
-class Label extends React.Component<ILabelProps> {
+class Label extends React.Component<ILabelProps, ILabelState> {
     perPage: number = 20;
     hasElementId: boolean = false;
 
-    state = {
+    state: ILabelState = {
         rows: [],
         page: 1,
         total: 0,
@@ -56,7 +65,10 @@ class Label extends React.Component<ILabelProps> {
                             total: cnt,
                             page: page,
                         });
-                        this.hasElementId = response2.records.length > 0 && !!response2.records[0].get("n").elementId;
+                        this.hasElementId =
+                            response2.records.length > 0 &&
+                            "elementId" in response2.records[0].get("n") &&
+                            response2.records[0].get("n").elementId !== neo4j.integer.toString(response2.records[0].get("n").identity);
                     })
                     .catch(console.error);
             })
@@ -83,9 +95,9 @@ class Label extends React.Component<ILabelProps> {
         );
     };
 
-    handleOpenDeleteModal = (id: Integer) => {
+    handleOpenDeleteModal = (id: Integer | string) => {
         this.setState({
-            delete: { id: id },
+            delete: { id: id, detach: false },
         });
     };
 
@@ -95,13 +107,13 @@ class Label extends React.Component<ILabelProps> {
                 database: this.props.database,
                 defaultAccessMode: neo4j.session.WRITE,
             })
-            .run("MATCH (n) WHERE id(n) = $i " + (this.state.delete.detach ? "DETACH " : "") + "DELETE n", {
-                i: this.state.delete.id,
+            .run("MATCH (n) WHERE " + (this.hasElementId ? "elementId(n)" : "id(n)") + " = $id " + (this.state.delete.detach ? "DETACH " : "") + "DELETE n", {
+                id: this.state.delete.id,
             })
             .then(response => {
                 if (response.summary.counters.updates().nodesDeleted > 0) {
                     this.requestData();
-                    this.props.removeTab("Node#" + neo4j.integer.toString(this.state.delete.id));
+                    this.props.tabManager.close(this.state.delete.id + this.props.database);
                     this.props.toast("Node deleted");
                 }
             })
@@ -124,7 +136,7 @@ class Label extends React.Component<ILabelProps> {
     handleDeleteModalDetachCheckbox = (e: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({
             delete: {
-                ...this.state.delete,
+                id: this.state.delete.id,
                 detach: e.currentTarget.checked,
             },
         });
@@ -226,11 +238,17 @@ class Label extends React.Component<ILabelProps> {
                         text="Create node"
                         color="is-primary"
                         onClick={() =>
-                            this.props.addTab(this.props.generateTabName("New node"), "fa-regular fa-square-plus", EPage.Node, {
-                                id: null,
-                                database: this.props.database,
-                                label: this.props.label,
-                            })
+                            this.props.tabManager.add(
+                                this.props.tabManager.generateName("New node"),
+                                "fa-regular fa-square-plus",
+                                EPage.Node,
+                                {
+                                    id: null,
+                                    database: this.props.database,
+                                    label: this.props.label,
+                                },
+                                new Date().getTime().toString()
+                            )
                         }
                     />
                 </div>
@@ -243,7 +261,7 @@ class Label extends React.Component<ILabelProps> {
                                 <th rowSpan={2} className="nowrap is-clickable" onClick={() => this.handleSetSort("id(n)")}>
                                     id <TableSortIcon sort="id(n)" current={this.state.sort} />
                                 </th>
-                                {this.hasElementId && (
+                                {this.props.settings.showElementId && this.hasElementId && (
                                     <th rowSpan={2} className="nowrap is-clickable" onClick={() => this.handleSetSort("elementId(n)")}>
                                         elementId <TableSortIcon sort="elementId(n)" current={this.state.sort} />
                                     </th>
@@ -261,7 +279,7 @@ class Label extends React.Component<ILabelProps> {
                         </thead>
                         <tbody>
                             {this.state.rows.map(row => (
-                                <tr>
+                                <tr key={"tr-" + neo4j.integer.toString(row.identity)}>
                                     <td>
                                         <div className="is-flex-wrap-nowrap buttons">
                                             <Button icon="fa-solid fa-circle-nodes" title="Show relationships" />
@@ -269,17 +287,22 @@ class Label extends React.Component<ILabelProps> {
                                                 icon="fa-solid fa-pen-clip"
                                                 title="Edit"
                                                 onClick={() =>
-                                                    this.props.addTab("Node#" + neo4j.integer.toString(row.identity), "fa-solid fa-pen-to-square", EPage.Node, {
-                                                        id: row.identity,
+                                                    this.props.tabManager.add(this.props.tabManager.generateName("Node", row.identity), "fa-solid fa-pen-to-square", EPage.Node, {
+                                                        id: this.hasElementId ? row.elementId : row.identity,
                                                         database: this.props.database,
                                                     })
                                                 }
                                             />
-                                            <Button icon="fa-regular fa-trash-can" color="is-danger is-outlined" title="Delete" onClick={() => this.handleOpenDeleteModal(row.identity)} />
+                                            <Button
+                                                icon="fa-regular fa-trash-can"
+                                                color="is-danger is-outlined"
+                                                title="Delete"
+                                                onClick={() => this.handleOpenDeleteModal(this.hasElementId ? row.elementId : row.identity)}
+                                            />
                                         </div>
                                     </td>
                                     <td>{neo4j.integer.toString(row.identity)}</td>
-                                    {this.hasElementId && <td className="nowrap is-size-7">{row.elementId}</td>}
+                                    {this.props.settings.showElementId && this.hasElementId && <td className="nowrap is-size-7">{row.elementId}</td>}
                                     {additionalLabels && (
                                         <td>
                                             <span className="buttons">
@@ -288,7 +311,7 @@ class Label extends React.Component<ILabelProps> {
                                                     .map(label => (
                                                         <Button
                                                             color="tag is-link is-rounded px-2"
-                                                            onClick={() => this.props.addTab(label, "fa-regular fa-circle", EPage.Label, { label: label, database: this.props.database })}
+                                                            onClick={() => this.props.tabManager.add(label, "fa-regular fa-circle", EPage.Label, { label: label, database: this.props.database })}
                                                             key={label}
                                                             text={label}
                                                         />

@@ -8,10 +8,10 @@ import Label from "./page/Label";
 import Type from "./page/Type";
 import Relationship from "./page/Relationship";
 import { EPage } from "./enums";
-import { neo4j, isInteger } from "./db";
 import Modal from "./page/block/Modal";
 import { Button, Checkbox } from "./form";
 import { ISettings, ITabManager } from "./interfaces";
+import db from "./db";
 import { Integer } from "neo4j-driver";
 
 interface ILoggedState {
@@ -62,7 +62,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         add: (title: string, icon: string, page: EPage, props: object = {}, id?: string, active: boolean = true) => {
             if (!id) {
                 //auto generate id from props or title if not provided
-                id = "id" in props ? (props.id instanceof Integer ? neo4j.integer.toString(props.id) : props.id.toString()) : title;
+                id = "id" in props && (props.id instanceof Integer || typeof props.id === "string") ? db.strId(props.id) : title;
                 if ("database" in props) id += props.database;
             }
 
@@ -111,7 +111,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
          */
         generateName: (prefix: string, i?: any): string => {
             if (i === undefined) i = Math.max(0, ...this.state.tabs.filter(t => t.title.indexOf(prefix) === 0).map(t => parseInt(t.title.split("#")[1]))) + 1;
-            else if (isInteger(i)) i = neo4j.integer.toString(i);
+            else if (db.isInteger(i)) i = db.neo4j.integer.toString(i);
             return prefix + "#" + i;
         },
     };

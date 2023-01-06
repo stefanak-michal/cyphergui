@@ -1,12 +1,12 @@
 import * as React from "react";
 import Pagination from "./block/Pagination";
-import { neo4j, getDriver, isInteger } from "../db";
 import { Integer, Relationship as Neo4jRelationship } from "neo4j-driver";
 import { Button, Checkbox } from "../form";
 import { EPage } from "../enums";
 import { IPageProps } from "../interfaces";
 import TableSortIcon from "./block/TableSortIcon";
-import Modal from "./block/Modal";
+import { DeleteModal } from "./block/Modal";
+import db from "../db";
 
 interface ITypeProps extends IPageProps {
     database: string;
@@ -18,46 +18,44 @@ interface ITypeState {
     page: number;
     total: number;
     sort: string[];
-    delete: Integer | string | null;
+    delete: Integer | string | false;
     error: string | null;
 }
 
 /**
  * List all relationships with specific relationshipType
- * @todo
  */
 class Type extends React.Component<ITypeProps, ITypeState> {
     perPage: number = 20;
-    hasElementId: boolean = false;
 
     state: ITypeState = {
         rows: [],
         page: 1,
         total: 0,
         sort: [],
-        delete: null,
+        delete: false,
         error: null,
     };
 
     requestData = () => {
-        getDriver()
+        db.getDriver()
             .session({
                 database: this.props.database,
-                defaultAccessMode: neo4j.session.READ,
+                defaultAccessMode: db.neo4j.session.READ,
             })
-            .run("MATCH ()-[r:" + this.props.type + "]-() RETURN COUNT(r) AS cnt")
+            .run("MATCH ()-[r:" + this.props.type + "]->() RETURN COUNT(r) AS cnt")
             .then(response1 => {
                 const cnt: number = response1.records[0].get("cnt");
                 const page: number = this.state.page >= Math.ceil(cnt / this.perPage) ? Math.ceil(cnt / this.perPage) : this.state.page;
 
-                getDriver()
+                db.getDriver()
                     .session({
                         database: this.props.database,
-                        defaultAccessMode: neo4j.session.READ,
+                        defaultAccessMode: db.neo4j.session.READ,
                     })
                     .run("MATCH (a)-[r:" + this.props.type + "]->(b) RETURN r " + (this.state.sort.length ? "ORDER BY " + this.state.sort.join(", ") : "") + " SKIP $s LIMIT $l", {
-                        s: neo4j.int((page - 1) * this.perPage),
-                        l: neo4j.int(this.perPage),
+                        s: db.neo4j.int((page - 1) * this.perPage),
+                        l: db.neo4j.int(this.perPage),
                     })
                     .then(response2 => {
                         this.setState({
@@ -65,10 +63,6 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                             total: cnt,
                             page: page,
                         });
-                        this.hasElementId =
-                            response2.records.length > 0 &&
-                            "elementId" in response2.records[0].get("r") &&
-                            response2.records[0].get("r").elementId !== neo4j.integer.toString(response2.records[0].get("r").identity);
                     })
                     .catch(console.error);
             })
@@ -101,25 +95,19 @@ class Type extends React.Component<ITypeProps, ITypeState> {
         });
     };
 
-    handleOpenDeleteModal = (id: Integer | string) => {
-        this.setState({
-            delete: id,
-        });
-    };
-
-    handleDeleteModalConfirm = () => {
-        getDriver()
+    handleDeleteModalConfirm = (id: Integer | string) => {
+        db.getDriver()
             .session({
                 database: this.props.database,
-                defaultAccessMode: neo4j.session.WRITE,
+                defaultAccessMode: db.neo4j.session.WRITE,
             })
-            .run("MATCH ()-[r]-() WHERE " + (this.hasElementId ? "elementId(r)" : "id(r)") + " = $id DELETE r", {
-                id: this.state.delete,
+            .run("MATCH ()-[r]-() WHERE " + db.fnId("r") + " = $id DELETE r", {
+                id: id,
             })
             .then(response => {
                 if (response.summary.counters.updates().nodesDeleted > 0) {
                     this.requestData();
-                    this.props.tabManager.close((this.hasElementId ? this.state.delete : neo4j.integer.toString(this.state.delete)) + this.props.database);
+                    this.props.tabManager.close(db.strId(id) + this.props.database);
                     this.props.toast("Relationship deleted");
                 }
             })
@@ -127,16 +115,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                 this.setState({
                     error: error.message,
                 });
-            })
-            .finally(() => {
-                this.handleDeleteModalCancel();
             });
-    };
-
-    handleDeleteModalCancel = () => {
-        this.setState({
-            delete: null,
-        });
     };
 
     handleSetSort = (value: string) => {
@@ -174,21 +153,14 @@ class Type extends React.Component<ITypeProps, ITypeState> {
         }
         //add sorted keys which are not available in visible rows
         for (let s of this.state.sort) {
-            s = s.replace(/^n\.([^ ]+)(?: DESC)?$/, "$1");
+            s = s.replace(/^r\.([^ ]+)(?: DESC)?$/, "$1");
             if (keys.indexOf(s) === -1) keys.push(s);
         }
         keys.sort();
 
         return (
             <>
-                {this.state.delete && (
-                    <Modal title="Are you sure?" color="is-danger" handleClose={this.handleDeleteModalCancel}>
-                        <div className="buttons is-justify-content-flex-end">
-                            <Button text="Confirm" icon="fa-solid fa-check" onClick={this.handleDeleteModalConfirm} color="is-danger" />
-                            <Button text="Cancel" icon="fa-solid fa-xmark" onClick={this.handleDeleteModalCancel} color="is-secondary" />
-                        </div>
-                    </Modal>
-                )}
+                {this.state.delete && <DeleteModal delete={this.state.delete} handleConfirm={this.handleDeleteModalConfirm} handleClose={() => this.setState({ delete: false })} />}
 
                 {typeof this.state.error === "string" && (
                     <div className="message is-danger">
@@ -206,7 +178,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                             <i className="fa-solid fa-terminal" aria-hidden="true"></i>
                         </span>
                         <span className="is-family-code">
-                            {"MATCH (a)-[" +
+                            {"MATCH (a)-[r:" +
                                 this.props.type +
                                 "]->(b) RETURN r " +
                                 (this.state.sort.length ? "ORDER BY " + this.state.sort.join(", ") : "") +
@@ -238,16 +210,16 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                         <thead>
                             <tr>
                                 <th rowSpan={2}></th>
-                                <th colSpan={this.props.settings.showElementId && this.hasElementId ? 2 : 1}>Relationship</th>
-                                <th colSpan={this.props.settings.showElementId && this.hasElementId ? 2 : 1}>Start node</th>
-                                <th colSpan={this.props.settings.showElementId && this.hasElementId ? 2 : 1}>End node</th>
+                                <th colSpan={this.props.settings.showElementId && db.hasElementId ? 2 : 1}>Relationship</th>
+                                <th colSpan={this.props.settings.showElementId && db.hasElementId ? 2 : 1}>Start node</th>
+                                <th colSpan={this.props.settings.showElementId && db.hasElementId ? 2 : 1}>End node</th>
                                 <th colSpan={keys.length}>properties</th>
                             </tr>
                             <tr>
                                 <th rowSpan={2} className="nowrap is-clickable" onClick={() => this.handleSetSort("id(r)")}>
                                     id <TableSortIcon sort="id(r)" current={this.state.sort} />
                                 </th>
-                                {this.props.settings.showElementId && this.hasElementId && (
+                                {this.props.settings.showElementId && db.hasElementId && (
                                     <th rowSpan={2} className="nowrap is-clickable" onClick={() => this.handleSetSort("elementId(r)")}>
                                         elementId <TableSortIcon sort="elementId(r)" current={this.state.sort} />
                                     </th>
@@ -255,7 +227,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                 <th className="nowrap is-clickable" onClick={() => this.handleSetSort("id(a)")}>
                                     id <TableSortIcon sort={"id(a)"} current={this.state.sort} />
                                 </th>
-                                {this.props.settings.showElementId && this.hasElementId && (
+                                {this.props.settings.showElementId && db.hasElementId && (
                                     <th className="nowrap is-clickable" onClick={() => this.handleSetSort("elementId(a)")}>
                                         elementId <TableSortIcon sort={"elementId(a)"} current={this.state.sort} />
                                     </th>
@@ -263,7 +235,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                 <th className="nowrap is-clickable" onClick={() => this.handleSetSort("id(b)")}>
                                     id <TableSortIcon sort={"id(b)"} current={this.state.sort} />
                                 </th>
-                                {this.props.settings.showElementId && this.hasElementId && (
+                                {this.props.settings.showElementId && db.hasElementId && (
                                     <th className="nowrap is-clickable" onClick={() => this.handleSetSort("elementId(b)")}>
                                         elementId <TableSortIcon sort={"elementId(b)"} current={this.state.sort} />
                                     </th>
@@ -277,7 +249,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                         </thead>
                         <tbody>
                             {this.state.rows.map(row => (
-                                <tr key={"tr-" + neo4j.integer.toString(row.identity)}>
+                                <tr key={"tr-" + db.neo4j.integer.toString(row.identity)}>
                                     <td>
                                         <div className="is-flex-wrap-nowrap buttons">
                                             <Button
@@ -285,7 +257,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                                 title="Edit"
                                                 onClick={() =>
                                                     this.props.tabManager.add(this.props.tabManager.generateName("Rel", row.identity), "fa-solid fa-pen-to-square", EPage.Rel, {
-                                                        id: this.hasElementId ? row.elementId : row.identity,
+                                                        id: db.hasElementId ? row.elementId : row.identity,
                                                         database: this.props.database,
                                                     })
                                                 }
@@ -294,16 +266,16 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                                 icon="fa-regular fa-trash-can"
                                                 color="is-danger is-outlined"
                                                 title="Delete"
-                                                onClick={() => this.handleOpenDeleteModal(this.hasElementId ? row.elementId : row.identity)}
+                                                onClick={() => this.setState({ delete: db.hasElementId ? row.elementId : row.identity })}
                                             />
                                         </div>
                                     </td>
-                                    <td>{neo4j.integer.toString(row.identity)}</td>
-                                    {this.props.settings.showElementId && this.hasElementId && <td className="nowrap is-size-7">{row.elementId}</td>}
-                                    <td>{neo4j.integer.toString(row.start)}</td>
-                                    {this.props.settings.showElementId && this.hasElementId && <td className="nowrap is-size-7">{row.startNodeElementId}</td>}
-                                    <td>{neo4j.integer.toString(row.end)}</td>
-                                    {this.props.settings.showElementId && this.hasElementId && <td className="nowrap is-size-7">{row.endNodeElementId}</td>}
+                                    <td>{db.neo4j.integer.toString(row.identity)}</td>
+                                    {this.props.settings.showElementId && db.hasElementId && <td className="nowrap is-size-7">{row.elementId}</td>}
+                                    <td>{db.neo4j.integer.toString(row.start)}</td>
+                                    {this.props.settings.showElementId && db.hasElementId && <td className="nowrap is-size-7">{row.startNodeElementId}</td>}
+                                    <td>{db.neo4j.integer.toString(row.end)}</td>
+                                    {this.props.settings.showElementId && db.hasElementId && <td className="nowrap is-size-7">{row.endNodeElementId}</td>}
                                     {keys.map(key => (
                                         <td key={"td-" + key}>{key in row.properties && this.printProperty(row.properties[key])}</td>
                                     ))}
@@ -319,7 +291,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
     }
 
     printProperty = (property: any): string | JSX.Element => {
-        if (isInteger(property)) return neo4j.integer.toString(property);
+        if (db.isInteger(property)) return db.neo4j.integer.toString(property);
         if (Array.isArray(property)) return "[" + property.join(", ") + "]";
         if (typeof property === "boolean") return <Checkbox name="" label="" checked={property} disabled />;
         return property.toString();

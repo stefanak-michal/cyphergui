@@ -1,10 +1,10 @@
 import * as React from "react";
-import { getDriver, isInteger, neo4j } from "../db";
 import { Button, Property } from "../form";
-import Modal from "./block/Modal";
+import Modal, { DeleteModal } from "./block/Modal";
 import { Integer, Node as Neo4jNode } from "neo4j-driver";
 import { EPage, EPropertyType } from "../enums";
 import { IPageProps } from "../interfaces";
+import db from "../db";
 
 interface INodeProps extends IPageProps {
     database: string;
@@ -20,6 +20,7 @@ interface INodeState {
     labelModal: boolean | string[];
     labelModalInput: string;
     error: string | null;
+    delete: Integer | string | false;
 }
 
 /**
@@ -34,22 +35,17 @@ class Node extends React.Component<INodeProps, INodeState> {
         labelModal: false,
         labelModalInput: "",
         error: null,
-    };
-
-    hasElementId: boolean = this.props.id && !(this.props.id instanceof Integer);
-
-    fnId = (name: string = "n"): string => {
-        return this.hasElementId ? "elementId(" + name + ")" : "id(" + name + ")";
+        delete: false,
     };
 
     requestData = () => {
         if (!this.props.id) return;
-        getDriver()
+        db.getDriver()
             .session({
                 database: this.props.database,
-                defaultAccessMode: neo4j.session.READ,
+                defaultAccessMode: db.neo4j.session.READ,
             })
-            .run("MATCH (n) WHERE " + this.fnId() + " = $id RETURN n", {
+            .run("MATCH (n) WHERE " + db.fnId() + " = $id RETURN n", {
                 id: this.props.id,
             })
             .then(response => {
@@ -58,14 +54,14 @@ class Node extends React.Component<INodeProps, INodeState> {
                     return;
                 }
 
-                const node = response.records[0].get("n");
+                const node: Neo4jNode = response.records[0].get("n");
                 let props = [];
                 const t = new Date().getTime();
                 for (let key in node.properties) {
                     //resolve property type
                     let type = EPropertyType.String;
                     if (typeof node.properties[key] === "number") type = EPropertyType.Float;
-                    else if (isInteger(node.properties[key])) type = EPropertyType.Integer;
+                    else if (db.isInteger(node.properties[key])) type = EPropertyType.Integer;
                     else if (typeof node.properties[key] === "boolean") type = EPropertyType.Boolean;
                     props.push({ name: key + t, key: key, value: node.properties[key], type: type });
                 }
@@ -88,16 +84,16 @@ class Node extends React.Component<INodeProps, INodeState> {
      */
     shouldComponentUpdate(nextProps, nextState, nextContext) {
         if (this.props.id && nextProps.active && this.props.active !== nextProps.active) {
-            getDriver()
+            db.getDriver()
                 .session({
                     database: this.props.database,
-                    defaultAccessMode: neo4j.session.READ,
+                    defaultAccessMode: db.neo4j.session.READ,
                 })
-                .run("MATCH (n) WHERE " + this.fnId() + " = $id RETURN COUNT(n) AS c", {
+                .run("MATCH (n) WHERE " + db.fnId() + " = $id RETURN COUNT(n) AS c", {
                     id: this.props.id,
                 })
                 .then(response => {
-                    if (neo4j.integer.toNumber(response.records[0].get("c")) !== 1) {
+                    if (db.neo4j.integer.toNumber(response.records[0].get("c")) !== 1) {
                         this.props.tabManager.close(this.props.tabId);
                     }
                 })
@@ -123,7 +119,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                 value = e.currentTarget.checked;
                 break;
             case EPropertyType.Integer:
-                value = neo4j.int(e.currentTarget.valueAsNumber);
+                value = db.neo4j.int(e.currentTarget.valueAsNumber);
                 break;
             case EPropertyType.Float:
                 value = e.currentTarget.valueAsNumber;
@@ -145,7 +141,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                 props[i].value = !!props[i].value;
                 break;
             case EPropertyType.Integer:
-                props[i].value = props[i].value.length ? neo4j.int(props[i].value) : 0;
+                props[i].value = props[i].value.length ? db.neo4j.int(props[i].value) : 0;
                 break;
             case EPropertyType.Float:
                 props[i].value = props[i].value.length ? parseFloat(props[i].value) : 0;
@@ -180,10 +176,10 @@ class Node extends React.Component<INodeProps, INodeState> {
     };
 
     handleLabelOpenModal = () => {
-        getDriver()
+        db.getDriver()
             .session({
                 database: this.props.database,
-                defaultAccessMode: neo4j.session.READ,
+                defaultAccessMode: db.neo4j.session.READ,
             })
             .run("MATCH (n) WITH DISTINCT labels(n) AS ll UNWIND ll AS l RETURN collect(DISTINCT l) AS c")
             .then(response => {
@@ -224,10 +220,10 @@ class Node extends React.Component<INodeProps, INodeState> {
         const { query, props } = this.generateQuery();
 
         //todo log query somewhere? create log terminal?
-        getDriver()
+        db.getDriver()
             .session({
                 database: this.props.database,
-                defaultAccessMode: neo4j.session.WRITE,
+                defaultAccessMode: db.neo4j.session.WRITE,
             })
             .run(query, {
                 id: this.props.id,
@@ -253,7 +249,7 @@ class Node extends React.Component<INodeProps, INodeState> {
 
         let query: string = "";
         if (printable) {
-            if (this.props.id) query += "MATCH (n) WHERE " + this.fnId() + " = " + (this.hasElementId ? "'" + this.props.id + "'" : neo4j.integer.toString(this.props.id));
+            if (this.props.id) query += "MATCH (n) WHERE " + db.fnId() + " = " + (db.hasElementId ? "'" + this.props.id + "'" : db.neo4j.integer.toString(this.props.id));
             else query += "CREATE (n)";
             query += setLabels + removeLabels;
             if (this.state.properties.length) {
@@ -265,7 +261,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                             s.push(p.key + " = '" + p.value + "'");
                             break;
                         case EPropertyType.Integer:
-                            s.push(p.key + " = " + neo4j.integer.toString(p.value));
+                            s.push(p.key + " = " + db.neo4j.integer.toString(p.value));
                             break;
                         default:
                             s.push(p.key + " = " + p.value.toString());
@@ -274,10 +270,32 @@ class Node extends React.Component<INodeProps, INodeState> {
                 query += s.join(", ") + "}";
             }
         } else {
-            query += (this.props.id ? "MATCH (n) WHERE " + this.fnId() + " = $id" : "CREATE (n)") + setLabels + removeLabels + " SET n = $p";
+            query += (this.props.id ? "MATCH (n) WHERE " + db.fnId() + " = $id" : "CREATE (n)") + setLabels + removeLabels + " SET n = $p";
         }
 
         return { query: query, props: props };
+    };
+
+    handleDeleteModalConfirm = (id: Integer | string, detach: boolean) => {
+        db.getDriver()
+            .session({
+                database: this.props.database,
+                defaultAccessMode: db.neo4j.session.WRITE,
+            })
+            .run("MATCH (n) WHERE " + db.fnId() + " = $id " + (detach ? "DETACH " : "") + "DELETE n", {
+                id: id,
+            })
+            .then(response => {
+                if (response.summary.counters.updates().nodesDeleted > 0) {
+                    this.props.tabManager.close(this.props.tabId);
+                    this.props.toast("Node deleted");
+                }
+            })
+            .catch(error => {
+                this.setState({
+                    error: error.message,
+                });
+            });
     };
 
     render() {
@@ -290,6 +308,8 @@ class Node extends React.Component<INodeProps, INodeState> {
 
         return (
             <>
+                {this.state.delete && <DeleteModal delete={this.state.delete} detach handleConfirm={this.handleDeleteModalConfirm} handleClose={() => this.setState({ delete: false })} />}
+
                 {Array.isArray(this.state.labelModal) && (
                     <Modal title="Add label" handleClose={this.handleLabelModalClose}>
                         <div className="buttons">
@@ -331,12 +351,12 @@ class Node extends React.Component<INodeProps, INodeState> {
                                 <div className="field">
                                     <label className="label">identity</label>
                                     <div className="control">
-                                        <input className="input" disabled type="text" value={neo4j.integer.toString(this.state.node.identity)} />
+                                        <input className="input" disabled type="text" value={db.neo4j.integer.toString(this.state.node.identity)} />
                                     </div>
                                 </div>
                             </div>
                             <div className="column is-half-desktop">
-                                {this.hasElementId && (
+                                {db.hasElementId && (
                                     <div className="field">
                                         <label className="label">elementId</label>
                                         <div className="control">
@@ -410,7 +430,14 @@ class Node extends React.Component<INodeProps, INodeState> {
                             <Button color="is-success" type="submit" icon="fa-solid fa-check" text="Execute" />
                             {this.props.id && <Button icon="fa-solid fa-refresh" text="Reload" onClick={this.requestData} />}
                             <Button icon="fa-solid fa-xmark" text="Close" onClick={e => this.props.tabManager.close(this.props.tabId, e)} />
-                            {this.props.id && <Button icon="fa-regular fa-trash-can" color="is-danger" text="Delete" />} {/* todo modal to confirm > delete > close tab */}
+                            {this.props.id && (
+                                <Button
+                                    icon="fa-regular fa-trash-can"
+                                    color="is-danger"
+                                    text="Delete"
+                                    onClick={() => this.setState({ delete: db.hasElementId ? this.state.node.elementId : this.state.node.identity })}
+                                />
+                            )}
                         </div>
                     </div>
                 </form>

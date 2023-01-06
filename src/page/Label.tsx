@@ -1,12 +1,12 @@
 import * as React from "react";
 import Pagination from "./block/Pagination";
-import Modal from "./block/Modal";
+import { DeleteModal } from "./block/Modal";
 import TableSortIcon from "./block/TableSortIcon";
-import { neo4j, getDriver, isInteger } from "../db";
 import { Button, Checkbox } from "../form";
 import { Integer, Node as Neo4jNode } from "neo4j-driver";
 import { EPage } from "../enums";
 import { IPageProps } from "../interfaces";
+import db from "../db";
 
 interface ILabelProps extends IPageProps {
     database: string;
@@ -18,46 +18,44 @@ interface ILabelState {
     page: number;
     total: number;
     sort: string[];
-    delete: { id: Integer | string; detach: boolean } | null;
+    delete: Integer | string | false;
     error: string | null;
 }
 
 /**
  * List all nodes with specific label
- * @todo add events to actions in td row
  */
 class Label extends React.Component<ILabelProps, ILabelState> {
     perPage: number = 20;
-    hasElementId: boolean = false;
 
     state: ILabelState = {
         rows: [],
         page: 1,
         total: 0,
         sort: [],
-        delete: null,
+        delete: false,
         error: null,
     };
 
     requestData = () => {
-        getDriver()
+        db.getDriver()
             .session({
                 database: this.props.database,
-                defaultAccessMode: neo4j.session.READ,
+                defaultAccessMode: db.neo4j.session.READ,
             })
             .run("MATCH (n:" + this.props.label + ") RETURN COUNT(n) AS cnt")
             .then(response1 => {
                 const cnt: number = response1.records[0].get("cnt");
                 const page: number = this.state.page >= Math.ceil(cnt / this.perPage) ? Math.ceil(cnt / this.perPage) : this.state.page;
 
-                getDriver()
+                db.getDriver()
                     .session({
                         database: this.props.database,
-                        defaultAccessMode: neo4j.session.READ,
+                        defaultAccessMode: db.neo4j.session.READ,
                     })
                     .run("MATCH (n:" + this.props.label + ") RETURN n " + (this.state.sort.length ? "ORDER BY " + this.state.sort.join(", ") : "") + " SKIP $s LIMIT $l", {
-                        s: neo4j.int((page - 1) * this.perPage),
-                        l: neo4j.int(this.perPage),
+                        s: db.neo4j.int((page - 1) * this.perPage),
+                        l: db.neo4j.int(this.perPage),
                     })
                     .then(response2 => {
                         this.setState({
@@ -65,10 +63,6 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                             total: cnt,
                             page: page,
                         });
-                        this.hasElementId =
-                            response2.records.length > 0 &&
-                            "elementId" in response2.records[0].get("n") &&
-                            response2.records[0].get("n").elementId !== neo4j.integer.toString(response2.records[0].get("n").identity);
                     })
                     .catch(console.error);
             })
@@ -95,25 +89,19 @@ class Label extends React.Component<ILabelProps, ILabelState> {
         );
     };
 
-    handleOpenDeleteModal = (id: Integer | string) => {
-        this.setState({
-            delete: { id: id, detach: false },
-        });
-    };
-
-    handleDeleteModalConfirm = () => {
-        getDriver()
+    handleDeleteModalConfirm = (id: Integer | string, detach: boolean) => {
+        db.getDriver()
             .session({
                 database: this.props.database,
-                defaultAccessMode: neo4j.session.WRITE,
+                defaultAccessMode: db.neo4j.session.WRITE,
             })
-            .run("MATCH (n) WHERE " + (this.hasElementId ? "elementId(n)" : "id(n)") + " = $id " + (this.state.delete.detach ? "DETACH " : "") + "DELETE n", {
-                id: this.state.delete.id,
+            .run("MATCH (n) WHERE " + db.fnId() + " = $id " + (detach ? "DETACH " : "") + "DELETE n", {
+                id: id,
             })
             .then(response => {
                 if (response.summary.counters.updates().nodesDeleted > 0) {
                     this.requestData();
-                    this.props.tabManager.close((this.hasElementId ? this.state.delete.id : neo4j.integer.toString(this.state.delete.id)) + this.props.database);
+                    this.props.tabManager.close(db.strId(id) + this.props.database);
                     this.props.toast("Node deleted");
                 }
             })
@@ -121,25 +109,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                 this.setState({
                     error: error.message,
                 });
-            })
-            .finally(() => {
-                this.handleDeleteModalCancel();
             });
-    };
-
-    handleDeleteModalCancel = () => {
-        this.setState({
-            delete: null,
-        });
-    };
-
-    handleDeleteModalDetachCheckbox = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({
-            delete: {
-                id: this.state.delete.id,
-                detach: e.currentTarget.checked,
-            },
-        });
     };
 
     handleClearError = () => {
@@ -192,17 +162,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
 
         return (
             <>
-                {this.state.delete && (
-                    <Modal title="Are you sure?" color="is-danger" handleClose={this.handleDeleteModalCancel}>
-                        <div className="mb-3">
-                            <Checkbox name="detachDelete" onChange={this.handleDeleteModalDetachCheckbox} label="Detach delete?" checked={this.state.delete.detach} color="is-danger" />
-                        </div>
-                        <div className="buttons is-justify-content-flex-end">
-                            <Button text="Confirm" icon="fa-solid fa-check" onClick={this.handleDeleteModalConfirm} color="is-danger" />
-                            <Button text="Cancel" icon="fa-solid fa-xmark" onClick={this.handleDeleteModalCancel} color="is-secondary" />
-                        </div>
-                    </Modal>
-                )}
+                {this.state.delete && <DeleteModal delete={this.state.delete} detach handleConfirm={this.handleDeleteModalConfirm} handleClose={() => this.setState({ delete: false })} />}
 
                 {typeof this.state.error === "string" && (
                     <div className="message is-danger">
@@ -258,7 +218,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                         <thead>
                             <tr>
                                 <th rowSpan={2}></th>
-                                <th colSpan={this.props.settings.showElementId && this.hasElementId ? 2 : 1}>Node</th>
+                                <th colSpan={this.props.settings.showElementId && db.hasElementId ? 2 : 1}>Node</th>
                                 {additionalLabels && <th rowSpan={2}>additional labels</th>}
                                 <th colSpan={keys.length}>properties</th>
                             </tr>
@@ -266,7 +226,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                                 <th className="nowrap is-clickable" onClick={() => this.handleSetSort("id(n)")}>
                                     id <TableSortIcon sort="id(n)" current={this.state.sort} />
                                 </th>
-                                {this.props.settings.showElementId && this.hasElementId && (
+                                {this.props.settings.showElementId && db.hasElementId && (
                                     <th className="nowrap is-clickable" onClick={() => this.handleSetSort("elementId(n)")}>
                                         elementId <TableSortIcon sort="elementId(n)" current={this.state.sort} />
                                     </th>
@@ -280,7 +240,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                         </thead>
                         <tbody>
                             {this.state.rows.map(row => (
-                                <tr key={"tr-" + neo4j.integer.toString(row.identity)}>
+                                <tr key={"tr-" + db.neo4j.integer.toString(row.identity)}>
                                     <td>
                                         <div className="is-flex-wrap-nowrap buttons">
                                             <Button icon="fa-solid fa-circle-nodes" title="Show relationships" />
@@ -289,7 +249,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                                                 title="Edit"
                                                 onClick={() =>
                                                     this.props.tabManager.add(this.props.tabManager.generateName("Node", row.identity), "fa-solid fa-pen-to-square", EPage.Node, {
-                                                        id: this.hasElementId ? row.elementId : row.identity,
+                                                        id: db.hasElementId ? row.elementId : row.identity,
                                                         database: this.props.database,
                                                     })
                                                 }
@@ -298,12 +258,12 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                                                 icon="fa-regular fa-trash-can"
                                                 color="is-danger is-outlined"
                                                 title="Delete"
-                                                onClick={() => this.handleOpenDeleteModal(this.hasElementId ? row.elementId : row.identity)}
+                                                onClick={() => this.setState({ delete: db.hasElementId ? row.elementId : row.identity })}
                                             />
                                         </div>
                                     </td>
-                                    <td>{neo4j.integer.toString(row.identity)}</td>
-                                    {this.props.settings.showElementId && this.hasElementId && <td className="nowrap is-size-7">{row.elementId}</td>}
+                                    <td>{db.neo4j.integer.toString(row.identity)}</td>
+                                    {this.props.settings.showElementId && db.hasElementId && <td className="nowrap is-size-7">{row.elementId}</td>}
                                     {additionalLabels && (
                                         <td>
                                             <span className="buttons">
@@ -335,7 +295,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
     }
 
     printProperty = (property: any): string | JSX.Element => {
-        if (isInteger(property)) return neo4j.integer.toString(property);
+        if (db.isInteger(property)) return db.neo4j.integer.toString(property);
         if (Array.isArray(property)) return "[" + property.join(", ") + "]";
         if (typeof property === "boolean") return <Checkbox name="" label="" checked={property} disabled />;
         return property.toString();

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { neo4j, setActiveDb, disconnect, getDriver, getActiveDb } from "../db";
+import db from "../db";
 
 interface INavbarProps {
     handleLogout: () => void;
@@ -15,12 +15,12 @@ class Navbar extends React.Component<INavbarProps> {
     state = {
         open: false,
         databases: [],
-        activeDb: getActiveDb(),
+        activeDb: db.getActiveDb(),
     };
 
     requestData = () => {
-        getDriver()
-            .session({ defaultAccessMode: neo4j.session.READ })
+        db.getDriver()
+            .session({ defaultAccessMode: db.neo4j.session.READ })
             .run("SHOW DATABASES")
             .then(response => {
                 const defaultDb = response.records.filter(row => row.get("default"))[0].get("name");
@@ -54,12 +54,12 @@ class Navbar extends React.Component<INavbarProps> {
     };
 
     handleLogout = () => {
-        disconnect();
+        db.disconnect();
         this.props.handleLogout();
     };
 
     handleChangeDb = (name: string) => {
-        setActiveDb(name);
+        db.setActiveDb(name);
         this.setState({
             activeDb: name,
         });

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Button, Input } from "./form";
-import { neo4j, setDriver } from "./db";
+import db from "./db";
 
 /**
  * Login page
@@ -20,23 +20,40 @@ class Login extends React.Component<{ handleLogin: () => void }> {
         e.preventDefault();
         this.setState({ submitted: true });
 
+        let driver;
         try {
-            let driver = neo4j.driver(this.state.url, neo4j.auth.basic(this.state.username, this.state.password), { userAgent: "bolt-admin" });
-
-            //there is no better way how to verify credentials than running a first query?
-            let session = driver.session();
-            await session.run("RETURN 1 as num");
-            await session.close();
-
-            setDriver(driver);
-            this.props.handleLogin();
+            driver = db.neo4j.driver(this.state.url, db.neo4j.auth.basic(this.state.username, this.state.password), { userAgent: "bolt-admin" });
         } catch (err) {
             console.log(err);
             this.setState({
                 submitted: false,
                 error: "[" + err.name + "] " + err.message,
             });
+            return;
         }
+
+        driver
+            .session({ defaultAccessMode: db.neo4j.session.WRITE })
+            .run("CREATE (n) DELETE n RETURN n")
+            .then(response => {
+                if (response.records.length) {
+                    db.setDriver(driver);
+                    db.setHasElementId("elementId" in response.records[0].get("n"));
+                    this.props.handleLogin();
+                } else {
+                    this.setState({
+                        submitted: false,
+                        error: "Initial test query wasn't successful",
+                    });
+                }
+            })
+            .catch(err => {
+                console.log(err);
+                this.setState({
+                    submitted: false,
+                    error: "[" + err.name + "] " + err.message,
+                });
+            });
     };
 
     handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {

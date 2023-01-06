@@ -32,8 +32,8 @@ export default class Pagination extends React.Component<{ pages: number; page: n
                     </span>
                 </button>
                 <ul className="pagination-list">
-                    {links.map(value => (
-                        <li key={"li-" + value}>
+                    {links.map((value, i) => (
+                        <li key={"li" + i}>
                             {value === "e" && <span className="pagination-ellipsis">&hellip;</span>}
                             {typeof value === "number" && (
                                 <button

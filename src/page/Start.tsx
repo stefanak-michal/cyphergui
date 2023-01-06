@@ -1,8 +1,8 @@
 import * as React from "react";
-import { neo4j, getActiveDb, getDriver, registerChangeDbCallback } from "../db";
 import { Button } from "../form";
 import { EPage } from "../enums";
 import { IPageProps } from "../interfaces";
+import db from "../db";
 
 class Start extends React.Component<IPageProps> {
     state = {
@@ -12,7 +12,7 @@ class Start extends React.Component<IPageProps> {
     };
 
     componentDidMount() {
-        registerChangeDbCallback(this.requestData);
+        db.registerChangeDbCallback(this.requestData);
         this.requestData();
     }
 
@@ -25,9 +25,12 @@ class Start extends React.Component<IPageProps> {
 
     requestData = () => {
         Promise.all([
-            getDriver().session({ database: getActiveDb(), defaultAccessMode: neo4j.session.READ }).run("MATCH (n) WITH DISTINCT labels(n) AS ll UNWIND ll AS l RETURN collect(DISTINCT l) AS c"),
-            getDriver().session({ database: getActiveDb(), defaultAccessMode: neo4j.session.READ }).run("MATCH ()-[n]-() RETURN collect(DISTINCT type(n)) AS c"),
-            getDriver().getServerInfo(),
+            db
+                .getDriver()
+                .session({ database: db.getActiveDb(), defaultAccessMode: db.neo4j.session.READ })
+                .run("MATCH (n) WITH DISTINCT labels(n) AS ll UNWIND ll AS l RETURN collect(DISTINCT l) AS c"),
+            db.getDriver().session({ database: db.getActiveDb(), defaultAccessMode: db.neo4j.session.READ }).run("MATCH ()-[n]-() RETURN collect(DISTINCT type(n)) AS c"),
+            db.getDriver().getServerInfo(),
         ])
             .then(responses => {
                 this.setState({
@@ -43,7 +46,7 @@ class Start extends React.Component<IPageProps> {
 
     render() {
         if (!this.props.active) return;
-        document.title = "Start (db: " + getActiveDb() + ")";
+        document.title = "Start (db: " + db.getActiveDb() + ")";
 
         return (
             <>
@@ -62,7 +65,7 @@ class Start extends React.Component<IPageProps> {
                         this.state.labels.map(label => (
                             <Button
                                 color="tag is-link is-rounded is-medium px-3"
-                                onClick={() => this.props.tabManager.add(label, "fa-regular fa-circle", EPage.Label, { label: label, database: getActiveDb() })}
+                                onClick={() => this.props.tabManager.add(label, "fa-regular fa-circle", EPage.Label, { label: label, database: db.getActiveDb() })}
                                 key={label}
                                 text={label}
                             />
@@ -81,7 +84,7 @@ class Start extends React.Component<IPageProps> {
                                 this.props.tabManager.generateName("New node"),
                                 "fa-regular fa-square-plus",
                                 EPage.Node,
-                                { id: null, database: getActiveDb() },
+                                { id: null, database: db.getActiveDb() },
                                 new Date().getTime().toString()
                             )
                         }
@@ -94,7 +97,7 @@ class Start extends React.Component<IPageProps> {
                         this.state.types.map(type => (
                             <Button
                                 color="tag is-info is-rounded is-medium px-3"
-                                onClick={() => this.props.tabManager.add(type, "fa-solid fa-arrow-right-long", EPage.Type, { type: type, database: getActiveDb() })}
+                                onClick={() => this.props.tabManager.add(type, "fa-solid fa-arrow-right-long", EPage.Type, { type: type, database: db.getActiveDb() })}
                                 key={type}
                                 text={type}
                             />

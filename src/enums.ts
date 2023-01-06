@@ -12,4 +12,5 @@ export enum EPropertyType {
     Integer = "Integer",
     Float = "Float",
     Boolean = "Boolean",
+    List = "List",
 }

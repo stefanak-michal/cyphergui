@@ -1,5 +1,5 @@
 import * as React from "react";
-import { neo4j } from "./db";
+import db from "./db";
 import { EPropertyType } from "./enums";
 
 export class Input extends React.Component<{ label: string; name: string; type?: string; placeholder?: string; value?: any; onChange: (e: React.ChangeEvent) => void }> {
@@ -142,7 +142,7 @@ export class Property extends React.Component<{
                                 name={this.props.name}
                                 className="input"
                                 type="number"
-                                value={neo4j.integer.toString(this.props.value)}
+                                value={db.neo4j.integer.toString(this.props.value)}
                                 step="1"
                                 autoFocus={this.props.focus === this.props.name}
                                 onChange={this.props.onValueChange}

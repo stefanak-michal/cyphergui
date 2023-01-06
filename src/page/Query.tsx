@@ -1,7 +1,7 @@
 import * as React from "react";
-import { neo4j, getDriver } from "../db";
 import { Button } from "../form";
 import { IPageProps } from "../interfaces";
+import db from "../db";
 
 interface IQueryProps extends IPageProps {}
 

@@ -22,12 +22,12 @@ export class Input extends React.Component<{ label: string; name: string; type?:
     }
 }
 
-export class Checkbox extends React.Component<{ name: string; label: string; color?: string; onChange: (e: React.ChangeEvent) => void; checked?: boolean }> {
+export class Checkbox extends React.Component<{ name: string; label: string; color?: string; onChange?: (e: React.ChangeEvent) => void; checked?: boolean; disabled?: boolean }> {
     render() {
         return (
             <div className="field">
                 <label className={"switch " + this.props.color}>
-                    <input type="checkbox" name={this.props.name} onChange={this.props.onChange} checked={this.props.checked || false} />
+                    <input type="checkbox" name={this.props.name} onChange={this.props.onChange} checked={this.props.checked || false} disabled={this.props.disabled || false} />
                     <span className="slider" /> {this.props.label}
                 </label>
             </div>

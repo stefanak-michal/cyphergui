@@ -113,7 +113,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
             .then(response => {
                 if (response.summary.counters.updates().nodesDeleted > 0) {
                     this.requestData();
-                    this.props.tabManager.close(this.state.delete.id + this.props.database);
+                    this.props.tabManager.close((this.hasElementId ? this.state.delete.id : neo4j.integer.toString(this.state.delete.id)) + this.props.database);
                     this.props.toast("Node deleted");
                 }
             })
@@ -258,18 +258,19 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                         <thead>
                             <tr>
                                 <th rowSpan={2}></th>
-                                <th rowSpan={2} className="nowrap is-clickable" onClick={() => this.handleSetSort("id(n)")}>
-                                    id <TableSortIcon sort="id(n)" current={this.state.sort} />
-                                </th>
-                                {this.props.settings.showElementId && this.hasElementId && (
-                                    <th rowSpan={2} className="nowrap is-clickable" onClick={() => this.handleSetSort("elementId(n)")}>
-                                        elementId <TableSortIcon sort="elementId(n)" current={this.state.sort} />
-                                    </th>
-                                )}
+                                <th colSpan={this.props.settings.showElementId && this.hasElementId ? 2 : 1}>Node</th>
                                 {additionalLabels && <th rowSpan={2}>additional labels</th>}
                                 <th colSpan={keys.length}>properties</th>
                             </tr>
                             <tr>
+                                <th className="nowrap is-clickable" onClick={() => this.handleSetSort("id(n)")}>
+                                    id <TableSortIcon sort="id(n)" current={this.state.sort} />
+                                </th>
+                                {this.props.settings.showElementId && this.hasElementId && (
+                                    <th className="nowrap is-clickable" onClick={() => this.handleSetSort("elementId(n)")}>
+                                        elementId <TableSortIcon sort="elementId(n)" current={this.state.sort} />
+                                    </th>
+                                )}
                                 {keys.map(key => (
                                     <th key={"th-" + key} className="nowrap is-clickable" onClick={() => this.handleSetSort("n." + key)}>
                                         {key} <TableSortIcon sort={"n." + key} current={this.state.sort} />
@@ -320,9 +321,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                                         </td>
                                     )}
                                     {keys.map(key => (
-                                        <td key={"td-" + key}>
-                                            {key in row.properties && (isInteger(row.properties[key]) ? neo4j.integer.toString(row.properties[key]) : row.properties[key].toString())}
-                                        </td>
+                                        <td key={"td-" + key}>{key in row.properties && this.printProperty(row.properties[key])}</td>
                                     ))}
                                 </tr>
                             ))}
@@ -334,6 +333,13 @@ class Label extends React.Component<ILabelProps, ILabelState> {
             </>
         );
     }
+
+    printProperty = (property: any): string | JSX.Element => {
+        if (isInteger(property)) return neo4j.integer.toString(property);
+        if (Array.isArray(property)) return "[" + property.join(", ") + "]";
+        if (typeof property === "boolean") return <Checkbox name="" label="" checked={property} disabled />;
+        return property.toString();
+    };
 }
 
 export default Label;

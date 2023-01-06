@@ -78,6 +78,10 @@ footer
       &:before
         transform: translateX(20px)
 
+    &:disabled + .slider
+      cursor: not-allowed
+      opacity: 0.5
+
   @each $name, $pair in $colors
     $color: nth($pair, 1)
     $color-invert: nth($pair, 2)
@@ -91,5 +95,6 @@ footer
 // fix for message container radius https://github.com/jgthms/bulma/pull/3612
 .message
   background-color: unset !important
+
   .message-body
     background-color: $message-background-color

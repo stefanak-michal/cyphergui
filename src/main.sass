@@ -4,6 +4,7 @@
 $family-sans-serif: Nunito, Helvetica, Arial, serif
 
 @import "../node_modules/bulma/bulma"
+@import "../node_modules/animate.css/animate.css"
 
 #root
   display: flex
@@ -153,6 +154,12 @@ footer
     transform: scale(1.2, 1.2)
     opacity: 0
 
+// Isn't used anywhere (yet) but I kept it here because I spent some time on it and it is nice
+  how to use:
+  <span class="pulse-dot is-success">
+    <div class="dot" />
+    <div class="ring" />
+  </span>
 .pulse-dot
   position: relative
   top: 3px

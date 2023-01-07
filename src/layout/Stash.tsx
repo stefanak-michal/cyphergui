@@ -16,7 +16,7 @@ interface IStashState {
     active: boolean;
     search: string;
     tab: string;
-    pulse: number;
+    pulse: boolean;
 }
 
 class Stash extends React.Component<IStashProps, IStashState> {
@@ -24,13 +24,11 @@ class Stash extends React.Component<IStashProps, IStashState> {
         active: false,
         search: "",
         tab: "All",
-        pulse: 0,
+        pulse: false,
     };
 
     shouldComponentUpdate = (nextProps: Readonly<IStashProps>): boolean => {
-        if (this.props.stashed.length !== nextProps.stashed.length) {
-            this.setState(state => ({ pulse: state.pulse === 0 ? (this.props.stashed.length < nextProps.stashed.length ? 1 : 2) : 0 }));
-        }
+        if (this.props.stashed.length !== nextProps.stashed.length && !this.state.pulse) this.setState({ pulse: true });
         return true;
     };
 
@@ -62,17 +60,12 @@ class Stash extends React.Component<IStashProps, IStashState> {
 
         return (
             <nav className={"panel is-dark stash " + (this.state.active ? "is-active" : "")}>
-                <p className="panel-heading is-clickable" onClick={() => this.setState({ active: !this.state.active })}>
-                    <span className="icon mr-2">
+                <div className="panel-heading is-clickable" onClick={() => this.setState({ active: !this.state.active })}>
+                    <span className={"icon mr-2 animate__animated " + (this.state.pulse ? "animate__swing" : "")} onAnimationEnd={() => this.setState({ pulse: false })}>
                         <i className={"fa-regular fa-folder" + (this.state.active ? "-open" : "")}></i>
                     </span>
                     Stash
-                    {this.state.pulse > 0 && (
-                        <span className={"pulse-dot ml-2 " + (this.state.pulse === 1 ? "is-success" : "is-danger")}>
-                            <div className="ring" style={{ animationIterationCount: 1 }} onAnimationEnd={() => this.setState({ pulse: 0 })}></div>
-                        </span>
-                    )}
-                </p>
+                </div>
                 <div className="panel-body">
                     <div className="panel-block">
                         <p className="control has-icons-left has-icons-right">
@@ -93,13 +86,13 @@ class Stash extends React.Component<IStashProps, IStashState> {
                     </div>
                     <p className="panel-tabs">
                         {["All", "Nodes", "Relationships"].map(t => (
-                            <a className={this.state.tab === t ? "is-active" : ""} onClick={() => this.setState({ tab: t })}>
+                            <a key={t} className={this.state.tab === t ? "is-active" : ""} onClick={() => this.setState({ tab: t })}>
                                 {t}
                             </a>
                         ))}
                     </p>
                     {this.props.stashed.filter(this.filter).map(entry => (
-                        <div className="panel-block is-hoverable">
+                        <div className="panel-block is-hoverable" key={entry.id}>
                             <a
                                 className="is-align-items-center is-flex is-justify-content-flex-start"
                                 onClick={() =>

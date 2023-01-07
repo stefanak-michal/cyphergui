@@ -16,7 +16,7 @@ class Start extends React.Component<IPageProps> {
         this.requestData();
     }
 
-    shouldComponentUpdate(nextProps, nextState, nextContext) {
+    shouldComponentUpdate(nextProps: Readonly<IPageProps>) {
         if (nextProps.active && this.props.active !== nextProps.active) {
             this.requestData();
         }

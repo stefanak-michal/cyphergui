@@ -10,9 +10,10 @@ import Relationship from "./page/Relationship";
 import { EPage } from "./enums";
 import Modal from "./page/block/Modal";
 import { Button, Checkbox } from "./form";
-import { ISettings, ITabManager } from "./interfaces";
+import { ISettings, IStashEntry, ITabManager, TStashValue } from "./interfaces";
 import db from "./db";
 import { Integer } from "neo4j-driver";
+import Stash from "./layout/Stash";
 
 interface ILoggedState {
     activeTab: string | null;
@@ -21,6 +22,7 @@ interface ILoggedState {
     toasts: { key: number; message: string; color: string; delay: number; timeout: NodeJS.Timeout }[];
     settingsModal: boolean;
     settings: ISettings;
+    stashed: IStashEntry[];
 }
 
 /**
@@ -35,7 +37,9 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         settingsModal: false,
         settings: {
             showElementId: true,
+            closeEditAfterExecuteSuccess: true,
         },
+        stashed: [],
     };
 
     components = {
@@ -48,11 +52,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
     };
 
     componentDidMount() {
-        this.setState({
-            activeTab: "Start",
-            tabs: [{ id: "Start", title: "Start", icon: "fa-solid fa-play" }],
-            contents: [{ id: "Start", page: EPage.Start, props: {} }],
-        });
+        this.tabManager.add("Start", "fa-solid fa-play", EPage.Start, {}, "Start");
     }
 
     tabManager: ITabManager = {
@@ -66,44 +66,45 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                 if ("database" in props) id += props.database;
             }
 
-            if (this.state.tabs.find(value => value.id === id)) {
-                this.tabManager.setActive(id);
-                return;
-            }
+            this.setState(state => {
+                if (!this.state.tabs.find(tab => tab.id === id)) {
+                    //open new tab next to current active tab
+                    const i: number = state.tabs.findIndex(t => t.id === state.activeTab);
+                    if (i !== -1) state.tabs.splice(i + 1, 0, { id: id, title: title, icon: icon });
+                    else state.tabs.push({ id: id, title: title, icon: icon });
 
-            //open new tab next to current active tab
-            const i: number = this.state.tabs.findIndex(t => t.id === this.state.activeTab);
-            let tabs = [...this.state.tabs];
-            const newTab = { id: id, title: title, icon: icon };
-            if (i !== -1) tabs.splice(i + 1, 0, newTab);
-            else tabs.push(newTab);
+                    state.contents.push({ id: id, page: page, props: props });
+                }
 
-            let data: object = {
-                tabs: tabs,
-                contents: this.state.contents.concat({ id: id, page: page, props: props }),
-            };
-            if (active) {
-                data["activeTab"] = id;
-            }
-            this.setState(data);
+                return {
+                    tabs: state.tabs,
+                    contents: state.contents,
+                    activeTab: active ? id : state.activeTab,
+                };
+            });
         },
         close: (id: string, e?: React.PointerEvent) => {
             !!e && e.stopPropagation();
-            let data: object = {
-                tabs: this.state.tabs.filter(tab => id !== tab.id),
-                contents: this.state.contents.filter(content => id !== content.id),
-            };
 
-            if (this.state.activeTab === id) {
-                let i: number = this.state.tabs.map(tab => tab.id).indexOf(id);
-                data["activeTab"] = this.state.tabs[i - 1].id;
-            }
+            this.setState(state => {
+                let active = state.activeTab;
+                if (active === id) {
+                    let i: number = state.tabs.findIndex(tab => tab.id === id);
+                    if (i > 0) active = state.tabs[i - 1].id;
+                }
 
-            this.setState(data);
+                return {
+                    tabs: state.tabs.filter(tab => id !== tab.id),
+                    contents: state.contents.filter(content => id !== content.id),
+                    activeTab: active,
+                };
+            });
         },
         setActive: (id: string) => {
-            this.setState({
-                activeTab: id,
+            this.setState(() => {
+                return {
+                    activeTab: id,
+                };
             });
         },
         /**
@@ -116,16 +117,53 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         },
     };
 
+    stashManager = {
+        //maybe add queries?
+        add: (value: TStashValue, database: string) => {
+            if (this.stashManager.indexOf(value) !== -1) return;
+            this.setState({
+                stashed: [...this.state.stashed, { id: new Date().getTime(), value: value, database: database }],
+            });
+        },
+        remove: (id: number) => {
+            this.setState({
+                stashed: this.state.stashed.filter(s => s.id !== id),
+            });
+        },
+        indexOf: (value: TStashValue): number => {
+            return this.state.stashed.findIndex(s => {
+                return (db.hasElementId && value.elementId === s.value.elementId) || value.identity === s.value.identity;
+            });
+        },
+        empty: () => {
+            if (this.state.stashed.length > 0) this.setState({ stashed: [] });
+        },
+        button: (value: TStashValue, database: string, color?: string): JSX.Element => {
+            const i = this.stashManager.indexOf(value);
+            return (
+                <Button
+                    title={i === -1 ? "Add to stash" : "Remove from stash"}
+                    onClick={() => (i === -1 ? this.stashManager.add(value, database) : this.stashManager.remove(this.state.stashed[i].id))}
+                    color={color}
+                    icon={i === -1 ? "fa-solid fa-folder-plus" : "fa-solid fa-folder-minus"}
+                />
+            );
+        },
+    };
+
     toast = (message: string, color = "is-success", delay = 3) => {
         const i: number = new Date().getTime();
         this.setState({
-            toasts: this.state.toasts.concat({
-                key: i,
-                message: message,
-                color: color,
-                delay: delay,
-                timeout: setTimeout(() => this.discardToast(i), delay * 1000),
-            }),
+            toasts: [
+                {
+                    key: i,
+                    message: message,
+                    color: color,
+                    delay: delay,
+                    timeout: setTimeout(() => this.discardToast(i), delay * 1000),
+                },
+                ...this.state.toasts,
+            ],
         });
     };
 
@@ -163,6 +201,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                                 tabId={content.id}
                                 tabManager={this.tabManager}
                                 toast={this.toast}
+                                stashManager={this.stashManager}
                                 settings={this.state.settings}
                                 {...content.props}
                             />
@@ -189,11 +228,22 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                                 color="is-dark"
                             />
                         </div>
+                        <div className="mb-3">
+                            <Checkbox
+                                name="closeEditAfterExecuteSuccess"
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.setState({ settings: { ...this.state.settings, closeEditAfterExecuteSuccess: e.currentTarget.checked } })}
+                                label="Close create/edit tab after successful execute"
+                                checked={this.state.settings.closeEditAfterExecuteSuccess}
+                                color="is-dark"
+                            />
+                        </div>
                         <div className="buttons is-justify-content-flex-end">
                             <Button text="Close" icon="fa-solid fa-xmark" onClick={() => this.setState({ settingsModal: false })} color="is-secondary" />
                         </div>
                     </Modal>
                 )}
+
+                <Stash stashed={this.state.stashed} settings={this.state.settings} tabManager={this.tabManager} stashManager={this.stashManager} />
             </>
         );
     }

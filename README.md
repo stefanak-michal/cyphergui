@@ -94,3 +94,4 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/t
 
 - everything
 - persistent data storage for login and open tabs
+- show (db: database) in page title and in stash only if there is more than one database

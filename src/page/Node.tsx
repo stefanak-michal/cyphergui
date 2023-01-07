@@ -82,7 +82,7 @@ class Node extends React.Component<INodeProps, INodeState> {
     /**
      * Check if node still exists when switching on this tab
      */
-    shouldComponentUpdate(nextProps, nextState, nextContext) {
+    shouldComponentUpdate(nextProps: Readonly<INodeProps>) {
         if (this.props.id && nextProps.active && this.props.active !== nextProps.active) {
             db.getDriver()
                 .session({
@@ -233,7 +233,16 @@ class Node extends React.Component<INodeProps, INodeState> {
                 if (response.summary.counters.containsUpdates()) {
                     this.props.toast(this.props.id ? "Node updated" : "Node created");
                 }
-                this.props.tabManager.close(this.props.tabId);
+                if (this.props.settings.closeEditAfterExecuteSuccess) {
+                    this.props.tabManager.close(this.props.tabId);
+                } else if (!this.props.id) {
+                    const node = response.records[0].get("n");
+                    this.props.tabManager.add(this.props.tabManager.generateName("Node", node.identity), "fa-solid fa-pen-to-square", EPage.Node, {
+                        id: db.hasElementId ? node.elementId : node.identity,
+                        database: this.props.database,
+                    });
+                    this.props.tabManager.close(this.props.tabId);
+                }
             })
             .catch(console.error);
     };
@@ -270,7 +279,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                 query += s.join(", ") + "}";
             }
         } else {
-            query += (this.props.id ? "MATCH (n) WHERE " + db.fnId() + " = $id" : "CREATE (n)") + setLabels + removeLabels + " SET n = $p";
+            query += (this.props.id ? "MATCH (n) WHERE " + db.fnId() + " = $id" : "CREATE (n)") + setLabels + removeLabels + " SET n = $p RETURN n";
         }
 
         return { query: query, props: props };
@@ -356,7 +365,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                                 </div>
                             </div>
                             <div className="column is-half-desktop">
-                                {db.hasElementId && (
+                                {this.props.settings.showElementId && db.hasElementId && (
                                     <div className="field">
                                         <label className="label">elementId</label>
                                         <div className="control">
@@ -428,6 +437,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                     <div className="field">
                         <div className="control buttons is-justify-content-flex-end">
                             <Button color="is-success" type="submit" icon="fa-solid fa-check" text="Execute" />
+                            {this.props.id && this.props.stashManager.button(this.state.node, this.props.database)}
                             {this.props.id && <Button icon="fa-solid fa-refresh" text="Reload" onClick={this.requestData} />}
                             <Button icon="fa-solid fa-xmark" text="Close" onClick={e => this.props.tabManager.close(this.props.tabId, e)} />
                             {this.props.id && (

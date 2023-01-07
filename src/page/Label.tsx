@@ -73,7 +73,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
         this.requestData();
     }
 
-    shouldComponentUpdate(nextProps, nextState, nextContext) {
+    shouldComponentUpdate(nextProps: Readonly<ILabelProps>) {
         if (nextProps.active && this.props.active !== nextProps.active) {
             this.requestData();
         }
@@ -254,6 +254,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                                                     })
                                                 }
                                             />
+                                            {this.props.stashManager.button(row, this.props.database)}
                                             <Button
                                                 icon="fa-regular fa-trash-can"
                                                 color="is-danger is-outlined"

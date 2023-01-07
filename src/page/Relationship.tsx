@@ -90,7 +90,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
     /**
      * Check if node still exists when switching on this tab
      */
-    shouldComponentUpdate(nextProps, nextState, nextContext) {
+    shouldComponentUpdate(nextProps: Readonly<IRelationshipProps>) {
         if (this.props.id && nextProps.active && this.props.active !== nextProps.active) {
             db.getDriver()
                 .session({
@@ -298,7 +298,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                                 </div>
                             </div>
                             <div className="column is-half-desktop">
-                                {db.hasElementId && (
+                                {this.props.settings.showElementId && db.hasElementId && (
                                     <div className="field">
                                         <label className="label">elementId</label>
                                         <div className="control">
@@ -374,6 +374,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                     <div className="field">
                         <div className="control buttons is-justify-content-flex-end">
                             <Button color="is-success" type="submit" icon="fa-solid fa-check" text="Execute" />
+                            {this.props.id && this.props.stashManager.button(this.state.rel, this.props.database)}
                             {this.props.id && <Button icon="fa-solid fa-refresh" text="Reload" onClick={this.requestData} />}
                             <Button icon="fa-solid fa-xmark" text="Close" onClick={e => this.props.tabManager.close(this.props.tabId, e)} />
                             {this.props.id && (

@@ -27,15 +27,27 @@ footer
   100%
     opacity: 0
 
+@keyframes fadeIn
+  0%
+    opacity: 0
+  100%
+    opacity: 1
+
 .fadeOut
   animation-timing-function: ease-out
   animation-name: fadeOut
   animation-fill-mode: both
 
+.fadeIn
+  animation-timing-function: ease-in
+  animation-name: fadeIn
+  animation-fill-mode: both
+
 .notifications
   position: fixed
   right: 10px
-  bottom: 10px
+  top: calc($navbar-height + 10px)
+  z-index: $navbar-z + 10
 
   .notification
     animation-duration: 1s
@@ -92,9 +104,110 @@ footer
         &:before
           background-color: $color-invert
 
+      @if length($pair) >= 4
+        $color-light: nth($pair, 3)
+        $color-dark: nth($pair, 4)
+        &.is-light
+          input:checked + .slider
+            background-color: $color-light
+
+            &:before
+              background-color: $color-dark
+        &.is-dark
+          input:checked + .slider
+            background-color: $color-dark
+
+            &:before
+              background-color: $color-light
+
 // fix for message container radius https://github.com/jgthms/bulma/pull/3612
 .message
   background-color: unset !important
 
   .message-body
     background-color: $message-background-color
+
+.panel.stash
+  position: fixed
+  bottom: 0
+  right: 10px
+  background-color: white
+  transform: translateY(calc(100% - $panel-heading-size - nth($panel-heading-padding, 1) + 1px))
+  max-width: calc(100vw - 20px)
+  transition: .3s ease-in-out
+
+  &.is-active
+    transform: translateY(0)
+
+  .panel-body
+    max-height: 75vh
+    overflow-y: auto
+
+@keyframes ringPulsate
+  0%
+    transform: scale(0.1, 0.1)
+    opacity: 0
+  50%
+    opacity: 1
+  100%
+    transform: scale(1.2, 1.2)
+    opacity: 0
+
+.pulse-dot
+  position: relative
+  top: 3px
+
+  .dot
+    width: 10px
+    height: 10px
+    background-color: $black
+    border-radius: 50%
+    position: absolute
+    top: 5px
+    left: 5px
+
+  .ring
+    border: 3px solid $black
+    border-radius: 50%
+    height: 20px
+    width: 20px
+    position: absolute
+    left: 0
+    top: 0
+    animation: ringPulsate 1s ease-out
+    animation-iteration-count: infinite
+    opacity: 0
+
+  @each $name, $pair in $colors
+    $color: nth($pair, 1)
+    $color-invert: nth($pair, 2)
+    &.is-#{$name}
+      .dot
+        background-color: $color
+
+      .ring
+        border-color: $color
+
+      @if length($pair) >= 4
+        $color-light: nth($pair, 3)
+        $color-dark: nth($pair, 4)
+        &.is-light
+          .dot
+            background-color: $color-light
+
+          .ring
+            border-color: $color-light
+        &.is-dark
+          .dot
+            background-color: $color-dark
+
+          .ring
+            border-color: $color-dark
+
+.panel-block
+  a
+    color: $panel-block-color
+
+  &.is-hoverable:hover
+    background-color: $panel-block-hover-background-color
+    cursor: pointer

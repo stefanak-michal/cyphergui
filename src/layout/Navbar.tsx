@@ -118,7 +118,6 @@ class Navbar extends React.Component<INavbarProps> {
                                     <span className="icon">
                                         <i className="fa-solid fa-gears" aria-hidden="true"></i>
                                     </span>
-                                    <strong>Settings</strong>
                                 </button>
                                 <button className="button" onClick={this.handleLogout}>
                                     Log out

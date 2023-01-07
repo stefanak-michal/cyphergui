@@ -73,7 +73,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
         this.requestData();
     }
 
-    shouldComponentUpdate(nextProps, nextState, nextContext) {
+    shouldComponentUpdate(nextProps: Readonly<ITypeProps>) {
         if (nextProps.active && this.props.active !== nextProps.active) {
             this.requestData();
         }
@@ -262,6 +262,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                                     })
                                                 }
                                             />
+                                            {this.props.stashManager.button(row, this.props.database)}
                                             <Button
                                                 icon="fa-regular fa-trash-can"
                                                 color="is-danger is-outlined"

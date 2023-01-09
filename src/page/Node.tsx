@@ -79,7 +79,10 @@ class Node extends React.Component<INodeProps, INodeState> {
                     properties: props,
                 });
             })
-            .catch(console.error);
+            .catch(err => {
+                console.error(err);
+                this.props.tabManager.close(this.props.tabId);
+            });
     };
 
     componentDidMount() {
@@ -465,7 +468,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                                 );
 
                                 return (
-                                    <div className="is-flex is-align-items-center is-justify-content-flex-start mb-3 mb-last-none">
+                                    <div key={db.neo4j.integer.toString(r.identity)} className="is-flex is-align-items-center is-justify-content-flex-start mb-3 mb-last-none">
                                         <span className="is-family-code">
                                             {dir === 2 && "<"}
                                             -[

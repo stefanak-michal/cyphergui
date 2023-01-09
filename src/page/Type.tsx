@@ -66,7 +66,10 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                     })
                     .catch(console.error);
             })
-            .catch(console.error);
+            .catch(err => {
+                console.error(err);
+                this.props.tabManager.close(this.props.tabId);
+            });
     };
 
     componentDidMount() {

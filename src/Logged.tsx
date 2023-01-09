@@ -54,8 +54,24 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         [EPage.Rel]: Relationship,
     };
 
+    constructor(props) {
+        super(props);
+
+        const tabs = localStorage.getItem("tabs");
+        if (tabs) {
+            const parsed = JSON.parse(tabs);
+            this.state.tabs = parsed.tabs;
+            this.state.contents = parsed.contents;
+            this.state.activeTab = parsed.activeTab;
+        }
+    }
+
     componentDidMount() {
-        this.tabManager.add("Start", "fa-solid fa-play", EPage.Start, {}, "Start");
+        this.tabManager.add("Start", "fa-solid fa-play", EPage.Start, {}, "Start", false);
+
+        window.addEventListener("beforeunload", () => {
+            localStorage.setItem("tabs", JSON.stringify({ tabs: this.state.tabs, contents: this.state.contents, activeTab: this.state.activeTab }));
+        });
     }
 
     tabManager: ITabManager = {
@@ -74,7 +90,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
             }
 
             this.setState(state => {
-                if (!this.state.tabs.find(tab => tab.id === id)) {
+                if (!state.tabs.find(tab => tab.id === id)) {
                     //open new tab next to current active tab
                     const i: number = state.tabs.findIndex(t => t.id === state.activeTab);
                     if (i !== -1) state.tabs.splice(i + 1, 0, { id: id, title: title as string, icon: icon });
@@ -86,7 +102,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                 return {
                     tabs: state.tabs,
                     contents: state.contents,
-                    activeTab: active ? id : state.activeTab,
+                    activeTab: active || !state.activeTab ? id : state.activeTab,
                 };
             });
         },

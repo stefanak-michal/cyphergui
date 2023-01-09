@@ -80,7 +80,10 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                     properties: props,
                 });
             })
-            .catch(console.error);
+            .catch(err => {
+                console.error(err);
+                this.props.tabManager.close(this.props.tabId);
+            });
     };
 
     componentDidMount() {

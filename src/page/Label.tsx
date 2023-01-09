@@ -66,7 +66,10 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                     })
                     .catch(console.error);
             })
-            .catch(console.error);
+            .catch(err => {
+                console.error(err);
+                this.props.tabManager.close(this.props.tabId);
+            });
     };
 
     componentDidMount() {

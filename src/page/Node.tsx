@@ -480,7 +480,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                                         ]-
                                         <span className="is-family-code">{dir === 1 && ">"}(</span>
                                         {node.labels.map(label => (
-                                            <LabelButton key={label} label={label} database={this.props.database} tabManager={this.props.tabManager} />
+                                            <LabelButton key={label} label={label} database={this.props.database} tabManager={this.props.tabManager} size="mr-1" />
                                         ))}
                                         <Button
                                             onClick={() =>
@@ -489,7 +489,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                                                     database: this.props.database,
                                                 })
                                             }
-                                            color="is-small ml-1"
+                                            color="is-small"
                                             icon="fa-solid fa-pen-clip"
                                             text={"#" + db.neo4j.integer.toString(node.identity)}
                                         />

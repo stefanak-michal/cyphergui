@@ -110,75 +110,92 @@ class Node extends React.Component<INodeProps, INodeState> {
     }
 
     handlePropertyKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let props = [...this.state.properties];
-        props.filter(p => "key." + p.name === e.currentTarget.name)[0].key = e.currentTarget.value;
-        this.setState({
-            properties: props,
-            focus: e.currentTarget.name,
+        const target = e.currentTarget;
+        this.setState(state => {
+            let props = [...state.properties];
+            const prop = props.find(p => "key." + p.name === target.name);
+            if (prop) prop.key = target.value;
+            return {
+                properties: props,
+                focus: target.name,
+            };
         });
     };
 
     handlePropertyValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let props = [...this.state.properties];
-        let value: any = e.currentTarget.value;
-        switch (props.filter(p => p.name === e.currentTarget.name)[0].type) {
-            case EPropertyType.Boolean:
-                value = e.currentTarget.checked;
-                break;
-            case EPropertyType.Integer:
-                value = db.neo4j.int(e.currentTarget.valueAsNumber);
-                break;
-            case EPropertyType.Float:
-                value = e.currentTarget.valueAsNumber;
-                break;
-        }
-        props.filter(p => p.name === e.currentTarget.name)[0].value = value;
-        this.setState({
-            properties: props,
-            focus: e.currentTarget.name,
+        const target = e.currentTarget;
+        this.setState(state => {
+            let props = [...state.properties];
+            let value: any = target.value;
+            const prop = props.find(p => p.name === target.name);
+            if (prop) {
+                switch (prop.type) {
+                    case EPropertyType.Boolean:
+                        value = target.checked;
+                        break;
+                    case EPropertyType.Integer:
+                        value = db.neo4j.int(target.valueAsNumber);
+                        break;
+                    case EPropertyType.Float:
+                        value = target.valueAsNumber;
+                        break;
+                }
+                prop.value = value;
+            }
+            return {
+                properties: props,
+                focus: target.name,
+            };
         });
     };
 
     handlePropertyTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        let props = [...this.state.properties];
-        const i = props.findIndex(p => "type." + p.name === e.currentTarget.name);
-        props[i].type = EPropertyType[e.currentTarget.value];
-        switch (props[i].type) {
-            case EPropertyType.Boolean:
-                props[i].value = !!props[i].value;
-                break;
-            case EPropertyType.Integer:
-                props[i].value = props[i].value.length ? db.neo4j.int(props[i].value) : 0;
-                break;
-            case EPropertyType.Float:
-                props[i].value = props[i].value.length ? parseFloat(props[i].value) : 0;
-                break;
-            case EPropertyType.String:
-                props[i].value = props[i].value.toString();
-                break;
-        }
-        this.setState({
-            properties: props,
-            focus: e.currentTarget.name,
+        const target = e.currentTarget;
+        this.setState(state => {
+            let props = [...state.properties];
+            const prop = props.find(p => "type." + p.name === target.name);
+            if (prop) {
+                prop.type = EPropertyType[target.value];
+                switch (prop.type) {
+                    case EPropertyType.Boolean:
+                        prop.value = !!prop.value;
+                        break;
+                    case EPropertyType.Integer:
+                        prop.value = prop.value.length ? db.neo4j.int(prop.value) : 0;
+                        break;
+                    case EPropertyType.Float:
+                        prop.value = prop.value.length ? parseFloat(prop.value) : 0;
+                        break;
+                    case EPropertyType.String:
+                        prop.value = prop.value.toString();
+                        break;
+                }
+            }
+            return {
+                properties: props,
+                focus: target.name,
+            };
         });
     };
 
     handlePropertyDelete = (name: string) => {
-        this.state.properties.splice(
-            this.state.properties.findIndex(p => p.name === name),
-            1
-        );
-        this.setState({
-            properties: this.state.properties,
+        this.setState(state => {
+            let props = [...state.properties];
+            const i = props.findIndex(p => p.name === name);
+            if (i !== -1) props.splice(i, 1);
+            return {
+                properties: props,
+            };
         });
     };
 
     handlePropertyAdd = () => {
-        const i = new Date().getTime().toString();
-        this.state.properties.push({ name: i, key: "", value: "", type: EPropertyType.String });
-        this.setState({
-            properties: this.state.properties,
-            focus: "key." + i,
+        this.setState(state => {
+            const i = new Date().getTime().toString();
+            return {
+                properties: state.properties.concat({ name: i, key: "", value: "", type: EPropertyType.String }),
+                focus: "key." + i,
+            };
         });
     };
 
@@ -198,20 +215,23 @@ class Node extends React.Component<INodeProps, INodeState> {
     };
 
     handleLabelSelect = (label: string) => {
-        if (this.state.labels.indexOf(label) === -1) this.state.labels.push(label);
-        this.setState({
-            labels: this.state.labels,
-            labelModal: false,
-            labelModalInput: "",
+        this.setState(state => {
+            return {
+                labels: state.labels.indexOf(label) === -1 ? state.labels.concat(label) : state.labels,
+                labelModal: false,
+                labelModalInput: "",
+            };
         });
     };
 
     handleLabelDelete = (label: string) => {
-        const i = this.state.labels.indexOf(label);
-        if (i === -1) return;
-        this.state.labels.splice(i, 1);
-        this.setState({
-            labels: this.state.labels,
+        this.setState(state => {
+            let labels = [...state.labels];
+            const i = this.state.labels.indexOf(label);
+            if (i !== -1) labels.splice(i, 1);
+            return {
+                labels: labels,
+            };
         });
     };
 

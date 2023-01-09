@@ -7,12 +7,18 @@ interface INavbarProps {
     handleOpenSettings: () => void;
 }
 
+interface INavbarState {
+    open: boolean;
+    databases: string[];
+    activeDb: string;
+}
+
 /**
  * Navbar
  * @todo change logo and title
  */
-class Navbar extends React.Component<INavbarProps> {
-    state = {
+class Navbar extends React.Component<INavbarProps, INavbarState> {
+    state: INavbarState = {
         open: false,
         databases: [],
         activeDb: db.getActiveDb(),
@@ -48,8 +54,10 @@ class Navbar extends React.Component<INavbarProps> {
     }
 
     handleOpen = () => {
-        this.setState({
-            open: !this.state.open,
+        this.setState(state => {
+            return {
+                open: !state.open,
+            };
         });
     };
 

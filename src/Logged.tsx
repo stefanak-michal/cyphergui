@@ -120,18 +120,21 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
     stashManager = {
         //maybe add queries?
         add: (value: TStashValue, database: string) => {
-            if (this.stashManager.indexOf(value) !== -1) return;
-            this.setState({
-                stashed: [...this.state.stashed, { id: new Date().getTime(), value: value, database: database }],
+            this.setState(state => {
+                return {
+                    stashed: this.stashManager.indexOf(value, state.stashed) === -1 ? state.stashed.concat({ id: new Date().getTime(), value: value, database: database }) : state.stashed,
+                };
             });
         },
         remove: (id: number) => {
-            this.setState({
-                stashed: this.state.stashed.filter(s => s.id !== id),
+            this.setState(state => {
+                return {
+                    stashed: state.stashed.filter(s => s.id !== id),
+                };
             });
         },
-        indexOf: (value: TStashValue): number => {
-            return this.state.stashed.findIndex(s => {
+        indexOf: (value: TStashValue, stashed?: IStashEntry[]): number => {
+            return (stashed || this.state.stashed).findIndex(s => {
                 return (db.hasElementId && value.elementId === s.value.elementId) || value.identity === s.value.identity;
             });
         },
@@ -168,8 +171,10 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
     };
 
     discardToast = (i: number) => {
-        this.setState({
-            toasts: this.state.toasts.filter(t => t.key !== i),
+        this.setState(state => {
+            return {
+                toasts: state.toasts.filter(t => t.key !== i),
+            };
         });
     };
 
@@ -222,7 +227,12 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                         <div className="mb-3">
                             <Checkbox
                                 name="showElementId"
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.setState({ settings: { ...this.state.settings, showElementId: e.currentTarget.checked } })}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                    const checked = e.currentTarget.checked;
+                                    this.setState(state => {
+                                        return { settings: { ...state.settings, showElementId: checked } };
+                                    });
+                                }}
                                 label="Show elementId"
                                 checked={this.state.settings.showElementId}
                                 color="is-dark"
@@ -231,7 +241,12 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                         <div className="mb-3">
                             <Checkbox
                                 name="closeEditAfterExecuteSuccess"
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.setState({ settings: { ...this.state.settings, closeEditAfterExecuteSuccess: e.currentTarget.checked } })}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                    const checked = e.currentTarget.checked;
+                                    this.setState(state => {
+                                        return { settings: { ...state.settings, closeEditAfterExecuteSuccess: checked } };
+                                    });
+                                }}
                                 label="Close create/edit tab after successful execute"
                                 checked={this.state.settings.closeEditAfterExecuteSuccess}
                                 color="is-dark"

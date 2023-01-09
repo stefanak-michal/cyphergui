@@ -60,7 +60,15 @@ class Stash extends React.Component<IStashProps, IStashState> {
 
         return (
             <nav className={"panel is-dark stash " + (this.state.active ? "is-active" : "")}>
-                <div className="panel-heading is-clickable" onClick={() => this.setState({ active: !this.state.active })}>
+                <div
+                    className="panel-heading is-clickable"
+                    onClick={() =>
+                        this.setState(state => {
+                            return {
+                                active: !state.active,
+                            };
+                        })
+                    }>
                     <span className={"icon mr-2 animate__animated " + (this.state.pulse ? "animate__swing" : "")} onAnimationEnd={() => this.setState({ pulse: false })}>
                         <i className={"fa-regular fa-folder" + (this.state.active ? "-open" : "")}></i>
                     </span>

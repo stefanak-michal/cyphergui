@@ -119,24 +119,23 @@ class Type extends React.Component<ITypeProps, ITypeState> {
     };
 
     handleSetSort = (value: string) => {
-        let i = this.state.sort.indexOf(value),
-            j = this.state.sort.indexOf(value + " DESC");
-        let copy = [...this.state.sort];
+        this.setState(state => {
+            let i = state.sort.indexOf(value),
+                j = state.sort.indexOf(value + " DESC");
+            let copy = [...state.sort];
 
-        if (i !== -1) {
-            copy[i] = value + " DESC";
-        } else if (j !== -1) {
-            copy.splice(i, 1);
-        } else {
-            copy.push(value);
-        }
+            if (i !== -1) {
+                copy[i] = value + " DESC";
+            } else if (j !== -1) {
+                copy.splice(i, 1);
+            } else {
+                copy.push(value);
+            }
 
-        this.setState(
-            {
+            return {
                 sort: copy,
-            },
-            this.requestData
-        );
+            };
+        }, this.requestData);
     };
 
     render() {

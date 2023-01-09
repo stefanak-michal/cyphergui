@@ -2,7 +2,7 @@ import * as React from "react";
 import Pagination from "./block/Pagination";
 import { DeleteModal } from "./block/Modal";
 import TableSortIcon from "./block/TableSortIcon";
-import { Button, Checkbox } from "../form";
+import { Button, Checkbox, LabelButton } from "../form";
 import { Integer, Node as Neo4jNode } from "neo4j-driver";
 import { EPage } from "../enums";
 import { IPageProps } from "../interfaces";
@@ -198,7 +198,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                         color="is-primary"
                         onClick={() =>
                             this.props.tabManager.add(
-                                this.props.tabManager.generateName("New node"),
+                                { prefix: "New node" },
                                 "fa-regular fa-square-plus",
                                 EPage.Node,
                                 {
@@ -219,7 +219,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                                 <th rowSpan={2}></th>
                                 <th colSpan={this.props.settings.showElementId && db.hasElementId ? 2 : 1}>Node</th>
                                 {additionalLabels && <th rowSpan={2}>additional labels</th>}
-                                <th colSpan={keys.length}>properties</th>
+                                {keys.length > 0 ? <th colSpan={keys.length}>properties</th> : ""}
                             </tr>
                             <tr>
                                 <th className="nowrap is-clickable" onClick={() => this.handleSetSort("id(n)")}>
@@ -242,17 +242,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                                 <tr key={"tr-" + db.neo4j.integer.toString(row.identity)}>
                                     <td>
                                         <div className="is-flex-wrap-nowrap buttons">
-                                            <Button icon="fa-solid fa-circle-nodes" title="Show relationships" />
-                                            <Button
-                                                icon="fa-solid fa-pen-clip"
-                                                title="Edit"
-                                                onClick={() =>
-                                                    this.props.tabManager.add(this.props.tabManager.generateName("Node", row.identity), "fa-solid fa-pen-to-square", EPage.Node, {
-                                                        id: db.hasElementId ? row.elementId : row.identity,
-                                                        database: this.props.database,
-                                                    })
-                                                }
-                                            />
+                                            {/*<Button icon="fa-solid fa-circle-nodes" title="Show relationships" />*/}
                                             {this.props.stashManager.button(row, this.props.database)}
                                             <Button
                                                 icon="fa-regular fa-trash-can"
@@ -262,7 +252,18 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                                             />
                                         </div>
                                     </td>
-                                    <td>{db.neo4j.integer.toString(row.identity)}</td>
+                                    <td>
+                                        <Button
+                                            onClick={() =>
+                                                this.props.tabManager.add({ prefix: "Node", i: row.identity }, "fa-solid fa-pen-to-square", EPage.Node, {
+                                                    id: db.hasElementId ? row.elementId : row.identity,
+                                                    database: this.props.database,
+                                                })
+                                            }
+                                            icon="fa-solid fa-pen-clip"
+                                            text={"#" + db.neo4j.integer.toString(row.identity)}
+                                        />
+                                    </td>
                                     {this.props.settings.showElementId && db.hasElementId && <td className="nowrap is-size-7">{row.elementId}</td>}
                                     {additionalLabels && (
                                         <td>
@@ -270,12 +271,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                                                 {row.labels
                                                     .filter(value => value !== this.props.label)
                                                     .map(label => (
-                                                        <Button
-                                                            color="tag is-link is-rounded px-2"
-                                                            onClick={() => this.props.tabManager.add(label, "fa-regular fa-circle", EPage.Label, { label: label, database: this.props.database })}
-                                                            key={label}
-                                                            text={label}
-                                                        />
+                                                        <LabelButton key={label} label={label} database={this.props.database} tabManager={this.props.tabManager} />
                                                     ))}
                                             </span>
                                         </td>

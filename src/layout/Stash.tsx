@@ -3,7 +3,7 @@ import { Node as Neo4jNode, Relationship as Neo4jRelationship } from "neo4j-driv
 import db from "../db";
 import { ISettings, IStashEntry, IStashManager, ITabManager } from "../interfaces";
 import { EPage } from "../enums";
-import { Button } from "../form";
+import { LabelButton, TypeButton } from "../form";
 
 interface IStashProps {
     stashed: IStashEntry[];
@@ -105,7 +105,7 @@ class Stash extends React.Component<IStashProps, IStashState> {
                                 className="is-align-items-center is-flex is-justify-content-flex-start"
                                 onClick={() =>
                                     this.props.tabManager.add(
-                                        this.props.tabManager.generateName(entry.value instanceof Neo4jNode ? "Node" : "Rel", entry.value.identity),
+                                        { prefix: entry.value instanceof Neo4jNode ? "Node" : "Rel", i: entry.value.identity },
                                         "fa-solid fa-pen-to-square",
                                         entry.value instanceof Neo4jNode ? EPage.Node : EPage.Rel,
                                         { id: db.hasElementId ? entry.value.elementId : entry.value.identity, database: entry.database }
@@ -120,24 +120,9 @@ class Stash extends React.Component<IStashProps, IStashState> {
                             </a>
                             <span className="ml-2 mr-1">
                                 {entry.value instanceof Neo4jNode &&
-                                    entry.value.labels.map(label => (
-                                        <Button
-                                            color="tag is-link is-rounded px-2 mr-1"
-                                            onClick={() => this.props.tabManager.add(label, "fa-regular fa-circle", EPage.Label, { label: label, database: entry.database })}
-                                            key={label}
-                                            text={label}
-                                        />
-                                    ))}
+                                    entry.value.labels.map(label => <LabelButton key={label} label={label} database={entry.database} tabManager={this.props.tabManager} size="mr-1" />)}
                                 {entry.value instanceof Neo4jRelationship && (
-                                    <Button
-                                        color="tag is-info is-rounded px-2 mr-1"
-                                        onClick={() =>
-                                            "type" in entry.value &&
-                                            this.props.tabManager.add(entry.value.type, "fa-solid fa-arrow-right-long", EPage.Type, { type: entry.value.type, database: entry.database })
-                                        }
-                                        key={entry.value.type}
-                                        text={entry.value.type}
-                                    />
+                                    <TypeButton key={entry.value.type} type={entry.value.type} database={entry.database} tabManager={this.props.tabManager} size="mr-1" />
                                 )}
                             </span>
                             <button className="delete ml-auto" onClick={() => this.props.stashManager.remove(entry.id)}></button>

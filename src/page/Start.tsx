@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Button } from "../form";
+import { Button, LabelButton, TypeButton } from "../form";
 import { EPage } from "../enums";
 import { IPageProps } from "../interfaces";
 import db from "../db";
@@ -62,14 +62,7 @@ class Start extends React.Component<IPageProps> {
                 <div className="subtitle mb-2">Node labels</div>
                 <div className="buttons">
                     {this.state.labels.length > 0 ? (
-                        this.state.labels.map(label => (
-                            <Button
-                                color="tag is-link is-rounded is-medium px-3"
-                                onClick={() => this.props.tabManager.add(label, "fa-regular fa-circle", EPage.Label, { label: label, database: db.getActiveDb() })}
-                                key={label}
-                                text={label}
-                            />
-                        ))
+                        this.state.labels.map(label => <LabelButton key={label} label={label} database={db.getActiveDb()} tabManager={this.props.tabManager} size="is-medium" />)
                     ) : (
                         <span className="has-text-grey-light">none</span>
                     )}
@@ -80,13 +73,7 @@ class Start extends React.Component<IPageProps> {
                         text="Create node"
                         color=""
                         onClick={() =>
-                            this.props.tabManager.add(
-                                this.props.tabManager.generateName("New node"),
-                                "fa-regular fa-square-plus",
-                                EPage.Node,
-                                { id: null, database: db.getActiveDb() },
-                                new Date().getTime().toString()
-                            )
+                            this.props.tabManager.add({ prefix: "New node" }, "fa-regular fa-square-plus", EPage.Node, { id: null, database: db.getActiveDb() }, new Date().getTime().toString())
                         }
                     />
                 </div>
@@ -94,14 +81,7 @@ class Start extends React.Component<IPageProps> {
                 <div className="subtitle mb-2">Relationship types</div>
                 <div className="buttons">
                     {this.state.types.length > 0 ? (
-                        this.state.types.map(type => (
-                            <Button
-                                color="tag is-info is-rounded is-medium px-3"
-                                onClick={() => this.props.tabManager.add(type, "fa-solid fa-arrow-right-long", EPage.Type, { type: type, database: db.getActiveDb() })}
-                                key={type}
-                                text={type}
-                            />
-                        ))
+                        this.state.types.map(type => <TypeButton key={type} type={type} database={db.getActiveDb()} tabManager={this.props.tabManager} size="is-medium" />)
                     ) : (
                         <span className="has-text-grey-light">none</span>
                     )}

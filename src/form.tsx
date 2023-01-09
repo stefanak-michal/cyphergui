@@ -1,6 +1,7 @@
 import * as React from "react";
 import db from "./db";
-import { EPropertyType } from "./enums";
+import { EPage, EPropertyType } from "./enums";
+import { ITabManager } from "./interfaces";
 
 export class Input extends React.Component<{ label: string; name: string; type?: string; placeholder?: string; value?: any; onChange: (e: React.ChangeEvent) => void }> {
     render() {
@@ -44,13 +45,21 @@ export class Textarea extends React.Component<
         height: 0,
     };
 
+    componentDidMount() {
+        this.resize();
+    }
+
     componentDidUpdate() {
+        this.resize();
+    }
+
+    resize = () => {
         if (this.props.autoresize !== false) {
             this.ref.current.style.height = "0px";
             const computed = window.getComputedStyle(this.ref.current);
             this.ref.current.style.height = parseInt(computed.getPropertyValue("border-top-width")) + this.ref.current.scrollHeight + parseInt(computed.getPropertyValue("border-bottom-width")) + "px";
         }
-    }
+    };
 
     render() {
         return (
@@ -67,6 +76,7 @@ export class Textarea extends React.Component<
     }
 }
 
+//maybe this should be somewhere else ...it is not really form ..hmm html.tsx?
 export class Button extends React.Component<{ text?: string; icon?: string; color?: string; onClick?: (e?: any) => void; type?: "submit" | "reset" | "button"; title?: string }> {
     render() {
         return (
@@ -78,6 +88,30 @@ export class Button extends React.Component<{ text?: string; icon?: string; colo
                 )}
                 {this.props.text && <span>{this.props.text}</span>}
             </button>
+        );
+    }
+}
+
+export class LabelButton extends React.Component<{ label: string; database: string; size?: string; tabManager: ITabManager }> {
+    render() {
+        return (
+            <Button
+                color={"tag is-link is-rounded px-2 " + (this.props.size || "")}
+                onClick={() => this.props.tabManager.add(this.props.label, "fa-regular fa-circle", EPage.Label, { label: this.props.label, database: this.props.database })}
+                text={":" + this.props.label}
+            />
+        );
+    }
+}
+
+export class TypeButton extends React.Component<{ type: string; database: string; size?: string; tabManager: ITabManager }> {
+    render() {
+        return (
+            <Button
+                color={"tag is-info is-rounded px-2 " + (this.props.size || "")}
+                onClick={() => this.props.tabManager.add(this.props.type, "fa-solid fa-arrow-right-long", EPage.Type, { type: this.props.type, database: this.props.database })}
+                text={":" + this.props.type}
+            />
         );
     }
 }

@@ -195,7 +195,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                         text="Create relationship"
                         color="is-primary"
                         onClick={() =>
-                            this.props.tabManager.add(this.props.tabManager.generateName("New relationship"), "fa-regular fa-square-plus", EPage.Rel, {
+                            this.props.tabManager.add({ prefix: "New relationship" }, "fa-regular fa-square-plus", EPage.Rel, {
                                 id: null,
                                 database: this.props.database,
                                 type: this.props.type,
@@ -212,7 +212,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                 <th colSpan={this.props.settings.showElementId && db.hasElementId ? 2 : 1}>Relationship</th>
                                 <th colSpan={this.props.settings.showElementId && db.hasElementId ? 2 : 1}>Start node</th>
                                 <th colSpan={this.props.settings.showElementId && db.hasElementId ? 2 : 1}>End node</th>
-                                <th colSpan={keys.length}>properties</th>
+                                {keys.length > 0 ? <th colSpan={keys.length}>properties</th> : ""}
                             </tr>
                             <tr>
                                 <th rowSpan={2} className="nowrap is-clickable" onClick={() => this.handleSetSort("id(r)")}>
@@ -251,16 +251,6 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                 <tr key={"tr-" + db.neo4j.integer.toString(row.identity)}>
                                     <td>
                                         <div className="is-flex-wrap-nowrap buttons">
-                                            <Button
-                                                icon="fa-solid fa-pen-clip"
-                                                title="Edit"
-                                                onClick={() =>
-                                                    this.props.tabManager.add(this.props.tabManager.generateName("Rel", row.identity), "fa-solid fa-pen-to-square", EPage.Rel, {
-                                                        id: db.hasElementId ? row.elementId : row.identity,
-                                                        database: this.props.database,
-                                                    })
-                                                }
-                                            />
                                             {this.props.stashManager.button(row, this.props.database)}
                                             <Button
                                                 icon="fa-regular fa-trash-can"
@@ -270,11 +260,44 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                             />
                                         </div>
                                     </td>
-                                    <td>{db.neo4j.integer.toString(row.identity)}</td>
+                                    <td>
+                                        <Button
+                                            onClick={() =>
+                                                this.props.tabManager.add({ prefix: "Rel", i: row.identity }, "fa-solid fa-pen-to-square", EPage.Rel, {
+                                                    id: db.hasElementId ? row.elementId : row.identity,
+                                                    database: this.props.database,
+                                                })
+                                            }
+                                            icon="fa-solid fa-pen-clip"
+                                            text={"#" + db.neo4j.integer.toString(row.identity)}
+                                        />
+                                    </td>
                                     {this.props.settings.showElementId && db.hasElementId && <td className="nowrap is-size-7">{row.elementId}</td>}
-                                    <td>{db.neo4j.integer.toString(row.start)}</td>
+                                    <td>
+                                        <Button
+                                            onClick={() =>
+                                                this.props.tabManager.add({ prefix: "Node", i: row.start }, "fa-solid fa-pen-to-square", EPage.Node, {
+                                                    id: db.hasElementId ? row.startNodeElementId : row.start,
+                                                    database: this.props.database,
+                                                })
+                                            }
+                                            icon="fa-solid fa-pen-clip"
+                                            text={"#" + db.neo4j.integer.toString(row.start)}
+                                        />
+                                    </td>
                                     {this.props.settings.showElementId && db.hasElementId && <td className="nowrap is-size-7">{row.startNodeElementId}</td>}
-                                    <td>{db.neo4j.integer.toString(row.end)}</td>
+                                    <td>
+                                        <Button
+                                            onClick={() =>
+                                                this.props.tabManager.add({ prefix: "Node", i: row.end }, "fa-solid fa-pen-to-square", EPage.Node, {
+                                                    id: db.hasElementId ? row.endNodeElementId : row.end,
+                                                    database: this.props.database,
+                                                })
+                                            }
+                                            icon="fa-solid fa-pen-clip"
+                                            text={"#" + db.neo4j.integer.toString(row.end)}
+                                        />
+                                    </td>
                                     {this.props.settings.showElementId && db.hasElementId && <td className="nowrap is-size-7">{row.endNodeElementId}</td>}
                                     {keys.map(key => (
                                         <td key={"td-" + key}>{key in row.properties && this.printProperty(row.properties[key])}</td>

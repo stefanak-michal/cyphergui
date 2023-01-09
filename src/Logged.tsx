@@ -59,7 +59,11 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         /**
          * If already exists is switches on it
          */
-        add: (title: string, icon: string, page: EPage, props: object = {}, id?: string, active: boolean = true) => {
+        add: (title: string | { prefix: string; i?: any }, icon: string, page: EPage, props: object = {}, id?: string, active: boolean = true) => {
+            if (typeof title === "object") {
+                title = this.tabManager.generateName(title.prefix, title.i);
+            }
+
             if (!id) {
                 //auto generate id from props or title if not provided
                 id = "id" in props && (props.id instanceof Integer || typeof props.id === "string") ? db.strId(props.id) : title;
@@ -70,8 +74,8 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                 if (!this.state.tabs.find(tab => tab.id === id)) {
                     //open new tab next to current active tab
                     const i: number = state.tabs.findIndex(t => t.id === state.activeTab);
-                    if (i !== -1) state.tabs.splice(i + 1, 0, { id: id, title: title, icon: icon });
-                    else state.tabs.push({ id: id, title: title, icon: icon });
+                    if (i !== -1) state.tabs.splice(i + 1, 0, { id: id, title: title as string, icon: icon });
+                    else state.tabs.push({ id: id, title: title as string, icon: icon });
 
                     state.contents.push({ id: id, page: page, props: props });
                 }
@@ -185,7 +189,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
             <>
                 <Navbar
                     handleLogout={this.props.handleLogout}
-                    handleAddQueryTab={() => this.tabManager.add(this.tabManager.generateName("Query"), "fa-solid fa-terminal", EPage.Query)}
+                    handleAddQueryTab={() => this.tabManager.add({ prefix: "Query" }, "fa-solid fa-terminal", EPage.Query)}
                     handleOpenSettings={() => this.setState({ settingsModal: true })}
                 />
                 <section className="tabs is-boxed">

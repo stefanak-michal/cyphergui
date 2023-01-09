@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Button, Property } from "../form";
+import { Button, LabelButton, Property, TypeButton } from "../form";
 import Modal, { DeleteModal } from "./block/Modal";
 import { Integer, Node as Neo4jNode, Relationship as Neo4jRelationship } from "neo4j-driver";
 import { EPage, EPropertyType } from "../enums";
@@ -264,7 +264,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                     this.props.tabManager.close(this.props.tabId);
                 } else if (!this.props.id) {
                     const node = response.records[0].get("n");
-                    this.props.tabManager.add(this.props.tabManager.generateName("Node", node.identity), "fa-solid fa-pen-to-square", EPage.Node, {
+                    this.props.tabManager.add({ prefix: "Node", i: node.identity }, "fa-solid fa-pen-to-square", EPage.Node, {
                         id: db.hasElementId ? node.elementId : node.identity,
                         database: this.props.database,
                     });
@@ -451,7 +451,10 @@ class Node extends React.Component<INodeProps, INodeState> {
                                 <i className="fa-solid fa-circle-nodes mr-2"></i>Relationships
                             </legend>
                             {this.rels.map(r => {
-                                const dir = (db.hasElementId ? r.startNodeElementId : r.start) === this.props.id ? 1 : 2;
+                                const dir =
+                                    (db.hasElementId ? r.startNodeElementId : db.neo4j.integer.toString(r.start)) === (db.hasElementId ? this.props.id : db.neo4j.integer.toString(this.props.id))
+                                        ? 1
+                                        : 2;
                                 const node = this.nodes.find(
                                     n => (db.hasElementId ? n.elementId : n.identity) === (db.hasElementId ? (dir === 2 ? r.startNodeElementId : r.endNodeElementId) : dir === 2 ? r.start : r.end)
                                 );
@@ -459,18 +462,13 @@ class Node extends React.Component<INodeProps, INodeState> {
                                 return (
                                     <div className="is-flex is-align-items-center is-justify-content-flex-start mb-3 mb-last-none">
                                         <span className="is-family-code">
-                                            {dir === 1 && "<"}
+                                            {dir === 2 && "<"}
                                             -[
                                         </span>
-                                        <Button
-                                            color="tag is-info is-rounded px-3"
-                                            onClick={() => this.props.tabManager.add(r.type, "fa-solid fa-arrow-right-long", EPage.Type, { type: r.type, database: db.getActiveDb() })}
-                                            key={r.type}
-                                            text={r.type}
-                                        />
+                                        <TypeButton type={r.type} database={this.props.database} tabManager={this.props.tabManager} />
                                         <Button
                                             onClick={() =>
-                                                this.props.tabManager.add(this.props.tabManager.generateName("Rel", r.identity), "fa-solid fa-pen-to-square", EPage.Rel, {
+                                                this.props.tabManager.add({ prefix: "Rel", i: r.identity }, "fa-solid fa-pen-to-square", EPage.Rel, {
                                                     id: db.hasElementId ? r.elementId : r.identity,
                                                     database: this.props.database,
                                                 })
@@ -480,18 +478,13 @@ class Node extends React.Component<INodeProps, INodeState> {
                                             text={"#" + db.neo4j.integer.toString(r.identity)}
                                         />
                                         ]-
-                                        <span className="is-family-code">{dir === 2 && ">"}(</span>
+                                        <span className="is-family-code">{dir === 1 && ">"}(</span>
                                         {node.labels.map(label => (
-                                            <Button
-                                                color="tag is-link is-rounded px-3"
-                                                onClick={() => this.props.tabManager.add(label, "fa-regular fa-circle", EPage.Label, { label: label, database: db.getActiveDb() })}
-                                                key={label}
-                                                text={label}
-                                            />
+                                            <LabelButton key={label} label={label} database={this.props.database} tabManager={this.props.tabManager} />
                                         ))}
                                         <Button
                                             onClick={() =>
-                                                this.props.tabManager.add(this.props.tabManager.generateName("Node", node.identity), "fa-solid fa-pen-to-square", EPage.Node, {
+                                                this.props.tabManager.add({ prefix: "Node", i: node.identity }, "fa-solid fa-pen-to-square", EPage.Node, {
                                                     id: db.hasElementId ? node.elementId : node.identity,
                                                     database: this.props.database,
                                                 })

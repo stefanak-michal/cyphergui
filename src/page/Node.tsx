@@ -224,6 +224,19 @@ class Node extends React.Component<INodeProps, INodeState> {
         });
     };
 
+    handleLabelInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+        let value: string = e.currentTarget.value;
+
+        if (this.props.settings.forceNamingRecommendations) {
+            value = value
+                .replace(/^[^a-zA-Z]*/, "")
+                .replace(/^[a-z]/, x => x.toUpperCase())
+                .replace(/_[a-zA-Z]/, x => x.substring(1).toUpperCase());
+        }
+
+        this.setState({ labelModalInput: value });
+    };
+
     handleLabelDelete = (label: string) => {
         this.setState(state => {
             let labels = [...state.labels];
@@ -362,15 +375,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                             <label className="label">Or specify new one</label>
                             <div className="field is-grouped">
                                 <div className="control is-expanded">
-                                    <input
-                                        autoFocus
-                                        pattern="^[A-Za-z][A-Za-z_0-9]*$"
-                                        required
-                                        className="input"
-                                        type="text"
-                                        value={this.state.labelModalInput}
-                                        onChange={e => this.setState({ labelModalInput: e.currentTarget.value })}
-                                    />
+                                    <input autoFocus pattern="^[A-Za-z][A-Za-z_0-9]*$" required className="input" type="text" value={this.state.labelModalInput} onChange={this.handleLabelInput} />
                                 </div>
                                 <div className="control">
                                     <Button icon="fa-solid fa-check" type="submit" />
@@ -392,7 +397,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                                 </div>
                             </div>
                             <div className="column is-half-desktop">
-                                {this.props.settings.showElementId && db.hasElementId && (
+                                {db.hasElementId && (
                                     <div className="field">
                                         <label className="label">elementId</label>
                                         <div className="control">

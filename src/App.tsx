@@ -15,6 +15,7 @@ class App extends React.Component {
     };
 
     handleLogout = () => {
+        localStorage.removeItem("login");
         this.setState({
             logged: false,
         });

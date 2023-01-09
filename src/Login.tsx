@@ -1,17 +1,33 @@
 import * as React from "react";
-import { Button, Input } from "./form";
+import { Button, Checkbox, Input } from "./form";
 import db from "./db";
+
+interface ILoginData {
+    url: string;
+    username: string;
+    password: string;
+}
+
+interface ILoginState {
+    url: string;
+    username: string;
+    password: string;
+    remember: boolean;
+    submitted: boolean;
+    error: string | null;
+}
 
 /**
  * Login page
  * @todo add additional info
  * @todo update logo
  */
-class Login extends React.Component<{ handleLogin: () => void }> {
-    state = {
+class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
+    state: ILoginState = {
         url: "bolt://localhost:7687",
         username: "",
         password: "",
+        remember: false,
         submitted: false,
         error: null,
     };
@@ -20,15 +36,21 @@ class Login extends React.Component<{ handleLogin: () => void }> {
         e.preventDefault();
         this.setState({ submitted: true });
 
-        let driver;
-        try {
-            driver = db.neo4j.driver(this.state.url, db.neo4j.auth.basic(this.state.username, this.state.password), { userAgent: "bolt-admin" });
-        } catch (err) {
+        this.tryConnect(this.state.url, this.state.username, this.state.password, err => {
             console.log(err);
             this.setState({
                 submitted: false,
-                error: "[" + err.name + "] " + err.message,
+                error: err,
             });
+        });
+    };
+
+    tryConnect = (url: string, username: string, password: string, onError: (error: string) => void) => {
+        let driver;
+        try {
+            driver = db.neo4j.driver(url, db.neo4j.auth.basic(username, password), { userAgent: "bolt-admin" });
+        } catch (err) {
+            onError("[" + err.name + "] " + err.message);
             return;
         }
 
@@ -40,19 +62,13 @@ class Login extends React.Component<{ handleLogin: () => void }> {
                     db.setDriver(driver);
                     db.setHasElementId("elementId" in response.records[0].get("n"));
                     this.props.handleLogin();
+                    if (this.state.remember) localStorage.setItem("login", JSON.stringify({ url: url, username: username, password: password } as ILoginData));
                 } else {
-                    this.setState({
-                        submitted: false,
-                        error: "Initial test query wasn't successful",
-                    });
+                    onError("Initial test query wasn't successful");
                 }
             })
             .catch(err => {
-                console.log(err);
-                this.setState({
-                    submitted: false,
-                    error: "[" + err.name + "] " + err.message,
-                });
+                onError("[" + err.name + "] " + err.message);
             });
     };
 
@@ -62,16 +78,19 @@ class Login extends React.Component<{ handleLogin: () => void }> {
         const value = e.currentTarget.type === "checkbox" ? target.checked : target.value;
         const name = target.name;
 
-        this.setState({
-            [name]: value,
-        });
+        let obj = {};
+        obj[name] = value;
+        this.setState(obj);
     };
 
     componentDidMount() {
-        this.setState({
-            submitted: false,
-            error: null,
-        });
+        let login = localStorage.getItem("login");
+        if (!!login) {
+            let parsed = JSON.parse(login) as ILoginData;
+            this.tryConnect(parsed.url, parsed.username, parsed.password, () => {
+                localStorage.removeItem("login");
+            });
+        }
     }
 
     render() {
@@ -81,10 +100,21 @@ class Login extends React.Component<{ handleLogin: () => void }> {
                 <form id="login" className="columns mt-6" onSubmit={this.handleSubmit}>
                     <div className="column is-one-third is-offset-one-third box">
                         <Input label="URL" name="url" onChange={this.handleInputChange} value={this.state.url} />
-                        <Input label="Username" name="username" onChange={this.handleInputChange} value={this.state.username} />
+                        <Input label="Username" name="username" onChange={this.handleInputChange} value={this.state.username} focus={true} />
                         <Input label="Password" name="password" type="password" onChange={this.handleInputChange} />
+                        <Checkbox
+                            name="remember"
+                            label="Remember (not secure)"
+                            checked={this.state.remember}
+                            color="is-primary"
+                            onChange={() =>
+                                this.setState(state => {
+                                    return { remember: !state.remember };
+                                })
+                            }
+                        />
                         {this.state.error && <div className="notification is-danger">{this.state.error}</div>}
-                        <Button text="Login" icon="fa-solid fa-bolt" color={"is-primary " + (this.state.submitted ? "is-loading" : "")} type="submit" />
+                        <Button text="Login" icon="fa-solid fa-bolt" color={"mt-3 is-primary " + (this.state.submitted ? "is-loading" : "")} type="submit" />
                     </div>
                 </form>
             </section>

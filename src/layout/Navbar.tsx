@@ -21,7 +21,7 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
     state: INavbarState = {
         open: false,
         databases: [],
-        activeDb: db.getActiveDb(),
+        activeDb: localStorage.getItem("activedb") || db.getActiveDb(),
     };
 
     requestData = () => {
@@ -29,11 +29,9 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
             .session({ defaultAccessMode: db.neo4j.session.READ })
             .run("SHOW DATABASES")
             .then(response => {
-                const defaultDb = response.records.filter(row => row.get("default"))[0].get("name");
+                const defaultDb = response.records.find(row => row.get("default")).get("name");
                 const databases = response.records.filter(row => row.get("type") !== "system").map(row => row.get("name"));
-                if (this.state.activeDb === null || databases.indexOf(this.state.activeDb) === -1) {
-                    this.handleChangeDb(defaultDb);
-                }
+                this.handleChangeDb(this.state.activeDb && databases.indexOf(this.state.activeDb) !== -1 ? this.state.activeDb : defaultDb);
                 this.setState({
                     databases: databases,
                 });
@@ -68,6 +66,7 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
 
     handleChangeDb = (name: string) => {
         db.setActiveDb(name);
+        localStorage.setItem("activedb", name);
         this.setState({
             activeDb: name,
         });

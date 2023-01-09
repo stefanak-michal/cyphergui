@@ -59,7 +59,7 @@ class Stash extends React.Component<IStashProps, IStashState> {
         }
 
         return (
-            <nav className={"panel is-dark stash " + (this.state.active ? "is-active" : "")}>
+            <section className={"stash panel is-dark " + (this.state.active ? "is-active" : "")}>
                 <div
                     className="panel-heading is-clickable"
                     onClick={() =>
@@ -115,7 +115,6 @@ class Stash extends React.Component<IStashProps, IStashState> {
                                     <i className={entry.value instanceof Neo4jNode ? "fa-regular fa-circle" : "fa-solid fa-arrow-right-long"} aria-hidden="true"></i>
                                 </span>
                                 {db.neo4j.integer.toString(entry.value.identity)}
-                                {this.props.settings.showElementId && db.hasElementId ? <span className="is-size-7 ml-1">[{entry.value.elementId}]</span> : ""}
                                 <span className="ml-1">(db: {entry.database})</span>
                             </a>
                             <span className="ml-2 mr-1">
@@ -135,7 +134,7 @@ class Stash extends React.Component<IStashProps, IStashState> {
                         </button>
                     </div>
                 </div>
-            </nav>
+            </section>
         );
     }
 }

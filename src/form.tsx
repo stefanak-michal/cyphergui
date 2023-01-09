@@ -3,7 +3,7 @@ import db from "./db";
 import { EPage, EPropertyType } from "./enums";
 import { ITabManager } from "./interfaces";
 
-export class Input extends React.Component<{ label: string; name: string; type?: string; placeholder?: string; value?: any; onChange: (e: React.ChangeEvent) => void }> {
+export class Input extends React.Component<{ label: string; name: string; type?: string; placeholder?: string; value?: any; onChange: (e: React.ChangeEvent) => void; focus?: boolean }> {
     render() {
         return (
             <div className="field">
@@ -16,6 +16,7 @@ export class Input extends React.Component<{ label: string; name: string; type?:
                         placeholder={this.props.placeholder || ""}
                         onChange={this.props.onChange}
                         value={this.props.value}
+                        autoFocus={this.props.focus || false}
                     />
                 </div>
             </div>
@@ -23,14 +24,15 @@ export class Input extends React.Component<{ label: string; name: string; type?:
     }
 }
 
-export class Checkbox extends React.Component<{ name: string; label: string; color?: string; onChange?: (e: React.ChangeEvent) => void; checked?: boolean; disabled?: boolean }> {
+export class Checkbox extends React.Component<{ name: string; label: string; color?: string; onChange?: (e: React.ChangeEvent) => void; checked?: boolean; disabled?: boolean; help?: string }> {
     render() {
         return (
             <div className="field">
-                <label className={"switch " + this.props.color}>
+                <label className={"switch " + (this.props.color || "")}>
                     <input type="checkbox" name={this.props.name} onChange={this.props.onChange} checked={this.props.checked || false} disabled={this.props.disabled || false} />
                     <span className="slider" /> {this.props.label}
                 </label>
+                {this.props.help && <p className="help">{this.props.help}</p>}
             </div>
         );
     }

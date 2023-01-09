@@ -10,8 +10,9 @@ export interface ITabManager {
 }
 
 export interface ISettings {
-    showElementId: boolean;
+    tableViewShowElementId: boolean;
     closeEditAfterExecuteSuccess: boolean;
+    forceNamingRecommendations: boolean;
 }
 
 export type TStashValue = Neo4jNode | Neo4jRelationship;

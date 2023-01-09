@@ -85,6 +85,9 @@ footer
     width: 0
     height: 0
 
+    &:focus + .slider
+      box-shadow: 0 0 6px 0 rgba(0, 0, 0, 25%)
+
     &:checked + .slider
       background-color: #2196F3
 
@@ -225,6 +228,7 @@ footer
 .textarea
   padding-bottom: $control-padding-vertical
   padding-top: $control-padding-vertical
+
   &:not([rows])
     max-height: inherit
     min-height: inherit
@@ -232,11 +236,14 @@ footer
 .control
   &.has-icons-left .textarea
     padding-left: $input-height
+
     &:focus
       & ~ .icon
         color: $input-icon-active-color
+
   &.has-icons-right .textarea
     padding-right: $input-height
+
     &:focus
       & ~ .icon
         color: $input-icon-active-color
@@ -260,3 +267,9 @@ footer
     .#{$shortcut}#{$spacing-vertical}-last-none:last-child
       #{$property}-top: 0 !important
       #{$property}-bottom: 0 !important
+
+.sticky
+  position: -webkit-sticky
+  position: sticky
+  top: 0
+  z-index: 10

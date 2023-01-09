@@ -223,6 +223,16 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
         });
     };
 
+    handleTypeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+        let value: string = e.currentTarget.value;
+
+        if (this.props.settings.forceNamingRecommendations) {
+            value = value.replace(/^[^a-zA-Z]*/, "").replace(/[a-z]/, x => x.toUpperCase());
+        }
+
+        this.setState({ typeModalInput: value });
+    };
+
     handleTypeModalClose = () => {
         this.setState({
             typeModal: false,
@@ -285,15 +295,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                             <label className="label">Or specify new one</label>
                             <div className="field is-grouped">
                                 <div className="control is-expanded">
-                                    <input
-                                        autoFocus
-                                        pattern="^[A-Za-z][A-Za-z_0-9]*$"
-                                        required
-                                        className="input"
-                                        type="text"
-                                        value={this.state.typeModalInput}
-                                        onChange={e => this.setState({ typeModalInput: e.currentTarget.value })}
-                                    />
+                                    <input autoFocus pattern="^[A-Za-z][A-Za-z_0-9]*$" required className="input" type="text" value={this.state.typeModalInput} onChange={this.handleTypeInput} />
                                 </div>
                                 <div className="control">
                                     <Button icon="fa-solid fa-check" type="submit" />
@@ -315,7 +317,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                                 </div>
                             </div>
                             <div className="column is-half-desktop">
-                                {this.props.settings.showElementId && db.hasElementId && (
+                                {db.hasElementId && (
                                     <div className="field">
                                         <label className="label">elementId</label>
                                         <div className="control">

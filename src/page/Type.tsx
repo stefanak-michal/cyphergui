@@ -209,16 +209,16 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                         <thead>
                             <tr>
                                 <th rowSpan={2}></th>
-                                <th colSpan={this.props.settings.showElementId && db.hasElementId ? 2 : 1}>Relationship</th>
-                                <th colSpan={this.props.settings.showElementId && db.hasElementId ? 2 : 1}>Start node</th>
-                                <th colSpan={this.props.settings.showElementId && db.hasElementId ? 2 : 1}>End node</th>
+                                <th colSpan={this.props.settings.tableViewShowElementId && db.hasElementId ? 2 : 1}>Relationship</th>
+                                <th colSpan={this.props.settings.tableViewShowElementId && db.hasElementId ? 2 : 1}>Start node</th>
+                                <th colSpan={this.props.settings.tableViewShowElementId && db.hasElementId ? 2 : 1}>End node</th>
                                 {keys.length > 0 ? <th colSpan={keys.length}>properties</th> : ""}
                             </tr>
                             <tr>
                                 <th rowSpan={2} className="nowrap is-clickable" onClick={() => this.handleSetSort("id(r)")}>
                                     id <TableSortIcon sort="id(r)" current={this.state.sort} />
                                 </th>
-                                {this.props.settings.showElementId && db.hasElementId && (
+                                {this.props.settings.tableViewShowElementId && db.hasElementId && (
                                     <th rowSpan={2} className="nowrap is-clickable" onClick={() => this.handleSetSort("elementId(r)")}>
                                         elementId <TableSortIcon sort="elementId(r)" current={this.state.sort} />
                                     </th>
@@ -226,7 +226,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                 <th className="nowrap is-clickable" onClick={() => this.handleSetSort("id(a)")}>
                                     id <TableSortIcon sort={"id(a)"} current={this.state.sort} />
                                 </th>
-                                {this.props.settings.showElementId && db.hasElementId && (
+                                {this.props.settings.tableViewShowElementId && db.hasElementId && (
                                     <th className="nowrap is-clickable" onClick={() => this.handleSetSort("elementId(a)")}>
                                         elementId <TableSortIcon sort={"elementId(a)"} current={this.state.sort} />
                                     </th>
@@ -234,7 +234,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                 <th className="nowrap is-clickable" onClick={() => this.handleSetSort("id(b)")}>
                                     id <TableSortIcon sort={"id(b)"} current={this.state.sort} />
                                 </th>
-                                {this.props.settings.showElementId && db.hasElementId && (
+                                {this.props.settings.tableViewShowElementId && db.hasElementId && (
                                     <th className="nowrap is-clickable" onClick={() => this.handleSetSort("elementId(b)")}>
                                         elementId <TableSortIcon sort={"elementId(b)"} current={this.state.sort} />
                                     </th>
@@ -272,7 +272,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                             text={"#" + db.neo4j.integer.toString(row.identity)}
                                         />
                                     </td>
-                                    {this.props.settings.showElementId && db.hasElementId && <td className="nowrap is-size-7">{row.elementId}</td>}
+                                    {this.props.settings.tableViewShowElementId && db.hasElementId && <td className="nowrap">{row.elementId}</td>}
                                     <td>
                                         <Button
                                             onClick={() =>
@@ -285,7 +285,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                             text={"#" + db.neo4j.integer.toString(row.start)}
                                         />
                                     </td>
-                                    {this.props.settings.showElementId && db.hasElementId && <td className="nowrap is-size-7">{row.startNodeElementId}</td>}
+                                    {this.props.settings.tableViewShowElementId && db.hasElementId && <td className="nowrap">{row.startNodeElementId}</td>}
                                     <td>
                                         <Button
                                             onClick={() =>
@@ -298,7 +298,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                             text={"#" + db.neo4j.integer.toString(row.end)}
                                         />
                                     </td>
-                                    {this.props.settings.showElementId && db.hasElementId && <td className="nowrap is-size-7">{row.endNodeElementId}</td>}
+                                    {this.props.settings.tableViewShowElementId && db.hasElementId && <td className="nowrap">{row.endNodeElementId}</td>}
                                     {keys.map(key => (
                                         <td key={"td-" + key}>{key in row.properties && this.printProperty(row.properties[key])}</td>
                                     ))}

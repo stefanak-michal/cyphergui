@@ -8,12 +8,12 @@ import Label from "./page/Label";
 import Type from "./page/Type";
 import Relationship from "./page/Relationship";
 import { EPage } from "./enums";
-import Modal from "./page/block/Modal";
-import { Button, Checkbox } from "./form";
+import { Button } from "./form";
 import { ISettings, IStashEntry, ITabManager, TStashValue } from "./interfaces";
 import db from "./db";
 import { Integer } from "neo4j-driver";
 import Stash from "./layout/Stash";
+import Settings from "./layout/Settings";
 
 interface ILoggedState {
     activeTab: string | null;
@@ -35,10 +35,13 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         contents: [],
         toasts: [],
         settingsModal: false,
-        settings: {
-            showElementId: true,
-            closeEditAfterExecuteSuccess: true,
-        },
+        settings: localStorage.getItem("settings")
+            ? JSON.parse(localStorage.getItem("settings"))
+            : {
+                  tableViewShowElementId: true,
+                  closeEditAfterExecuteSuccess: true,
+                  forceNamingRecommendations: true,
+              },
         stashed: [],
     };
 
@@ -192,13 +195,15 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                     handleAddQueryTab={() => this.tabManager.add({ prefix: "Query" }, "fa-solid fa-terminal", EPage.Query)}
                     handleOpenSettings={() => this.setState({ settingsModal: true })}
                 />
-                <section className="tabs is-boxed">
+
+                <section className="tabs is-boxed sticky has-background-white">
                     <ul>
                         {this.state.tabs.map(tab => (
                             <Tab key={"tab-" + tab.id} active={tab.id === this.state.activeTab} handleClick={this.tabManager.setActive} handleRemove={this.tabManager.close} {...tab} />
                         ))}
                     </ul>
                 </section>
+
                 <section className={"container " + (this.state.activeTab === "Start" ? "" : "is-fluid")}>
                     {this.state.contents.map(content => {
                         const MyComponent: typeof React.Component = this.components[content.page];
@@ -217,6 +222,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                         );
                     })}
                 </section>
+
                 <section className="notifications">
                     {this.state.toasts.map(toast => (
                         <div key={toast.key} className={"notification fadeOut " + toast.color} style={{ animationDelay: toast.delay - 1 + "s" }}>
@@ -227,39 +233,20 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                 </section>
 
                 {this.state.settingsModal && (
-                    <Modal title="Settings" handleClose={() => this.setState({ settingsModal: false })}>
-                        <div className="mb-3">
-                            <Checkbox
-                                name="showElementId"
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                    const checked = e.currentTarget.checked;
-                                    this.setState(state => {
-                                        return { settings: { ...state.settings, showElementId: checked } };
-                                    });
-                                }}
-                                label="Show elementId"
-                                checked={this.state.settings.showElementId}
-                                color="is-dark"
-                            />
-                        </div>
-                        <div className="mb-3">
-                            <Checkbox
-                                name="closeEditAfterExecuteSuccess"
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                    const checked = e.currentTarget.checked;
-                                    this.setState(state => {
-                                        return { settings: { ...state.settings, closeEditAfterExecuteSuccess: checked } };
-                                    });
-                                }}
-                                label="Close create/edit tab after successful execute"
-                                checked={this.state.settings.closeEditAfterExecuteSuccess}
-                                color="is-dark"
-                            />
-                        </div>
-                        <div className="buttons is-justify-content-flex-end">
-                            <Button text="Close" icon="fa-solid fa-xmark" onClick={() => this.setState({ settingsModal: false })} color="is-secondary" />
-                        </div>
-                    </Modal>
+                    <Settings
+                        settings={this.state.settings}
+                        handleChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            const name = e.currentTarget.name;
+                            const checked = e.currentTarget.checked;
+                            this.setState(state => {
+                                return { settings: { ...state.settings, [name]: checked } };
+                            });
+                        }}
+                        handleClose={() => {
+                            localStorage.setItem("settings", JSON.stringify(this.state.settings));
+                            this.setState({ settingsModal: false });
+                        }}
+                    />
                 )}
 
                 <Stash stashed={this.state.stashed} settings={this.state.settings} tabManager={this.tabManager} stashManager={this.stashManager} />

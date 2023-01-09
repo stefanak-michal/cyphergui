@@ -217,7 +217,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                         <thead>
                             <tr>
                                 <th rowSpan={2}></th>
-                                <th colSpan={this.props.settings.showElementId && db.hasElementId ? 2 : 1}>Node</th>
+                                <th colSpan={this.props.settings.tableViewShowElementId && db.hasElementId ? 2 : 1}>Node</th>
                                 {additionalLabels && <th rowSpan={2}>additional labels</th>}
                                 {keys.length > 0 ? <th colSpan={keys.length}>properties</th> : ""}
                             </tr>
@@ -225,7 +225,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                                 <th className="nowrap is-clickable" onClick={() => this.handleSetSort("id(n)")}>
                                     id <TableSortIcon sort="id(n)" current={this.state.sort} />
                                 </th>
-                                {this.props.settings.showElementId && db.hasElementId && (
+                                {this.props.settings.tableViewShowElementId && db.hasElementId && (
                                     <th className="nowrap is-clickable" onClick={() => this.handleSetSort("elementId(n)")}>
                                         elementId <TableSortIcon sort="elementId(n)" current={this.state.sort} />
                                     </th>
@@ -264,7 +264,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                                             text={"#" + db.neo4j.integer.toString(row.identity)}
                                         />
                                     </td>
-                                    {this.props.settings.showElementId && db.hasElementId && <td className="nowrap is-size-7">{row.elementId}</td>}
+                                    {this.props.settings.tableViewShowElementId && db.hasElementId && <td className="nowrap">{row.elementId}</td>}
                                     {additionalLabels && (
                                         <td>
                                             <span className="buttons">

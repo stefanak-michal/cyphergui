@@ -89,7 +89,7 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/t
 - https://github.com/memgraph/orb
 - https://javascript.info/promise-api
 - https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/forms_and_events/
-- 
+
 # todo
 
 - everything

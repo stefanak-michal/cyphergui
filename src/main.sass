@@ -218,3 +218,45 @@ footer
   &.is-hoverable:hover
     background-color: $panel-block-hover-background-color
     cursor: pointer
+
+.is-pre-wrap
+  white-space: pre-wrap
+
+.textarea
+  padding-bottom: $control-padding-vertical
+  padding-top: $control-padding-vertical
+  &:not([rows])
+    max-height: inherit
+    min-height: inherit
+
+.control
+  &.has-icons-left .textarea
+    padding-left: $input-height
+    &:focus
+      & ~ .icon
+        color: $input-icon-active-color
+  &.has-icons-right .textarea
+    padding-right: $input-height
+    &:focus
+      & ~ .icon
+        color: $input-icon-active-color
+
+// (m|p)(x|y|t|b|l|r)-last-none makes last element in group without that margin/padding
+@each $property, $shortcut in $spacing-shortcuts
+  // All directions
+  .#{$shortcut}-last-none:last-child
+    #{$property}: 0 !important
+  // Cardinal directions
+  @each $direction, $suffix in $spacing-directions
+    .#{$shortcut}#{$suffix}-last-none:last-child
+      #{$property}-#{$direction}: 0 !important
+  // Horizontal axis
+  @if $spacing-horizontal != null
+    .#{$shortcut}#{$spacing-horizontal}-last-none:last-child
+      #{$property}-left: 0 !important
+      #{$property}-right: 0 !important
+  // Vertical axis
+  @if $spacing-vertical != null
+    .#{$shortcut}#{$spacing-vertical}-last-none:last-child
+      #{$property}-top: 0 !important
+      #{$property}-bottom: 0 !important

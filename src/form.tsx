@@ -35,6 +35,38 @@ export class Checkbox extends React.Component<{ name: string; label: string; col
     }
 }
 
+export class Textarea extends React.Component<
+    { name: string; value: string; onChange?: (e: React.ChangeEvent) => void; autoresize?: boolean; focus?: boolean; placeholder?: string },
+    { height: number }
+> {
+    ref = React.createRef<HTMLTextAreaElement>();
+    state = {
+        height: 0,
+    };
+
+    componentDidUpdate() {
+        if (this.props.autoresize !== false) {
+            this.ref.current.style.height = "0px";
+            const computed = window.getComputedStyle(this.ref.current);
+            this.ref.current.style.height = parseInt(computed.getPropertyValue("border-top-width")) + this.ref.current.scrollHeight + parseInt(computed.getPropertyValue("border-bottom-width")) + "px";
+        }
+    }
+
+    render() {
+        return (
+            <textarea
+                name={this.props.name}
+                className="textarea"
+                value={this.props.value}
+                onChange={this.props.onChange}
+                ref={this.ref}
+                autoFocus={this.props.focus || false}
+                placeholder={this.props.placeholder}
+            />
+        );
+    }
+}
+
 export class Button extends React.Component<{ text?: string; icon?: string; color?: string; onClick?: (e?: any) => void; type?: "submit" | "reset" | "button"; title?: string }> {
     render() {
         return (
@@ -119,15 +151,7 @@ export class Property extends React.Component<{
                     <div className="field is-grouped">
                         {nameInput}
                         <div className="control is-expanded">
-                            <textarea
-                                name={this.props.name}
-                                className="textarea"
-                                rows={2}
-                                value={this.props.value}
-                                onChange={this.props.onValueChange}
-                                autoFocus={this.props.focus === this.props.name}
-                                placeholder="Value"
-                            />
+                            <Textarea name={this.props.name} value={this.props.value} onChange={this.props.onValueChange} focus={this.props.focus === this.props.name} placeholder="Value" />
                         </div>
                         {propertyTypeSelect}
                         {deleteButton}

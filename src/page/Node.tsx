@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Button, Property } from "../form";
 import Modal, { DeleteModal } from "./block/Modal";
-import { Integer, Node as Neo4jNode } from "neo4j-driver";
+import { Integer, Node as Neo4jNode, Relationship as Neo4jRelationship } from "neo4j-driver";
 import { EPage, EPropertyType } from "../enums";
 import { IPageProps } from "../interfaces";
 import db from "../db";
@@ -38,6 +38,9 @@ class Node extends React.Component<INodeProps, INodeState> {
         delete: false,
     };
 
+    rels: Neo4jRelationship[] = [];
+    nodes: Neo4jNode[] = [];
+
     requestData = () => {
         if (!this.props.id) return;
         db.getDriver()
@@ -45,7 +48,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                 database: this.props.database,
                 defaultAccessMode: db.neo4j.session.READ,
             })
-            .run("MATCH (n) WHERE " + db.fnId() + " = $id RETURN n", {
+            .run("MATCH (n) WHERE " + db.fnId() + " = $id OPTIONAL MATCH (n)-[r]-(a) RETURN n, collect(DISTINCT r) AS r, collect(DISTINCT a) AS a", {
                 id: this.props.id,
             })
             .then(response => {
@@ -66,6 +69,10 @@ class Node extends React.Component<INodeProps, INodeState> {
                     props.push({ name: key + t, key: key, value: node.properties[key], type: type });
                 }
                 props.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+
+                this.rels = response.records[0].get("r");
+                this.nodes = response.records[0].get("a");
+
                 this.setState({
                     node: node,
                     labels: [...node.labels],
@@ -262,18 +269,18 @@ class Node extends React.Component<INodeProps, INodeState> {
             else query += "CREATE (n)";
             query += setLabels + removeLabels;
             if (this.state.properties.length) {
-                query += " SET = {";
+                query += " SET n = {";
                 let s = [];
                 for (let p of this.state.properties) {
                     switch (p.type) {
                         case EPropertyType.String:
-                            s.push(p.key + " = '" + p.value + "'");
+                            s.push(p.key + ": '" + p.value.replaceAll("'", "\\'").replaceAll("\n", "\\n") + "'");
                             break;
                         case EPropertyType.Integer:
-                            s.push(p.key + " = " + db.neo4j.integer.toString(p.value));
+                            s.push(p.key + ": " + db.neo4j.integer.toString(p.value));
                             break;
                         default:
-                            s.push(p.key + " = " + p.value.toString());
+                            s.push(p.key + ": " + p.value.toString());
                     }
                 }
                 query += s.join(", ") + "}";
@@ -418,19 +425,75 @@ class Node extends React.Component<INodeProps, INodeState> {
                         <Button icon="fa-solid fa-plus" text="Add property" onClick={this.handlePropertyAdd} />
                     </fieldset>
 
-                    <fieldset className="box">
-                        <legend className="tag is-link is-light">
-                            <i className="fa-solid fa-circle-nodes mr-2"></i>Relationships
-                        </legend>
-                        todo
-                    </fieldset>
+                    {this.rels.length > 0 && (
+                        <fieldset className="box">
+                            <legend className="tag is-link is-light">
+                                <i className="fa-solid fa-circle-nodes mr-2"></i>Relationships
+                            </legend>
+                            {this.rels.map(r => {
+                                const dir = (db.hasElementId ? r.startNodeElementId : r.start) === this.props.id ? 1 : 2;
+                                const node = this.nodes.find(
+                                    n => (db.hasElementId ? n.elementId : n.identity) === (db.hasElementId ? (dir === 2 ? r.startNodeElementId : r.endNodeElementId) : dir === 2 ? r.start : r.end)
+                                );
+
+                                return (
+                                    <div className="is-flex is-align-items-center is-justify-content-flex-start mb-3 mb-last-none">
+                                        <span className="is-family-code">
+                                            {dir === 1 && "<"}
+                                            -[
+                                        </span>
+                                        <Button
+                                            color="tag is-info is-rounded px-3"
+                                            onClick={() => this.props.tabManager.add(r.type, "fa-solid fa-arrow-right-long", EPage.Type, { type: r.type, database: db.getActiveDb() })}
+                                            key={r.type}
+                                            text={r.type}
+                                        />
+                                        <Button
+                                            onClick={() =>
+                                                this.props.tabManager.add(this.props.tabManager.generateName("Rel", r.identity), "fa-solid fa-pen-to-square", EPage.Rel, {
+                                                    id: db.hasElementId ? r.elementId : r.identity,
+                                                    database: this.props.database,
+                                                })
+                                            }
+                                            color="is-small ml-1"
+                                            icon="fa-solid fa-pen-clip"
+                                            text={"#" + db.neo4j.integer.toString(r.identity)}
+                                        />
+                                        ]-
+                                        <span className="is-family-code">{dir === 2 && ">"}(</span>
+                                        {node.labels.map(label => (
+                                            <Button
+                                                color="tag is-link is-rounded px-3"
+                                                onClick={() => this.props.tabManager.add(label, "fa-regular fa-circle", EPage.Label, { label: label, database: db.getActiveDb() })}
+                                                key={label}
+                                                text={label}
+                                            />
+                                        ))}
+                                        <Button
+                                            onClick={() =>
+                                                this.props.tabManager.add(this.props.tabManager.generateName("Node", node.identity), "fa-solid fa-pen-to-square", EPage.Node, {
+                                                    id: db.hasElementId ? node.elementId : node.identity,
+                                                    database: this.props.database,
+                                                })
+                                            }
+                                            color="is-small ml-1"
+                                            icon="fa-solid fa-pen-clip"
+                                            text={"#" + db.neo4j.integer.toString(node.identity)}
+                                        />
+                                        <span className="is-family-code">)</span>
+                                        <span className="ml-auto">end line buttons - stash (path)?</span>
+                                    </div>
+                                );
+                            })}
+                        </fieldset>
+                    )}
 
                     <div className="mb-3">
                         <span className="icon-text is-flex-wrap-nowrap">
                             <span className="icon">
                                 <i className="fa-solid fa-terminal" aria-hidden="true"></i>
                             </span>
-                            <span className="is-family-code">{this.generateQuery(true).query}</span>
+                            <span className="is-family-code is-pre-wrap">{this.generateQuery(true).query}</span>
                         </span>
                     </div>
 

@@ -1,6 +1,6 @@
 import { EPage } from "./enums";
 import * as React from "react";
-import { Node as Neo4jNode, Relationship as Neo4jRelationship } from "neo4j-driver";
+import { t_StashValue, t_ToastFn } from "./types";
 
 export interface ITabManager {
     add: (title: string | { prefix: string; i?: any }, icon: string, page: EPage, params?: object, id?: string, active?: boolean) => void;
@@ -15,19 +15,17 @@ export interface ISettings {
     forceNamingRecommendations: boolean;
 }
 
-export type TStashValue = Neo4jNode | Neo4jRelationship;
-
 export interface IStashManager {
-    add: (value: TStashValue, database: string) => void;
+    add: (value: t_StashValue, database: string) => void;
     remove: (id: number) => void;
-    indexOf: (value: TStashValue) => number;
+    indexOf: (value: t_StashValue) => number;
     empty: () => void;
-    button: (value: TStashValue, database: string, color?: string) => JSX.Element;
+    button: (value: t_StashValue, database: string, color?: string) => JSX.Element;
 }
 
 export interface IStashEntry {
     id: number;
-    value: TStashValue;
+    value: t_StashValue;
     database: string;
 }
 
@@ -36,7 +34,7 @@ export interface IPageProps {
     tabName: string;
     tabId: string;
     tabManager: ITabManager;
-    toast: (message: string, color?: string, delay?: number) => void;
+    toast: t_ToastFn;
     stashManager: IStashManager;
     settings: ISettings;
 }

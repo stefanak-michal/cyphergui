@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Button, Checkbox, Input } from "./form";
+import { Button, Checkbox, Input } from "./components/form";
 import db from "./db";
 
 interface ILoginData {

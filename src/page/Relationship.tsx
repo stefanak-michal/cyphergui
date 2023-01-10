@@ -1,10 +1,11 @@
 import * as React from "react";
-import { IPageProps } from "../interfaces";
+import { IPageProps } from "../utils/interfaces";
 import { Integer, Node as Neo4jNode, Relationship as Neo4jRelationship } from "neo4j-driver";
-import { EPage, EPropertyType } from "../enums";
-import Modal, { DeleteModal } from "./block/Modal";
-import { Button, Property } from "../form";
+import { EPage, EPropertyType } from "../utils/enums";
+import { Button, Property } from "../components/form";
 import db from "../db";
+import { ClipboardContext } from "../utils/contexts";
+import Modal, { DeleteModal } from "../components/Modal";
 
 interface IRelationshipProps extends IPageProps {
     database: string;
@@ -126,7 +127,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
         });
     };
 
-    handlePropertyValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handlePropertyValueChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const target = e.currentTarget;
         this.setState(state => {
             let props = [...state.properties];
@@ -135,13 +136,13 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
             if (prop) {
                 switch (prop.type) {
                     case EPropertyType.Boolean:
-                        value = target.checked;
+                        value = (target as HTMLInputElement).checked;
                         break;
                     case EPropertyType.Integer:
-                        value = db.neo4j.int(target.valueAsNumber);
+                        value = db.neo4j.int((target as HTMLInputElement).valueAsNumber);
                         break;
                     case EPropertyType.Float:
-                        value = target.valueAsNumber;
+                        value = (target as HTMLInputElement).valueAsNumber;
                         break;
                 }
                 prop.value = value;
@@ -310,26 +311,30 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
 
                 <form onSubmit={this.handleSubmit}>
                     {this.props.id && (
-                        <div className="columns">
-                            <div className="column is-half-desktop">
-                                <div className="field">
-                                    <label className="label">identity</label>
-                                    <div className="control">
-                                        <input className="input" disabled type="text" value={db.neo4j.integer.toString(this.state.rel.identity)} />
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="column is-half-desktop">
-                                {db.hasElementId && (
-                                    <div className="field">
-                                        <label className="label">elementId</label>
-                                        <div className="control">
-                                            <input className="input" disabled type="text" value={this.state.rel.elementId} />
+                        <ClipboardContext.Consumer>
+                            {copy => (
+                                <div className="columns">
+                                    <div className={"column " + (db.hasElementId ? "is-half-desktop" : "")}>
+                                        <div className="field">
+                                            <label className="label">identity</label>
+                                            <div className="control" onClick={copy}>
+                                                <input className="input is-copyable" disabled type="text" value={db.neo4j.integer.toString(this.state.rel.identity)} />
+                                            </div>
                                         </div>
                                     </div>
-                                )}
-                            </div>
-                        </div>
+                                    {db.hasElementId && (
+                                        <div className="column is-half-desktop">
+                                            <div className="field">
+                                                <label className="label">elementId</label>
+                                                <div className="control" onClick={copy}>
+                                                    <input className="input is-copyable" disabled type="text" value={this.state.rel.elementId} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </ClipboardContext.Consumer>
                     )}
 
                     <fieldset className="box">
@@ -389,7 +394,13 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                             <span className="icon">
                                 <i className="fa-solid fa-terminal" aria-hidden="true"></i>
                             </span>
-                            <span className="is-family-code">todo query</span>
+                            <ClipboardContext.Consumer>
+                                {copy => (
+                                    <span className="is-family-code is-pre-wrap is-copyable" onClick={copy}>
+                                        todo query
+                                    </span>
+                                )}
+                            </ClipboardContext.Consumer>
                         </span>
                     </div>
 

@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Button } from "../form";
-import { IPageProps } from "../interfaces";
+import { Button } from "../components/form";
+import { IPageProps } from "../utils/interfaces";
 import db from "../db";
 
 interface IQueryProps extends IPageProps {}

@@ -1,8 +1,8 @@
 import * as React from "react";
 import db from "../db";
-import { Button, Checkbox } from "../form";
-import Modal from "../page/block/Modal";
-import { ISettings } from "../interfaces";
+import { Button, Checkbox } from "../components/form";
+import Modal from "../components/Modal";
+import { ISettings } from "../utils/interfaces";
 
 class Settings extends React.Component<{ settings: ISettings; handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void; handleClose: () => void }> {
     render() {

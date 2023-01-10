@@ -1,7 +1,8 @@
 import * as React from "react";
-import db from "./db";
-import { EPage, EPropertyType } from "./enums";
-import { ITabManager } from "./interfaces";
+import db from "../db";
+import { EPage, EPropertyType } from "../utils/enums";
+import { ITabManager } from "../utils/interfaces";
+import { ClipboardContext } from "../utils/contexts";
 
 export class Input extends React.Component<{ label: string; name: string; type?: string; placeholder?: string; value?: any; onChange: (e: React.ChangeEvent) => void; focus?: boolean }> {
     render() {
@@ -79,10 +80,10 @@ export class Textarea extends React.Component<
 }
 
 //maybe this should be somewhere else ...it is not really form ..hmm html.tsx?
-export class Button extends React.Component<{ text?: string; icon?: string; color?: string; onClick?: (e?: any) => void; type?: "submit" | "reset" | "button"; title?: string }> {
+export class Button extends React.Component<{ text?: string; icon?: string; color?: string; onClick?: (e?: any) => void; type?: "submit" | "reset" | "button"; title?: string; value?: string }> {
     render() {
         return (
-            <button className={"button " + (this.props.color || "")} onClick={this.props.onClick} type={this.props.type || "button"} title={this.props.title || ""}>
+            <button className={"button " + (this.props.color || "")} onClick={this.props.onClick} type={this.props.type || "button"} title={this.props.title || ""} value={this.props.value}>
                 {this.props.icon && (
                     <span className="icon">
                         <i className={this.props.icon} />
@@ -186,8 +187,15 @@ export class Property extends React.Component<{
                 return (
                     <div className="field is-grouped">
                         {nameInput}
-                        <div className="control is-expanded">
+                        <div className="control is-expanded has-icons-right">
                             <Textarea name={this.props.name} value={this.props.value} onChange={this.props.onValueChange} focus={this.props.focus === this.props.name} placeholder="Value" />
+                            <ClipboardContext.Consumer>
+                                {copy => (
+                                    <span className="icon is-right is-clickable" onClick={copy} data-copy={this.props.value}>
+                                        <i className="fa-regular fa-copy"></i>
+                                    </span>
+                                )}
+                            </ClipboardContext.Consumer>
                         </div>
                         {propertyTypeSelect}
                         {deleteButton}
@@ -197,7 +205,7 @@ export class Property extends React.Component<{
                 return (
                     <div className="field is-grouped">
                         {nameInput}
-                        <div className="control is-expanded">
+                        <div className="control is-expanded has-icons-right">
                             <input
                                 name={this.props.name}
                                 className="input"
@@ -208,6 +216,13 @@ export class Property extends React.Component<{
                                 onChange={this.props.onValueChange}
                                 placeholder="Value"
                             />
+                            <ClipboardContext.Consumer>
+                                {copy => (
+                                    <span className="icon is-right is-clickable" onClick={copy} data-copy={db.neo4j.integer.toString(this.props.value)}>
+                                        <i className="fa-regular fa-copy"></i>
+                                    </span>
+                                )}
+                            </ClipboardContext.Consumer>
                         </div>
                         {propertyTypeSelect}
                         {deleteButton}
@@ -217,7 +232,7 @@ export class Property extends React.Component<{
                 return (
                     <div className="field is-grouped">
                         {nameInput}
-                        <div className="control is-expanded">
+                        <div className="control is-expanded has-icons-right">
                             <input
                                 name={this.props.name}
                                 className="input"
@@ -227,6 +242,13 @@ export class Property extends React.Component<{
                                 autoFocus={this.props.focus === this.props.name}
                                 placeholder="Value"
                             />
+                            <ClipboardContext.Consumer>
+                                {copy => (
+                                    <span className="icon is-right is-clickable" onClick={copy} data-copy={this.props.value}>
+                                        <i className="fa-regular fa-copy"></i>
+                                    </span>
+                                )}
+                            </ClipboardContext.Consumer>
                         </div>
                         {propertyTypeSelect}
                         {deleteButton}

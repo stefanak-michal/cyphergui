@@ -7,13 +7,15 @@ import Node from "./page/Node";
 import Label from "./page/Label";
 import Type from "./page/Type";
 import Relationship from "./page/Relationship";
-import { EPage } from "./enums";
-import { Button } from "./form";
-import { ISettings, IStashEntry, ITabManager, TStashValue } from "./interfaces";
+import { EPage } from "./utils/enums";
+import { Button } from "./components/form";
+import { ISettings, IStashEntry, ITabManager } from "./utils/interfaces";
+import { t_StashValue, t_ToastFn } from "./utils/types";
 import db from "./db";
 import { Integer } from "neo4j-driver";
 import Stash from "./layout/Stash";
 import Settings from "./layout/Settings";
+import { ClipboardContext, ToastContext } from "./utils/contexts";
 
 interface ILoggedState {
     activeTab: string | null;
@@ -142,7 +144,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
 
     stashManager = {
         //maybe add queries?
-        add: (value: TStashValue, database: string) => {
+        add: (value: t_StashValue, database: string) => {
             this.setState(state => {
                 return {
                     stashed: this.stashManager.indexOf(value, state.stashed) === -1 ? state.stashed.concat({ id: new Date().getTime(), value: value, database: database }) : state.stashed,
@@ -156,7 +158,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                 };
             });
         },
-        indexOf: (value: TStashValue, stashed?: IStashEntry[]): number => {
+        indexOf: (value: t_StashValue, stashed?: IStashEntry[]): number => {
             return (stashed || this.state.stashed).findIndex(s => {
                 return (db.hasElementId && value.elementId === s.value.elementId) || value.identity === s.value.identity;
             });
@@ -164,7 +166,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         empty: () => {
             if (this.state.stashed.length > 0) this.setState({ stashed: [] });
         },
-        button: (value: TStashValue, database: string, color?: string): JSX.Element => {
+        button: (value: t_StashValue, database: string, color?: string): JSX.Element => {
             const i = this.stashManager.indexOf(value);
             return (
                 <Button
@@ -177,7 +179,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         },
     };
 
-    toast = (message: string, color = "is-success", delay = 3) => {
+    toast: t_ToastFn = (message: string, color = "is-success", delay = 3) => {
         const i: number = new Date().getTime();
         this.setState({
             toasts: [
@@ -201,6 +203,25 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         });
     };
 
+    handleCopyToClipboard = (e: React.UIEvent) => {
+        const target = e.currentTarget;
+        let text = "";
+        if (target.hasAttribute("data-copy")) {
+            text = target.getAttribute("data-copy");
+        } else if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLButtonElement) {
+            if (target.value.length > 0) text = target.value;
+        } else if (target instanceof HTMLElement) {
+            if ((target.firstChild instanceof HTMLInputElement && target.firstChild.disabled) || (target.firstChild instanceof HTMLTextAreaElement && target.firstChild.disabled)) {
+                if (target.firstChild.value.length > 0) text = target.firstChild.value;
+            } else if (target.innerText.length > 0) text = target.innerText;
+        }
+
+        if (text.length > 0) {
+            navigator.clipboard.writeText(text);
+            this.toast("Copied to clipboard", "is-success is-light");
+        }
+    };
+
     render() {
         if (this.state.tabs.length === 0 || this.state.activeTab === null) return;
 
@@ -220,28 +241,32 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                     </ul>
                 </section>
 
-                <section className={"container " + (this.state.activeTab === "Start" ? "" : "is-fluid")}>
-                    {this.state.contents.map(content => {
-                        const MyComponent: typeof React.Component = this.components[content.page];
-                        return (
-                            <MyComponent
-                                key={"content-" + content.id}
-                                active={content.id === this.state.activeTab}
-                                tabName={this.state.tabs.filter(t => t.id === content.id)[0].title}
-                                tabId={content.id}
-                                tabManager={this.tabManager}
-                                toast={this.toast}
-                                stashManager={this.stashManager}
-                                settings={this.state.settings}
-                                {...content.props}
-                            />
-                        );
-                    })}
-                </section>
+                <ClipboardContext.Provider value={this.handleCopyToClipboard}>
+                    <ToastContext.Provider value={this.toast}>
+                        <section className={"container " + (this.state.activeTab === "Start" ? "" : "is-fluid")}>
+                            {this.state.contents.map(content => {
+                                const MyComponent: typeof React.Component = this.components[content.page];
+                                return (
+                                    <MyComponent
+                                        key={"content-" + content.id}
+                                        active={content.id === this.state.activeTab}
+                                        tabName={this.state.tabs.filter(t => t.id === content.id)[0].title}
+                                        tabId={content.id}
+                                        tabManager={this.tabManager}
+                                        toast={this.toast}
+                                        stashManager={this.stashManager}
+                                        settings={this.state.settings}
+                                        {...content.props}
+                                    />
+                                );
+                            })}
+                        </section>
+                    </ToastContext.Provider>
+                </ClipboardContext.Provider>
 
                 <section className="notifications">
                     {this.state.toasts.map(toast => (
-                        <div key={toast.key} className={"notification fadeOut " + toast.color} style={{ animationDelay: toast.delay - 1 + "s" }}>
+                        <div key={toast.key} className={"notification box fadeOut " + toast.color} style={{ animationDelay: toast.delay - 1 + "s" }}>
                             <button className="delete" onClick={() => this.discardToast(toast.key)}></button>
                             {toast.message}
                         </div>

@@ -1,7 +1,7 @@
 import * as React from "react";
-import { Button, LabelButton, TypeButton } from "../form";
-import { EPage } from "../enums";
-import { IPageProps } from "../interfaces";
+import { Button, LabelButton, TypeButton } from "../components/form";
+import { EPage } from "../utils/enums";
+import { IPageProps } from "../utils/interfaces";
 import db from "../db";
 
 class Start extends React.Component<IPageProps> {

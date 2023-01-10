@@ -1,12 +1,12 @@
 import * as React from "react";
-import Pagination from "./block/Pagination";
-import { DeleteModal } from "./block/Modal";
-import TableSortIcon from "./block/TableSortIcon";
-import { Button, Checkbox, LabelButton } from "../form";
+import Pagination from "../components/Pagination";
+import TableSortIcon from "../components/TableSortIcon";
+import { Button, Checkbox, LabelButton } from "../components/form";
 import { Integer, Node as Neo4jNode } from "neo4j-driver";
-import { EPage } from "../enums";
-import { IPageProps } from "../interfaces";
+import { EPage } from "../utils/enums";
+import { IPageProps } from "../utils/interfaces";
 import db from "../db";
+import { DeleteModal } from "../components/Modal";
 
 interface ILabelProps extends IPageProps {
     database: string;
@@ -219,8 +219,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                     <table className="table is-bordered is-striped is-narrow is-hoverable">
                         <thead>
                             <tr>
-                                <th rowSpan={2}></th>
-                                <th colSpan={this.props.settings.tableViewShowElementId && db.hasElementId ? 2 : 1}>Node</th>
+                                <th colSpan={this.props.settings.tableViewShowElementId && db.hasElementId ? 3 : 2}>Node</th>
                                 {additionalLabels && <th rowSpan={2}>additional labels</th>}
                                 {keys.length > 0 ? <th colSpan={keys.length}>properties</th> : ""}
                             </tr>
@@ -233,6 +232,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                                         elementId <TableSortIcon sort="elementId(n)" current={this.state.sort} />
                                     </th>
                                 )}
+                                <th></th>
                                 {keys.map(key => (
                                     <th key={"th-" + key} className="nowrap is-clickable" onClick={() => this.handleSetSort("n." + key)}>
                                         {key} <TableSortIcon sort={"n." + key} current={this.state.sort} />
@@ -243,18 +243,6 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                         <tbody>
                             {this.state.rows.map(row => (
                                 <tr key={"tr-" + db.neo4j.integer.toString(row.identity)}>
-                                    <td>
-                                        <div className="is-flex-wrap-nowrap buttons">
-                                            {/*<Button icon="fa-solid fa-circle-nodes" title="Show relationships" />*/}
-                                            {this.props.stashManager.button(row, this.props.database)}
-                                            <Button
-                                                icon="fa-regular fa-trash-can"
-                                                color="is-danger is-outlined"
-                                                title="Delete"
-                                                onClick={() => this.setState({ delete: db.hasElementId ? row.elementId : row.identity })}
-                                            />
-                                        </div>
-                                    </td>
                                     <td>
                                         <Button
                                             onClick={() =>
@@ -268,6 +256,17 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                                         />
                                     </td>
                                     {this.props.settings.tableViewShowElementId && db.hasElementId && <td className="nowrap">{row.elementId}</td>}
+                                    <td>
+                                        <div className="buttons is-flex-wrap-nowrap">
+                                            {this.props.stashManager.button(row, this.props.database)}
+                                            <Button
+                                                icon="fa-regular fa-trash-can"
+                                                color="is-danger is-outlined"
+                                                title="Delete"
+                                                onClick={() => this.setState({ delete: db.hasElementId ? row.elementId : row.identity })}
+                                            />
+                                        </div>
+                                    </td>
                                     {additionalLabels && (
                                         <td>
                                             <span className="buttons">

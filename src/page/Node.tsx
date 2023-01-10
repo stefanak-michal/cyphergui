@@ -1,10 +1,11 @@
 import * as React from "react";
-import { Button, LabelButton, Property, TypeButton } from "../form";
-import Modal, { DeleteModal } from "./block/Modal";
+import { Button, LabelButton, Property, TypeButton } from "../components/form";
 import { Integer, Node as Neo4jNode, Relationship as Neo4jRelationship } from "neo4j-driver";
-import { EPage, EPropertyType } from "../enums";
-import { IPageProps } from "../interfaces";
+import { EPage, EPropertyType } from "../utils/enums";
+import { IPageProps } from "../utils/interfaces";
 import db from "../db";
+import { ClipboardContext } from "../utils/contexts";
+import Modal, { DeleteModal } from "../components/Modal";
 
 interface INodeProps extends IPageProps {
     database: string;
@@ -21,6 +22,7 @@ interface INodeState {
     labelModalInput: string;
     error: string | null;
     delete: Integer | string | false;
+    showAllRels: boolean;
 }
 
 /**
@@ -36,6 +38,7 @@ class Node extends React.Component<INodeProps, INodeState> {
         labelModalInput: "",
         error: null,
         delete: false,
+        showAllRels: false,
     };
 
     rels: Neo4jRelationship[] = [];
@@ -125,7 +128,7 @@ class Node extends React.Component<INodeProps, INodeState> {
         });
     };
 
-    handlePropertyValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handlePropertyValueChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const target = e.currentTarget;
         this.setState(state => {
             let props = [...state.properties];
@@ -134,13 +137,13 @@ class Node extends React.Component<INodeProps, INodeState> {
             if (prop) {
                 switch (prop.type) {
                     case EPropertyType.Boolean:
-                        value = target.checked;
+                        value = (target as HTMLInputElement).checked;
                         break;
                     case EPropertyType.Integer:
-                        value = db.neo4j.int(target.valueAsNumber);
+                        value = db.neo4j.int((target as HTMLInputElement).valueAsNumber);
                         break;
                     case EPropertyType.Float:
-                        value = target.valueAsNumber;
+                        value = (target as HTMLInputElement).valueAsNumber;
                         break;
                 }
                 prop.value = value;
@@ -390,26 +393,31 @@ class Node extends React.Component<INodeProps, INodeState> {
 
                 <form onSubmit={this.handleSubmit}>
                     {this.props.id && (
-                        <div className="columns">
-                            <div className="column is-half-desktop">
-                                <div className="field">
-                                    <label className="label">identity</label>
-                                    <div className="control">
-                                        <input className="input" disabled type="text" value={db.neo4j.integer.toString(this.state.node.identity)} />
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="column is-half-desktop">
-                                {db.hasElementId && (
-                                    <div className="field">
-                                        <label className="label">elementId</label>
-                                        <div className="control">
-                                            <input className="input" disabled type="text" value={this.state.node.elementId} />
+                        <ClipboardContext.Consumer>
+                            {copy => (
+                                <div className="columns">
+                                    <div className={"column " + (db.hasElementId ? "is-half-desktop" : "")}>
+                                        <div className="field">
+                                            <label className="label">identity</label>
+
+                                            <div className="control" onClick={copy}>
+                                                <input className="input is-copyable" disabled type="text" value={db.neo4j.integer.toString(this.state.node.identity)} />
+                                            </div>
                                         </div>
                                     </div>
-                                )}
-                            </div>
-                        </div>
+                                    {db.hasElementId && (
+                                        <div className="column is-half-desktop">
+                                            <div className="field">
+                                                <label className="label">elementId</label>
+                                                <div className="control" onClick={copy}>
+                                                    <input className="input is-copyable" disabled type="text" value={this.state.node.elementId} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </ClipboardContext.Consumer>
                     )}
 
                     <fieldset className="box">
@@ -458,7 +466,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                             <legend className="tag is-link is-light">
                                 <i className="fa-solid fa-circle-nodes mr-2"></i>Relationships
                             </legend>
-                            {this.rels.map(r => {
+                            {(this.state.showAllRels ? this.rels : this.rels.slice(0, 3)).map(r => {
                                 const dir =
                                     (db.hasElementId ? r.startNodeElementId : db.neo4j.integer.toString(r.start)) === (db.hasElementId ? this.props.id : db.neo4j.integer.toString(this.props.id))
                                         ? 1
@@ -469,7 +477,7 @@ class Node extends React.Component<INodeProps, INodeState> {
 
                                 return (
                                     <div key={db.neo4j.integer.toString(r.identity)} className="is-flex is-align-items-center is-justify-content-flex-start mb-3 mb-last-none">
-                                        <span className="is-family-code">
+                                        <span className="is-size-4">
                                             {dir === 2 && "<"}
                                             -[
                                         </span>
@@ -485,8 +493,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                                             icon="fa-solid fa-pen-clip"
                                             text={"#" + db.neo4j.integer.toString(r.identity)}
                                         />
-                                        ]-
-                                        <span className="is-family-code">{dir === 1 && ">"}(</span>
+                                        <span className="is-size-4">]-{dir === 1 && ">"}(</span>
                                         {node.labels.map(label => (
                                             <LabelButton key={label} label={label} database={this.props.database} tabManager={this.props.tabManager} size="mr-1" />
                                         ))}
@@ -501,11 +508,14 @@ class Node extends React.Component<INodeProps, INodeState> {
                                             icon="fa-solid fa-pen-clip"
                                             text={"#" + db.neo4j.integer.toString(node.identity)}
                                         />
-                                        <span className="is-family-code">)</span>
+                                        <span className=" is-size-4">)</span>
                                         <span className="ml-auto">end line buttons - stash (path)?</span>
                                     </div>
                                 );
                             })}
+                            {!this.state.showAllRels && (
+                                <Button icon="fa-solid fa-caret-down" text={"Show all (+" + (this.rels.length - 3) + ")"} onClick={() => this.setState({ showAllRels: true })} />
+                            )}
                         </fieldset>
                     )}
 
@@ -514,7 +524,13 @@ class Node extends React.Component<INodeProps, INodeState> {
                             <span className="icon">
                                 <i className="fa-solid fa-terminal" aria-hidden="true"></i>
                             </span>
-                            <span className="is-family-code is-pre-wrap">{this.generateQuery(true).query}</span>
+                            <ClipboardContext.Consumer>
+                                {copy => (
+                                    <span className="is-family-code is-pre-wrap is-copyable" onClick={copy}>
+                                        {this.generateQuery(true).query}
+                                    </span>
+                                )}
+                            </ClipboardContext.Consumer>
                         </span>
                     </div>
 

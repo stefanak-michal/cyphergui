@@ -1,7 +1,9 @@
 @charset "utf-8"
 
 @import url('https://fonts.googleapis.com/css?family=Inter:400,700')
-$family-sans-serif: Inter, Helvetica, Arial, serif
+$family-sans-serif: Inter, Helvetica, Arial, sans-serif
+@import url('https://fonts.googleapis.com/css?family=Oxygen+Mono:400,700')
+$family-monospace: "Oxygen Mono", monospace
 
 @import "../node_modules/bulma/bulma"
 @import "../node_modules/animate.css/animate.css"
@@ -139,6 +141,7 @@ footer
   transform: translateY(calc(100% - $panel-heading-size - nth($panel-heading-padding, 1) + 1px))
   max-width: calc(100vw - 20px)
   transition: .3s ease-in-out
+  z-index: 10
 
   &.is-active
     transform: translateY(0)
@@ -237,16 +240,25 @@ footer
   &.has-icons-left .textarea
     padding-left: $input-height
 
-    &:focus
-      & ~ .icon
+  &.has-icons-left
+    .input, .textarea
+      &:focus ~ .icon:not(.is-clickable)
         color: $input-icon-active-color
 
   &.has-icons-right .textarea
     padding-right: $input-height
 
-    &:focus
-      & ~ .icon
+  &.has-icons-right
+    .input, .textarea
+      &:focus ~ .icon:not(.is-clickable)
         color: $input-icon-active-color
+
+  &.has-icons-left, &.has-icons-right
+    .icon.is-clickable
+      color: $input-icon-color !important
+
+      &:hover
+        color: $input-icon-active-color !important
 
 // (m|p)(x|y|t|b|l|r)-last-none makes last element in group without that margin/padding
 @each $property, $shortcut in $spacing-shortcuts
@@ -273,3 +285,6 @@ footer
   position: sticky
   top: 0
   z-index: 10
+
+.is-copyable
+  cursor: copy !important

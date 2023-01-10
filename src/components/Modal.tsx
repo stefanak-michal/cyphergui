@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Button, Checkbox } from "../../form";
 import { Integer } from "neo4j-driver";
+import { Button, Checkbox } from "./form";
 
 export default class Modal extends React.Component<{ title: string; color?: string; handleClose: () => void; children: React.ReactNode }> {
     render() {

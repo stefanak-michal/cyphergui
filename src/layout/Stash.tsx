@@ -1,9 +1,9 @@
 import * as React from "react";
 import { Node as Neo4jNode, Relationship as Neo4jRelationship } from "neo4j-driver";
 import db from "../db";
-import { ISettings, IStashEntry, IStashManager, ITabManager } from "../interfaces";
-import { EPage } from "../enums";
-import { LabelButton, TypeButton } from "../form";
+import { ISettings, IStashEntry, IStashManager, ITabManager } from "../utils/interfaces";
+import { EPage } from "../utils/enums";
+import { LabelButton, TypeButton } from "../components/form";
 
 interface IStashProps {
     stashed: IStashEntry[];

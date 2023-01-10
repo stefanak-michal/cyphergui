@@ -167,7 +167,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                     <div className="message is-danger">
                         <div className="message-header">
                             <p>Error</p>
-                            <button className="delete" aria-label="delete" onClick={this.handleClearError}></button>
+                            <button className="delete" aria-label="delete" onClick={this.handleClearError} />
                         </div>
                         <div className="message-body">{this.state.error}</div>
                     </div>

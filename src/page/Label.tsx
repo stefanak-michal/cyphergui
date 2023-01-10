@@ -115,12 +115,6 @@ class Label extends React.Component<ILabelProps, ILabelState> {
             });
     };
 
-    handleClearError = () => {
-        this.setState({
-            error: null,
-        });
-    };
-
     handleSetSort = (value: string) => {
         this.setState(state => {
             let i = state.sort.indexOf(value),
@@ -169,7 +163,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                     <div className="message is-danger">
                         <div className="message-header">
                             <p>Error</p>
-                            <button className="delete" aria-label="delete" onClick={this.handleClearError}></button>
+                            <button className="delete" aria-label="delete" onClick={() => this.setState({ error: null })} />
                         </div>
                         <div className="message-body">{this.state.error}</div>
                     </div>

@@ -40,7 +40,7 @@ export class Checkbox extends React.Component<{ name: string; label: string; col
 }
 
 export class Textarea extends React.Component<
-    { name: string; value: string; onChange?: (e: React.ChangeEvent) => void; autoresize?: boolean; focus?: boolean; placeholder?: string },
+    { name: string; value: string; onChange?: (e: React.ChangeEvent) => void; autoresize?: boolean; focus?: boolean; placeholder?: string; color?: string; required?: boolean },
     { height: number }
 > {
     ref = React.createRef<HTMLTextAreaElement>();
@@ -68,19 +68,29 @@ export class Textarea extends React.Component<
         return (
             <textarea
                 name={this.props.name}
-                className="textarea"
+                className={"textarea " + (this.props.color || "")}
                 value={this.props.value}
                 onChange={this.props.onChange}
                 ref={this.ref}
                 autoFocus={this.props.focus || false}
                 placeholder={this.props.placeholder}
+                required={this.props.required}
             />
         );
     }
 }
 
 //maybe this should be somewhere else ...it is not really form ..hmm html.tsx?
-export class Button extends React.Component<{ text?: string; icon?: string; color?: string; onClick?: (e?: any) => void; type?: "submit" | "reset" | "button"; title?: string; value?: string }> {
+export class Button extends React.Component<{
+    text?: string;
+    icon?: string;
+    color?: string;
+    onClick?: (e?: any) => void;
+    type?: "submit" | "reset" | "button";
+    title?: string;
+    value?: string;
+    children?: React.ReactNode;
+}> {
     render() {
         return (
             <button className={"button " + (this.props.color || "")} onClick={this.props.onClick} type={this.props.type || "button"} title={this.props.title || ""} value={this.props.value}>
@@ -90,6 +100,7 @@ export class Button extends React.Component<{ text?: string; icon?: string; colo
                     </span>
                 )}
                 {this.props.text && <span>{this.props.text}</span>}
+                {this.props.children}
             </button>
         );
     }

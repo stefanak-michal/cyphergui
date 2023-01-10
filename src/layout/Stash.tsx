@@ -3,7 +3,7 @@ import { Node as Neo4jNode, Relationship as Neo4jRelationship } from "neo4j-driv
 import db from "../db";
 import { ISettings, IStashEntry, IStashManager, ITabManager } from "../utils/interfaces";
 import { EPage } from "../utils/enums";
-import { LabelButton, TypeButton } from "../components/form";
+import { Button, LabelButton, TypeButton } from "../components/form";
 
 interface IStashProps {
     stashed: IStashEntry[];
@@ -124,14 +124,12 @@ class Stash extends React.Component<IStashProps, IStashState> {
                                     <TypeButton key={entry.value.type} type={entry.value.type} database={entry.database} tabManager={this.props.tabManager} size="mr-1" />
                                 )}
                             </span>
-                            <button className="delete ml-auto" onClick={() => this.props.stashManager.remove(entry.id)}></button>
+                            <button className="delete ml-auto" onClick={() => this.props.stashManager.remove(entry.id)} />
                         </div>
                     ))}
                     {this.props.stashed.filter(this.filter).length === 0 && <span className="panel-block has-text-grey-light">empty</span>}
                     <div className="panel-block">
-                        <button className="button is-link is-outlined is-fullwidth" onClick={() => this.props.stashManager.empty()}>
-                            Clear stash
-                        </button>
+                        <Button text="Clear stash" color="is-link is-outlined is-fullwidth" onClick={() => this.props.stashManager.empty()} />
                     </div>
                 </div>
             </section>

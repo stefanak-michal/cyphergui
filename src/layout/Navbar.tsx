@@ -1,5 +1,6 @@
 import * as React from "react";
 import db from "../db";
+import { Button } from "../components/form";
 
 interface INavbarProps {
     handleLogout: () => void;
@@ -75,7 +76,7 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
                     <div className="navbar-start">
                         {this.state.databases.length > 1 && (
                             <div className="navbar-item has-dropdown is-hoverable">
-                                <a className="navbar-link">DB</a>
+                                <a className="navbar-link">{this.state.activeDb}</a>
                                 <div className="navbar-dropdown">
                                     {this.state.databases.map(name => (
                                         <a
@@ -94,20 +95,9 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
                     <div className="navbar-end">
                         <div className="navbar-item">
                             <div className="buttons">
-                                <button className="button is-info" onClick={this.props.handleAddQueryTab}>
-                                    <span className="icon">
-                                        <i className="fas fa-plus" aria-hidden="true" />
-                                    </span>
-                                    <strong>Query</strong>
-                                </button>
-                                <button className="button" onClick={this.props.handleOpenSettings}>
-                                    <span className="icon">
-                                        <i className="fa-solid fa-gears" aria-hidden="true" />
-                                    </span>
-                                </button>
-                                <button className="button" onClick={this.props.handleLogout}>
-                                    Log out
-                                </button>
+                                <Button icon="fa-regular fa-plus" text="Query" onClick={this.props.handleAddQueryTab} color="is-info" />
+                                <Button icon="fa-solid fa-gears" onClick={this.props.handleOpenSettings} />
+                                <Button onClick={this.props.handleLogout} text="Log out" />
                             </div>
                         </div>
                     </div>

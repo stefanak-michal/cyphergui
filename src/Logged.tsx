@@ -70,10 +70,6 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
 
     componentDidMount() {
         this.tabManager.add("Start", "fa-solid fa-play", EPage.Start, {}, "Start", false);
-
-        window.addEventListener("beforeunload", () => {
-            localStorage.setItem("tabs", JSON.stringify({ tabs: this.state.tabs, contents: this.state.contents, activeTab: this.state.activeTab }));
-        });
     }
 
     tabManager: ITabManager = {
@@ -97,15 +93,16 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                     const i: number = state.tabs.findIndex(t => t.id === state.activeTab);
                     if (i !== -1) state.tabs.splice(i + 1, 0, { id: id, title: title as string, icon: icon });
                     else state.tabs.push({ id: id, title: title as string, icon: icon });
-
                     state.contents.push({ id: id, page: page, props: props });
                 }
 
-                return {
+                const obj = {
                     tabs: state.tabs,
                     contents: state.contents,
                     activeTab: active || !state.activeTab ? id : state.activeTab,
                 };
+                localStorage.setItem("tabs", JSON.stringify(obj));
+                return obj;
             });
         },
         close: (id: string, e?: React.PointerEvent) => {
@@ -118,15 +115,18 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                     if (i > 0) active = state.tabs[i - 1].id;
                 }
 
-                return {
+                const obj = {
                     tabs: state.tabs.filter(tab => id !== tab.id),
                     contents: state.contents.filter(content => id !== content.id),
                     activeTab: active,
                 };
+                localStorage.setItem("tabs", JSON.stringify(obj));
+                return obj;
             });
         },
         setActive: (id: string) => {
-            this.setState(() => {
+            this.setState(state => {
+                localStorage.setItem("tabs", JSON.stringify({ tabs: state.tabs, contents: state.contents, activeTab: id }));
                 return {
                     activeTab: id,
                 };
@@ -142,6 +142,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         },
     };
 
+    // todo localStorage for stash
     stashManager = {
         //maybe add queries?
         add: (value: t_StashValue, database: string) => {
@@ -273,7 +274,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                 <section className="notifications">
                     {this.state.toasts.map(toast => (
                         <div key={toast.key} className={"notification box fadeOut " + toast.color} style={{ animationDelay: toast.delay - 1 + "s" }}>
-                            <button className="delete" onClick={() => this.discardToast(toast.key)}></button>
+                            <button className="delete" onClick={() => this.discardToast(toast.key)} />
                             {toast.message}
                         </div>
                     ))}

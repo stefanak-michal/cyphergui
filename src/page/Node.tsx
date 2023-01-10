@@ -432,7 +432,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                                         onClick={() => this.props.tabManager.add(label, "fa-regular fa-circle", EPage.Label, { label: label, database: this.props.database })}>
                                         {label}
                                     </a>
-                                    <button className="delete" onClick={() => this.handleLabelDelete(label)}></button>
+                                    <button className="delete" onClick={() => this.handleLabelDelete(label)} />
                                 </span>
                             ))}
                             <Button icon="fa-solid fa-plus" color="button tag is-medium" onClick={this.handleLabelOpenModal} />
@@ -441,7 +441,7 @@ class Node extends React.Component<INodeProps, INodeState> {
 
                     <fieldset className="box">
                         <legend className="tag is-link is-light">
-                            <i className="fa-regular fa-rectangle-list mr-2" />
+                            <i className="fa-solid fa-rectangle-list mr-2" />
                             Properties
                         </legend>
                         {this.state.properties.map(p => (

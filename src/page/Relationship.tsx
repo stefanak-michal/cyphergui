@@ -355,7 +355,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
 
                     <fieldset className="box">
                         <legend className="tag is-link is-light">
-                            <i className="fa-regular fa-rectangle-list mr-2" />
+                            <i className="fa-solid fa-rectangle-list mr-2" />
                             Properties
                         </legend>
                         {this.state.properties.map(p => (

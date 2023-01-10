@@ -2,7 +2,7 @@ import * as React from "react";
 import { Integer } from "neo4j-driver";
 import { Button, Checkbox } from "./form";
 
-export default class Modal extends React.Component<{ title: string; color?: string; handleClose: () => void; children: React.ReactNode }> {
+export default class Modal extends React.Component<{ title: string; color?: string; handleClose: () => void; children: React.ReactNode; icon?: string }> {
     render() {
         return (
             <div className="modal is-active">
@@ -10,8 +10,15 @@ export default class Modal extends React.Component<{ title: string; color?: stri
                 <div className="modal-content">
                     <div className={"message " + (this.props.color || "")}>
                         <div className="message-header">
-                            <p>{this.props.title}</p>
-                            <button className="delete" aria-label="delete" onClick={this.props.handleClose}></button>
+                            <p>
+                                {this.props.icon && (
+                                    <span className="icon mr-3">
+                                        <i className={this.props.icon} />
+                                    </span>
+                                )}
+                                {this.props.title}
+                            </p>
+                            <button className="delete" aria-label="delete" onClick={this.props.handleClose} />
                         </div>
                         <div className="message-body">{this.props.children}</div>
                     </div>
@@ -36,7 +43,7 @@ export class DeleteModal extends React.Component<
 
     render() {
         return (
-            <Modal title="Are you sure?" color="is-danger" handleClose={this.props.handleClose}>
+            <Modal title="Are you sure?" color="is-danger" handleClose={this.props.handleClose} icon="fa-solid fa-triangle-exclamation">
                 {this.props.detach && (
                     <div className="mb-3">
                         <Checkbox

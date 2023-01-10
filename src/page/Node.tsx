@@ -46,7 +46,7 @@ class Node extends React.Component<INodeProps, INodeState> {
 
     requestData = () => {
         if (!this.props.id) return;
-        db.getDriver()
+        db.driver
             .session({
                 database: this.props.database,
                 defaultAccessMode: db.neo4j.session.READ,
@@ -97,7 +97,7 @@ class Node extends React.Component<INodeProps, INodeState> {
      */
     shouldComponentUpdate(nextProps: Readonly<INodeProps>) {
         if (this.props.id && nextProps.active && this.props.active !== nextProps.active) {
-            db.getDriver()
+            db.driver
                 .session({
                     database: this.props.database,
                     defaultAccessMode: db.neo4j.session.READ,
@@ -206,7 +206,7 @@ class Node extends React.Component<INodeProps, INodeState> {
     };
 
     handleLabelOpenModal = () => {
-        db.getDriver()
+        db.driver
             .session({
                 database: this.props.database,
                 defaultAccessMode: db.neo4j.session.READ,
@@ -266,7 +266,7 @@ class Node extends React.Component<INodeProps, INodeState> {
         const { query, props } = this.generateQuery();
 
         //todo log query somewhere? create log terminal?
-        db.getDriver()
+        db.driver
             .session({
                 database: this.props.database,
                 defaultAccessMode: db.neo4j.session.WRITE,
@@ -304,7 +304,7 @@ class Node extends React.Component<INodeProps, INodeState> {
 
         let query: string = "";
         if (printable) {
-            if (this.props.id) query += "MATCH (n) WHERE " + db.fnId() + " = " + (db.hasElementId ? "'" + this.props.id + "'" : db.neo4j.integer.toString(this.props.id));
+            if (this.props.id) query += "MATCH (n) WHERE " + db.fnId() + " = " + (db.hasElementId ? "'" + this.props.id + "'" : db.strId(this.props.id));
             else query += "CREATE (n)";
             query += setLabels + removeLabels;
             if (this.state.properties.length) {
@@ -316,7 +316,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                             s.push(p.key + ": '" + p.value.replaceAll("'", "\\'").replaceAll("\n", "\\n") + "'");
                             break;
                         case EPropertyType.Integer:
-                            s.push(p.key + ": " + db.neo4j.integer.toString(p.value));
+                            s.push(p.key + ": " + db.strId(p.value));
                             break;
                         default:
                             s.push(p.key + ": " + p.value.toString());
@@ -332,7 +332,7 @@ class Node extends React.Component<INodeProps, INodeState> {
     };
 
     handleDeleteModalConfirm = (id: Integer | string, detach: boolean) => {
-        db.getDriver()
+        db.driver
             .session({
                 database: this.props.database,
                 defaultAccessMode: db.neo4j.session.WRITE,
@@ -355,7 +355,6 @@ class Node extends React.Component<INodeProps, INodeState> {
 
     render() {
         if (!this.props.active) return;
-        document.title = this.props.tabName + " (db: " + this.props.database + ")";
 
         if (this.props.id && this.state.node === null) {
             return <span className="has-text-grey-light">Loading...</span>;
@@ -401,7 +400,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                                             <label className="label">identity</label>
 
                                             <div className="control" onClick={copy}>
-                                                <input className="input is-copyable" disabled type="text" value={db.neo4j.integer.toString(this.state.node.identity)} />
+                                                <input className="input is-copyable" disabled type="text" value={db.strId(this.state.node.identity)} />
                                             </div>
                                         </div>
                                     </div>
@@ -467,16 +466,13 @@ class Node extends React.Component<INodeProps, INodeState> {
                                 <i className="fa-solid fa-circle-nodes mr-2"></i>Relationships
                             </legend>
                             {(this.state.showAllRels ? this.rels : this.rels.slice(0, 3)).map(r => {
-                                const dir =
-                                    (db.hasElementId ? r.startNodeElementId : db.neo4j.integer.toString(r.start)) === (db.hasElementId ? this.props.id : db.neo4j.integer.toString(this.props.id))
-                                        ? 1
-                                        : 2;
+                                const dir = db.strId(db.hasElementId ? r.startNodeElementId : r.start) === db.strId(db.hasElementId ? this.props.id : this.props.id) ? 1 : 2;
                                 const node = this.nodes.find(
                                     n => (db.hasElementId ? n.elementId : n.identity) === (db.hasElementId ? (dir === 2 ? r.startNodeElementId : r.endNodeElementId) : dir === 2 ? r.start : r.end)
                                 );
 
                                 return (
-                                    <div key={db.neo4j.integer.toString(r.identity)} className="is-flex is-align-items-center is-justify-content-flex-start mb-3 mb-last-none">
+                                    <div key={db.strId(r.identity)} className="is-flex is-align-items-center is-justify-content-flex-start mb-3 mb-last-none">
                                         <span className="is-size-4">
                                             {dir === 2 && "<"}
                                             -[
@@ -491,7 +487,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                                             }
                                             color="is-small ml-1"
                                             icon="fa-solid fa-pen-clip"
-                                            text={"#" + db.neo4j.integer.toString(r.identity)}
+                                            text={"#" + db.strId(r.identity)}
                                         />
                                         <span className="is-size-4">]-{dir === 1 && ">"}(</span>
                                         {node.labels.map(label => (
@@ -506,7 +502,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                                             }
                                             color="is-small"
                                             icon="fa-solid fa-pen-clip"
-                                            text={"#" + db.neo4j.integer.toString(node.identity)}
+                                            text={"#" + db.strId(node.identity)}
                                         />
                                         <span className=" is-size-4">)</span>
                                         <span className="ml-auto">end line buttons - stash (path)?</span>

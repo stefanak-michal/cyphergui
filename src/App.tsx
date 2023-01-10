@@ -2,6 +2,7 @@ import * as React from "react";
 import "./main.sass";
 import Login from "./Login";
 import Logged from "./Logged";
+import db from "./db";
 
 class App extends React.Component {
     state = {
@@ -16,6 +17,7 @@ class App extends React.Component {
 
     handleLogout = () => {
         localStorage.removeItem("login");
+        db.disconnect();
         this.setState({
             logged: false,
         });

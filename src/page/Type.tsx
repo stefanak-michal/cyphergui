@@ -38,7 +38,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
     };
 
     requestData = () => {
-        db.getDriver()
+        db.driver
             .session({
                 database: this.props.database,
                 defaultAccessMode: db.neo4j.session.READ,
@@ -48,7 +48,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                 const cnt: number = response1.records[0].get("cnt");
                 const page: number = this.state.page >= Math.ceil(cnt / this.perPage) ? Math.ceil(cnt / this.perPage) : this.state.page;
 
-                db.getDriver()
+                db.driver
                     .session({
                         database: this.props.database,
                         defaultAccessMode: db.neo4j.session.READ,
@@ -99,7 +99,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
     };
 
     handleDeleteModalConfirm = (id: Integer | string) => {
-        db.getDriver()
+        db.driver
             .session({
                 database: this.props.database,
                 defaultAccessMode: db.neo4j.session.WRITE,
@@ -143,7 +143,6 @@ class Type extends React.Component<ITypeProps, ITypeState> {
 
     render() {
         if (!this.props.active) return;
-        document.title = this.props.type + " relationship (db: " + this.props.database + ")";
 
         let keys = [];
         for (let row of this.state.rows) {
@@ -252,7 +251,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                         </thead>
                         <tbody>
                             {this.state.rows.map(row => (
-                                <tr key={"tr-" + db.neo4j.integer.toString(row.identity)}>
+                                <tr key={"tr-" + db.strId(row.identity)}>
                                     <td>
                                         <Button
                                             onClick={() =>
@@ -262,7 +261,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                                 })
                                             }
                                             icon="fa-solid fa-pen-clip"
-                                            text={"#" + db.neo4j.integer.toString(row.identity)}
+                                            text={"#" + db.strId(row.identity)}
                                         />
                                     </td>
                                     {this.props.settings.tableViewShowElementId && db.hasElementId && <td className="nowrap">{row.elementId}</td>}
@@ -290,7 +289,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                                 })
                                             }
                                             icon="fa-solid fa-pen-clip"
-                                            text={"#" + db.neo4j.integer.toString(row.start)}
+                                            text={"#" + db.strId(row.start)}
                                         />
                                     </td>
                                     {this.props.settings.tableViewShowElementId && db.hasElementId && <td className="nowrap">{row.startNodeElementId}</td>}
@@ -303,7 +302,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                                 })
                                             }
                                             icon="fa-solid fa-pen-clip"
-                                            text={"#" + db.neo4j.integer.toString(row.end)}
+                                            text={"#" + db.strId(row.end)}
                                         />
                                     </td>
                                     {this.props.settings.tableViewShowElementId && db.hasElementId && <td className="nowrap">{row.endNodeElementId}</td>}
@@ -319,7 +318,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
     }
 
     printProperty = (property: any): string | JSX.Element => {
-        if (db.isInteger(property)) return db.neo4j.integer.toString(property);
+        if (db.isInteger(property)) return db.strId(property);
         if (Array.isArray(property)) return "[" + property.join(", ") + "]";
         if (typeof property === "boolean") return <Checkbox name="" label="" checked={property} disabled />;
         return property.toString();

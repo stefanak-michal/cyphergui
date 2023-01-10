@@ -137,7 +137,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
          */
         generateName: (prefix: string, i?: any): string => {
             if (i === undefined) i = Math.max(0, ...this.state.tabs.filter(t => t.title.indexOf(prefix) === 0).map(t => parseInt(t.title.split("#")[1]))) + 1;
-            else if (db.isInteger(i)) i = db.neo4j.integer.toString(i);
+            else i = db.strId(i);
             return prefix + "#" + i;
         },
     };
@@ -243,8 +243,14 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
 
                 <ClipboardContext.Provider value={this.handleCopyToClipboard}>
                     <ToastContext.Provider value={this.toast}>
-                        <section className={"container " + (this.state.activeTab === "Start" ? "" : "is-fluid")}>
+                        <section className="container is-fluid">
                             {this.state.contents.map(content => {
+                                if (content.id === this.state.activeTab) {
+                                    document.title =
+                                        this.state.tabs.filter(t => t.id === content.id)[0].title +
+                                        (db.supportsMultiDb && "database" in content.props ? " (db: " + content.props.database + ")" : "") +
+                                        " | Bolt-Admin";
+                                }
                                 const MyComponent: typeof React.Component = this.components[content.page];
                                 return (
                                     <MyComponent

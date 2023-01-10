@@ -38,7 +38,7 @@ class Stash extends React.Component<IStashProps, IStashState> {
         if (this.state.tab === "Relationships" && !(entry.value instanceof Neo4jRelationship)) return false;
         //search
         if (this.state.search.length === 0) return true;
-        if (db.neo4j.integer.toString(entry.value.identity) === this.state.search) return true;
+        if (db.strId(entry.value.identity) === this.state.search) return true;
         if (db.hasElementId && entry.value.elementId.indexOf(this.state.search) !== -1) return true;
         if (entry.value instanceof Neo4jNode && entry.value.labels.indexOf(this.state.search) !== -1) return true;
         if (entry.value instanceof Neo4jRelationship && entry.value.type === this.state.search) return true;
@@ -114,7 +114,7 @@ class Stash extends React.Component<IStashProps, IStashState> {
                                 <span className="panel-icon">
                                     <i className={entry.value instanceof Neo4jNode ? "fa-regular fa-circle" : "fa-solid fa-arrow-right-long"} aria-hidden="true"></i>
                                 </span>
-                                {db.neo4j.integer.toString(entry.value.identity)}
+                                {db.strId(entry.value.identity)}
                                 <span className="ml-1">(db: {entry.database})</span>
                             </a>
                             <span className="ml-2 mr-1">

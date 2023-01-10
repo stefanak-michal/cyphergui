@@ -210,7 +210,7 @@ export class Property extends React.Component<{
                                 name={this.props.name}
                                 className="input"
                                 type="number"
-                                value={db.neo4j.integer.toString(this.props.value)}
+                                value={db.strId(this.props.value)}
                                 step="1"
                                 autoFocus={this.props.focus === this.props.name}
                                 onChange={this.props.onValueChange}
@@ -218,7 +218,7 @@ export class Property extends React.Component<{
                             />
                             <ClipboardContext.Consumer>
                                 {copy => (
-                                    <span className="icon is-right is-clickable" onClick={copy} data-copy={db.neo4j.integer.toString(this.props.value)}>
+                                    <span className="icon is-right is-clickable" onClick={copy} data-copy={db.strId(this.props.value)}>
                                         <i className="fa-regular fa-copy"></i>
                                     </span>
                                 )}

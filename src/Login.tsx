@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Button, Checkbox, Input } from "./components/form";
 import db from "./db";
+import { Driver } from "neo4j-driver";
 
 interface ILoginData {
     url: string;
@@ -46,7 +47,7 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
     };
 
     tryConnect = (url: string, username: string, password: string, onError: (error: string) => void) => {
-        let driver;
+        let driver: Driver;
         try {
             driver = db.neo4j.driver(url, db.neo4j.auth.basic(username, password), { userAgent: "bolt-admin" });
         } catch (err) {
@@ -59,10 +60,11 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
             .run("CREATE (n) DELETE n RETURN n")
             .then(response => {
                 if (response.records.length) {
-                    db.setDriver(driver);
-                    db.setHasElementId("elementId" in response.records[0].get("n"));
-                    this.props.handleLogin();
-                    if (this.state.remember) localStorage.setItem("login", JSON.stringify({ url: url, username: username, password: password } as ILoginData));
+                    db.setDriver(driver, () => {
+                        db.hasElementId = "elementId" in response.records[0].get("n");
+                        if (this.state.remember) localStorage.setItem("login", JSON.stringify({ url: url, username: username, password: password } as ILoginData));
+                        this.props.handleLogin();
+                    });
                 } else {
                     onError("Initial test query wasn't successful");
                 }

@@ -21,33 +21,20 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
     state: INavbarState = {
         open: false,
         databases: [],
-        activeDb: localStorage.getItem("activedb") || db.getActiveDb(),
-    };
-
-    requestData = () => {
-        db.getDriver()
-            .session({ defaultAccessMode: db.neo4j.session.READ })
-            .run("SHOW DATABASES")
-            .then(response => {
-                const defaultDb = response.records.find(row => row.get("default")).get("name");
-                const databases = response.records.filter(row => row.get("type") !== "system").map(row => row.get("name"));
-                this.handleChangeDb(this.state.activeDb && databases.indexOf(this.state.activeDb) !== -1 ? this.state.activeDb : defaultDb);
-                this.setState({
-                    databases: databases,
-                });
-            })
-            .catch(() => {
-                this.setState({ databases: null });
-            });
+        activeDb: "",
     };
 
     componentDidMount() {
-        this.requestData();
-    }
-
-    componentWillUnmount() {
         this.setState({
-            databases: null,
+            databases: db.databases,
+            activeDb: db.database,
+        });
+
+        db.registerChangeActiveDatabaseCallback(db => {
+            this.setState({ activeDb: db });
+        });
+        db.registerChangeDatabasesCallback(databases => {
+            this.setState({ databases: databases });
         });
     }
 
@@ -56,19 +43,6 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
             return {
                 open: !state.open,
             };
-        });
-    };
-
-    handleLogout = () => {
-        db.disconnect();
-        this.props.handleLogout();
-    };
-
-    handleChangeDb = (name: string) => {
-        db.setActiveDb(name);
-        localStorage.setItem("activedb", name);
-        this.setState({
-            activeDb: name,
         });
     };
 
@@ -99,12 +73,17 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
 
                 <div id="basicNavbar" className={"navbar-menu " + (this.state.open ? "is-active" : "")}>
                     <div className="navbar-start">
-                        {this.state.databases !== null && this.state.databases.length > 1 && (
+                        {this.state.databases.length > 1 && (
                             <div className="navbar-item has-dropdown is-hoverable">
                                 <a className="navbar-link">DB</a>
                                 <div className="navbar-dropdown">
                                     {this.state.databases.map(name => (
-                                        <a key={"navbar-item-" + name} className={(this.state.activeDb === name ? "is-active" : "") + " navbar-item"} onClick={() => this.handleChangeDb(name)}>
+                                        <a
+                                            key={"navbar-item-" + name}
+                                            className={(this.state.activeDb === name ? "is-active" : "") + " navbar-item"}
+                                            onClick={() => {
+                                                db.database = name;
+                                            }}>
                                             {name}
                                         </a>
                                     ))}
@@ -126,7 +105,7 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
                                         <i className="fa-solid fa-gears" aria-hidden="true"></i>
                                     </span>
                                 </button>
-                                <button className="button" onClick={this.handleLogout}>
+                                <button className="button" onClick={this.props.handleLogout}>
                                     Log out
                                 </button>
                             </div>

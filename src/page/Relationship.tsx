@@ -46,7 +46,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
 
     requestData = () => {
         if (!this.props.id) return;
-        db.getDriver()
+        db.driver
             .session({
                 database: this.props.database,
                 defaultAccessMode: db.neo4j.session.READ,
@@ -96,7 +96,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
      */
     shouldComponentUpdate(nextProps: Readonly<IRelationshipProps>) {
         if (this.props.id && nextProps.active && this.props.active !== nextProps.active) {
-            db.getDriver()
+            db.driver
                 .session({
                     database: this.props.database,
                     defaultAccessMode: db.neo4j.session.READ,
@@ -205,7 +205,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
     };
 
     handleTypeOpenModal = () => {
-        db.getDriver()
+        db.driver
             .session({
                 database: this.props.database,
                 defaultAccessMode: db.neo4j.session.READ,
@@ -249,7 +249,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
     };
 
     handleDeleteModalConfirm = (id: Integer | string) => {
-        db.getDriver()
+        db.driver
             .session({
                 database: this.props.database,
                 defaultAccessMode: db.neo4j.session.WRITE,
@@ -273,7 +273,6 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
 
     render() {
         if (!this.props.active) return;
-        document.title = this.props.tabName + " (db: " + this.props.database + ")";
 
         if (this.props.id && this.state.rel === null) {
             return <span className="has-text-grey-light">Loading...</span>;
@@ -318,7 +317,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                                         <div className="field">
                                             <label className="label">identity</label>
                                             <div className="control" onClick={copy}>
-                                                <input className="input is-copyable" disabled type="text" value={db.neo4j.integer.toString(this.state.rel.identity)} />
+                                                <input className="input is-copyable" disabled type="text" value={db.strId(this.state.rel.identity)} />
                                             </div>
                                         </div>
                                     </div>

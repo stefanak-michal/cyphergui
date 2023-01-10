@@ -176,7 +176,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                 <div className="mb-3">
                     <span className="icon-text is-flex-wrap-nowrap">
                         <span className="icon">
-                            <i className="fa-solid fa-terminal" aria-hidden="true"></i>
+                            <i className="fa-solid fa-terminal" aria-hidden="true" />
                         </span>
                         <span className="is-family-code">
                             {"MATCH (a)-[r:" +

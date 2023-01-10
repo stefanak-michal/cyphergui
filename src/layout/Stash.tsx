@@ -51,7 +51,7 @@ class Stash extends React.Component<IStashProps, IStashState> {
             a.push(
                 <a className="panel-block">
                     <span className="panel-icon">
-                        <i className="fas fa-book" aria-hidden="true"></i>
+                        <i className="fas fa-book" aria-hidden="true" />
                     </span>
                     bulma
                 </a>
@@ -61,7 +61,7 @@ class Stash extends React.Component<IStashProps, IStashState> {
         return (
             <section className={"stash panel is-dark " + (this.state.active ? "is-active" : "")}>
                 <div
-                    className="panel-heading is-clickable"
+                    className="panel-heading is-clickable nowrap"
                     onClick={() =>
                         this.setState(state => {
                             return {
@@ -70,7 +70,7 @@ class Stash extends React.Component<IStashProps, IStashState> {
                         })
                     }>
                     <span className={"icon mr-2 animate__animated " + (this.state.pulse ? "animate__swing" : "")} onAnimationEnd={() => this.setState({ pulse: false })}>
-                        <i className={"fa-regular fa-folder" + (this.state.active ? "-open" : "")}></i>
+                        <i className={"fa-regular fa-folder" + (this.state.active ? "-open" : "")} />
                     </span>
                     Stash
                 </div>
@@ -85,10 +85,10 @@ class Stash extends React.Component<IStashProps, IStashState> {
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.setState({ search: e.currentTarget.value })}
                             />
                             <span className="icon is-left">
-                                <i className="fas fa-search" aria-hidden="true"></i>
+                                <i className="fas fa-search" aria-hidden="true" />
                             </span>
                             <span className="icon is-right is-clickable" onClick={() => this.setState({ search: "" })}>
-                                <i className="fa-solid fa-xmark"></i>
+                                <i className="fa-solid fa-xmark" />
                             </span>
                         </p>
                     </div>
@@ -112,7 +112,7 @@ class Stash extends React.Component<IStashProps, IStashState> {
                                     )
                                 }>
                                 <span className="panel-icon">
-                                    <i className={entry.value instanceof Neo4jNode ? "fa-regular fa-circle" : "fa-solid fa-arrow-right-long"} aria-hidden="true"></i>
+                                    <i className={entry.value instanceof Neo4jNode ? "fa-regular fa-circle" : "fa-solid fa-arrow-right-long"} aria-hidden="true" />
                                 </span>
                                 {db.strId(entry.value.identity)}
                                 <span className="ml-1">(db: {entry.database})</span>

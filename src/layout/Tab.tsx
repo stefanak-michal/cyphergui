@@ -27,7 +27,7 @@ class Tab extends React.Component<ITabProps> {
                 <a>
                     {this.props.icon && (
                         <span className="icon is-small">
-                            <i className={this.props.icon} aria-hidden="true"></i>
+                            <i className={this.props.icon} aria-hidden="true" />
                         </span>
                     )}
                     <span>{this.props.title}</span>

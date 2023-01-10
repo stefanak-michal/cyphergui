@@ -421,7 +421,8 @@ class Node extends React.Component<INodeProps, INodeState> {
 
                     <fieldset className="box">
                         <legend className="tag is-link is-light">
-                            <i className="fa-solid fa-tags mr-2"></i>Labels
+                            <i className="fa-solid fa-tags mr-2" />
+                            Labels
                         </legend>
                         <div className="buttons tags">
                             {this.state.labels.map(label => (
@@ -440,7 +441,8 @@ class Node extends React.Component<INodeProps, INodeState> {
 
                     <fieldset className="box">
                         <legend className="tag is-link is-light">
-                            <i className="fa-regular fa-rectangle-list mr-2"></i>Properties
+                            <i className="fa-regular fa-rectangle-list mr-2" />
+                            Properties
                         </legend>
                         {this.state.properties.map(p => (
                             <Property
@@ -463,7 +465,8 @@ class Node extends React.Component<INodeProps, INodeState> {
                     {this.rels.length > 0 && (
                         <fieldset className="box">
                             <legend className="tag is-link is-light">
-                                <i className="fa-solid fa-circle-nodes mr-2"></i>Relationships
+                                <i className="fa-solid fa-circle-nodes mr-2" />
+                                Relationships
                             </legend>
                             {(this.state.showAllRels ? this.rels : this.rels.slice(0, 3)).map(r => {
                                 const dir = db.strId(db.hasElementId ? r.startNodeElementId : r.start) === db.strId(db.hasElementId ? this.props.id : this.props.id) ? 1 : 2;
@@ -473,6 +476,7 @@ class Node extends React.Component<INodeProps, INodeState> {
 
                                 return (
                                     <div key={db.strId(r.identity)} className="is-flex is-align-items-center is-justify-content-flex-start mb-3 mb-last-none">
+                                        <i className="fa-regular fa-circle" />
                                         <span className="is-size-4">
                                             {dir === 2 && "<"}
                                             -[
@@ -518,7 +522,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                     <div className="mb-3">
                         <span className="icon-text is-flex-wrap-nowrap">
                             <span className="icon">
-                                <i className="fa-solid fa-terminal" aria-hidden="true"></i>
+                                <i className="fa-solid fa-terminal" aria-hidden="true" />
                             </span>
                             <ClipboardContext.Consumer>
                                 {copy => (

@@ -34,7 +34,7 @@ class App extends React.Component {
                         <br />
                         <a href="https://github.com/stefanak-michal/bolt-admin" target="_blank" className="icon-text" rel="noreferrer">
                             <span className="icon">
-                                <i className="fa-brands fa-github"></i>
+                                <i className="fa-brands fa-github" />
                             </span>
                             <span>GitHub</span>
                         </a>

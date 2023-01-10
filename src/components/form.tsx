@@ -192,7 +192,7 @@ export class Property extends React.Component<{
                             <ClipboardContext.Consumer>
                                 {copy => (
                                     <span className="icon is-right is-clickable" onClick={copy} data-copy={this.props.value}>
-                                        <i className="fa-regular fa-copy"></i>
+                                        <i className="fa-regular fa-copy" />
                                     </span>
                                 )}
                             </ClipboardContext.Consumer>
@@ -219,7 +219,7 @@ export class Property extends React.Component<{
                             <ClipboardContext.Consumer>
                                 {copy => (
                                     <span className="icon is-right is-clickable" onClick={copy} data-copy={db.strId(this.props.value)}>
-                                        <i className="fa-regular fa-copy"></i>
+                                        <i className="fa-regular fa-copy" />
                                     </span>
                                 )}
                             </ClipboardContext.Consumer>
@@ -245,7 +245,7 @@ export class Property extends React.Component<{
                             <ClipboardContext.Consumer>
                                 {copy => (
                                     <span className="icon is-right is-clickable" onClick={copy} data-copy={this.props.value}>
-                                        <i className="fa-regular fa-copy"></i>
+                                        <i className="fa-regular fa-copy" />
                                     </span>
                                 )}
                             </ClipboardContext.Consumer>

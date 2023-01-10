@@ -338,7 +338,8 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
 
                     <fieldset className="box">
                         <legend className="tag is-link is-light">
-                            <i className="fa-solid fa-tags mr-2"></i>Type
+                            <i className="fa-solid fa-tags mr-2" />
+                            Type
                         </legend>
                         <div className="buttons tags">
                             <span className="tag is-info is-medium mr-3 is-rounded">
@@ -354,7 +355,8 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
 
                     <fieldset className="box">
                         <legend className="tag is-link is-light">
-                            <i className="fa-regular fa-rectangle-list mr-2"></i>Properties
+                            <i className="fa-regular fa-rectangle-list mr-2" />
+                            Properties
                         </legend>
                         {this.state.properties.map(p => (
                             <Property
@@ -376,14 +378,16 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
 
                     <fieldset className="box">
                         <legend className="tag is-link is-light">
-                            <i className="fa-solid fa-circle-nodes mr-2"></i>Start node
+                            <i className="fa-solid fa-circle-nodes mr-2" />
+                            Start node
                         </legend>
                         todo
                     </fieldset>
 
                     <fieldset className="box">
                         <legend className="tag is-link is-light">
-                            <i className="fa-solid fa-circle-nodes mr-2"></i>End node
+                            <i className="fa-solid fa-circle-nodes mr-2" />
+                            End node
                         </legend>
                         todo
                     </fieldset>
@@ -391,7 +395,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                     <div className="mb-3">
                         <span className="icon-text is-flex-wrap-nowrap">
                             <span className="icon">
-                                <i className="fa-solid fa-terminal" aria-hidden="true"></i>
+                                <i className="fa-solid fa-terminal" aria-hidden="true" />
                             </span>
                             <ClipboardContext.Consumer>
                                 {copy => (

@@ -52,7 +52,7 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
                 <div className="navbar-brand">
                     <span className="navbar-item icon-text is-size-3">
                         <span className="icon is-large">
-                            <i className="fa-solid fa-cloud-bolt "></i>
+                            <i className="fa-solid fa-cloud-bolt" />
                         </span>
                         <span>BOLT ADMIN</span>
                     </span>
@@ -96,13 +96,13 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
                             <div className="buttons">
                                 <button className="button is-info" onClick={this.props.handleAddQueryTab}>
                                     <span className="icon">
-                                        <i className="fas fa-plus" aria-hidden="true"></i>
+                                        <i className="fas fa-plus" aria-hidden="true" />
                                     </span>
                                     <strong>Query</strong>
                                 </button>
                                 <button className="button" onClick={this.props.handleOpenSettings}>
                                     <span className="icon">
-                                        <i className="fa-solid fa-gears" aria-hidden="true"></i>
+                                        <i className="fa-solid fa-gears" aria-hidden="true" />
                                     </span>
                                 </button>
                                 <button className="button" onClick={this.props.handleLogout}>

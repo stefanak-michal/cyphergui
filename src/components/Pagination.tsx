@@ -23,12 +23,12 @@ export default class Pagination extends React.Component<{ pages: number; page: n
             <nav className="pagination is-centered" role="navigation" aria-label="pagination">
                 <button className="pagination-previous button" disabled={this.props.page === 1} onClick={() => this.props.action(this.props.page - 1)}>
                     <span className="icon">
-                        <i className="fa-solid fa-chevron-left"></i>
+                        <i className="fa-solid fa-chevron-left" />
                     </span>
                 </button>
                 <button className="pagination-next button" disabled={this.props.page === this.props.pages} onClick={() => this.props.action(this.props.page + 1)}>
                     <span className="icon">
-                        <i className="fa-solid fa-chevron-right"></i>
+                        <i className="fa-solid fa-chevron-right" />
                     </span>
                 </button>
                 <ul className="pagination-list">

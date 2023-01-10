@@ -2,11 +2,11 @@ import * as React from "react";
 import { Integer } from "neo4j-driver";
 import { Button, Checkbox } from "./form";
 
-export default class Modal extends React.Component<{ title: string; color?: string; handleClose: () => void; children: React.ReactNode; icon?: string }> {
+export default class Modal extends React.Component<{ title: string; color?: string; handleClose: () => void; children: React.ReactNode; icon?: string; backdrop?: boolean }> {
     render() {
         return (
             <div className="modal is-active">
-                <div className="modal-background"></div>
+                <div className="modal-background" onClick={this.props.backdrop && this.props.handleClose}></div>
                 <div className="modal-content">
                     <div className={"message " + (this.props.color || "")}>
                         <div className="message-header">

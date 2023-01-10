@@ -74,11 +74,8 @@ class Query extends React.Component<IQueryProps, IQueryState> {
         return (
             <>
                 {this.state.propertiesModal && (
-                    <Modal title="Properties" handleClose={() => this.setState({ propertiesModal: null })} icon="fa-solid fa-rectangle-list">
+                    <Modal title="Properties" handleClose={() => this.setState({ propertiesModal: null })} icon="fa-solid fa-rectangle-list" backdrop={true}>
                         <pre>{JSON.stringify(this.state.propertiesModal, null, 2)}</pre>
-                        <div className="buttons is-justify-content-flex-end mt-3">
-                            <Button text="Close" icon="fa-solid fa-xmark" onClick={() => this.setState({ propertiesModal: null })} />
-                        </div>
                     </Modal>
                 )}
 
@@ -239,6 +236,13 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                         icon="fa-solid fa-pen-clip"
                         text={"#" + db.strId(value.identity)}
                     />
+                    {Object.keys(value.properties).length > 0 && (
+                        <Button
+                            icon="fa-solid fa-rectangle-list"
+                            onClick={() => this.setState({ propertiesModal: value.properties })}
+                            color={"ml-1 " + (this.state.tableSize === 1 ? "is-small" : "")}
+                        />
+                    )}
                 </div>
             );
         }

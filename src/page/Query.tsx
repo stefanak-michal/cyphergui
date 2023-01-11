@@ -3,9 +3,23 @@ import { Button, Checkbox, LabelButton, Textarea, TypeButton } from "../componen
 import { IPageProps } from "../utils/interfaces";
 import db from "../db";
 import { ClipboardContext } from "../utils/contexts";
-import { Record, ResultSummary, Node as Neo4jNode, Relationship as Neo4jRelationship, Path as Neo4jPath } from "neo4j-driver";
+import {
+    Record,
+    ResultSummary,
+    Node as _Node,
+    Relationship as _Relationship,
+    Path as _Path,
+    Date as _Date,
+    Time as _Time,
+    LocalTime as _LocalTime,
+    DateTime as _DateTime,
+    LocalDateTime as _LocalDateTime,
+    Duration as _Duration,
+} from "neo4j-driver";
 import { EPage } from "../utils/enums";
 import Modal from "../components/Modal";
+import { settings } from "../layout/Settings";
+import Duration from "../utils/Duration";
 
 interface IQueryProps extends IPageProps {
     query?: string;
@@ -54,6 +68,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                 this.setState({
                     summary: response.summary,
                     rows: response.records,
+                    error: null,
                 });
             })
             .catch(err => {
@@ -75,13 +90,22 @@ class Query extends React.Component<IQueryProps, IQueryState> {
             <>
                 {this.state.propertiesModal && (
                     <Modal title="Properties" handleClose={() => this.setState({ propertiesModal: null })} icon="fa-solid fa-rectangle-list" backdrop={true}>
-                        <pre>{JSON.stringify(this.state.propertiesModal, null, 2)}</pre>
+                        <div className="control has-icons-right">
+                            <pre>{this.toJSON(this.state.propertiesModal)}</pre>
+                            <ClipboardContext.Consumer>
+                                {copy => (
+                                    <span className="icon is-right is-clickable" onClick={copy} data-copy={this.toJSON(this.state.propertiesModal)}>
+                                        <i className="fa-regular fa-copy" />
+                                    </span>
+                                )}
+                            </ClipboardContext.Consumer>
+                        </div>
                     </Modal>
                 )}
 
                 <form onSubmit={this.handleSubmit} className="block">
                     <div className="field">
-                        <div className="control has-icons-right">
+                        <div className="control has-icons-right has-icons-left">
                             <Textarea
                                 required
                                 name="query"
@@ -91,7 +115,11 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                                     localStorage.setItem(this.props.tabId, e.currentTarget.value);
                                 }}
                                 color="is-family-code"
+                                focus={true}
                             />
+                            <span className="icon is-left">
+                                <i className="fa-solid fa-terminal" aria-hidden="true" />
+                            </span>
                             <ClipboardContext.Consumer>
                                 {copy => (
                                     <span className="icon is-right is-clickable" onClick={copy} data-copy={this.state.query}>
@@ -131,6 +159,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                     <div className="buttons has-addons">
                         <span>
                             <Button text="Table" color={this.state.view === 1 ? "is-link is-light is-active" : ""} icon="fa-solid fa-table" onClick={() => this.setState({ view: 1 })} />
+                            <Button text="JSON" color={this.state.view === 4 ? "is-link is-light is-active" : ""} icon="fa-brands fa-js" onClick={() => this.setState({ view: 4 })} />
                             <Button text="Graph" color={this.state.view === 2 ? "is-link is-light is-active" : ""} icon="fa-solid fa-circle-nodes" onClick={() => this.setState({ view: 2 })} />
                             <Button text="Summary" color={this.state.view === 3 ? "is-link is-light is-active" : ""} icon="fa-solid fa-gauge-high" onClick={() => this.setState({ view: 3 })} />
                         </span>
@@ -152,23 +181,24 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                         )}
                     </div>
                 </div>
-                {this.state.view === 1 && (
+
+                {this.state.rows.length > 0 && (
                     <div className="block">
-                        {this.state.rows.length > 0 && (
+                        {this.state.view === 1 && (
                             <div className="table-container">
                                 <table className="table is-bordered is-striped is-narrow is-hoverable">
                                     <thead>
                                         <tr>
                                             {keys.map(key => (
-                                                <th>{key}</th>
+                                                <th key={key}>{key}</th>
                                             ))}
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {this.state.rows.map(row => (
-                                            <tr>
+                                        {this.state.rows.map((row, i) => (
+                                            <tr key={i}>
                                                 {keys.map(key => (
-                                                    <td>{row.has(key) ? this.printValue(row.get(key)) : ""}</td>
+                                                    <td key={key}>{row.has(key) ? this.printValue(row.get(key)) : ""}</td>
                                                 ))}
                                             </tr>
                                         ))}
@@ -176,25 +206,64 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                                 </table>
                             </div>
                         )}
-                        {this.state.rows.length === 0 && <div className="block">No result</div>}
+
+                        {this.state.view === 2 && <div className="block">todo graph</div>}
+
+                        {this.state.view === 3 && <div className="block">todo summary</div>}
+
+                        {this.state.view === 4 && (
+                            <div className="control has-icons-right">
+                                <pre>{this.toJSON(this.state.rows)}</pre>
+                                <ClipboardContext.Consumer>
+                                    {copy => (
+                                        <span className="icon is-right is-clickable" onClick={copy} data-copy={this.toJSON(this.state.rows)}>
+                                            <i className="fa-regular fa-copy" />
+                                        </span>
+                                    )}
+                                </ClipboardContext.Consumer>
+                            </div>
+                        )}
                     </div>
                 )}
 
-                {this.state.view === 2 && <div className="block">todo graph</div>}
-                {this.state.view === 3 && <div className="block">todo summary</div>}
+                {this.state.rows.length === 0 && <div className="block">No result</div>}
             </>
         );
     }
 
+    toJSON = (data: any[] | object): string => {
+        let obj;
+        if (Array.isArray(data)) {
+            obj = [];
+            data.forEach(row => {
+                let entry = {};
+                for (let key of row.keys) entry[key] = row.get(key);
+                obj.push(entry);
+            });
+        } else if (typeof data === "object") {
+            obj = data;
+        }
+
+        return JSON.stringify(
+            obj,
+            (key, value) => {
+                if (db.isInteger(value)) return parseFloat(db.strId(value));
+                return value;
+            },
+            2
+        );
+    };
+
     // match p=(n)-[r]->(a) return p, n as node, r, a, n { .* } LIMIT 10
     // MATCH p=()-[]->()-[]->() RETURN p
 
-    printValue = (value: any): string | JSX.Element => {
-        if (db.isInteger(value)) return db.strId(value);
-        if (Array.isArray(value)) return "[" + value.join(", ") + "]";
-        if (typeof value === "boolean") return <Checkbox name="" label="" checked={value} disabled />;
+    printValue = (value: any): JSX.Element => {
+        if (db.isInteger(value)) return <>{db.strId(value)}</>;
+        if (Array.isArray(value)) return <>[{value.map<React.ReactNode>(entry => this.printValue(entry)).reduce((prev, curr) => [prev, ", ", curr])}]</>;
+        if (typeof value === "boolean") return <>{value ? "true" : "false"}</>;
+        if (typeof value === "string") return <p className="wspace-pre">{value}</p>;
 
-        if (value instanceof Neo4jNode) {
+        if (value instanceof _Node) {
             return (
                 <div className="is-flex is-align-items-center is-justify-content-flex-start">
                     {value.labels.map(label => (
@@ -221,7 +290,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                 </div>
             );
         }
-        if (value instanceof Neo4jRelationship) {
+        if (value instanceof _Relationship) {
             return (
                 <div className="is-flex is-align-items-center is-justify-content-flex-start">
                     <TypeButton type={value.type} database={db.database} tabManager={this.props.tabManager} size={this.state.tableSize === 1 ? "" : "is-medium"} />
@@ -246,7 +315,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                 </div>
             );
         }
-        if (value instanceof Neo4jPath) {
+        if (value instanceof _Path) {
             let start = value.start;
             let first = true;
             return (
@@ -261,9 +330,9 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                                         <span className="is-size-4">)</span>
                                     </>
                                 )}
-                                <span className="is-size-4 nowrap">{db.strId(segment.start.identity) === db.strId(start.identity) ? "-" : "<-"}[</span>
+                                <span className="is-size-4 wspace-nowrap">{db.strId(segment.start.identity) === db.strId(start.identity) ? "-" : "<-"}[</span>
                                 {this.printValue(segment.relationship)}
-                                <span className="is-size-4 nowrap">]{db.strId(segment.start.identity) === db.strId(start.identity) ? "->" : "-"}(</span>
+                                <span className="is-size-4 wspace-nowrap">]{db.strId(segment.start.identity) === db.strId(start.identity) ? "->" : "-"}(</span>
                                 {this.printValue(db.strId(segment.start.identity) === db.strId(start.identity) ? segment.end : segment.start)}
                                 <span className="is-size-4">)</span>
                             </>
@@ -276,10 +345,34 @@ class Query extends React.Component<IQueryProps, IQueryState> {
             );
         }
 
+        // Temporal values
+        if (value instanceof _Date) {
+            const fn = settings().temporalValueToStringFunction === "toString" ? "toDateString" : settings().temporalValueToStringFunction;
+            return <p className="wspace-nowrap">{value.toStandardDate()[fn]()}</p>;
+        }
+        if (value instanceof _DateTime) return <p className="wspace-nowrap">{value.toStandardDate()[settings().temporalValueToStringFunction]()}</p>;
+        if (value instanceof _Time) return <p className="wspace-nowrap">{value.toString()}</p>;
+        if (value instanceof _LocalDateTime) return <p className="wspace-nowrap">{value.toStandardDate().toLocaleString()}</p>;
+        if (value instanceof _LocalTime) return <p className="wspace-nowrap">{value.toString()}</p>;
+        if (value instanceof _Duration) return <p className="wspace-nowrap">{new Duration(value).toString()}</p>;
+
         if (typeof value === "object") {
-            return Object.keys(value)
-                .map(key => key + ": " + this.printValue(value[key]))
-                .join(", ");
+            const json = this.toJSON(value);
+            return (
+                <>
+                    {value.constructor.name || ""}
+                    <div className="control has-icons-right">
+                        <pre>{json}</pre>
+                        <ClipboardContext.Consumer>
+                            {copy => (
+                                <span className="icon is-right is-clickable" onClick={copy} data-copy={json}>
+                                    <i className="fa-regular fa-copy" />
+                                </span>
+                            )}
+                        </ClipboardContext.Consumer>
+                    </div>
+                </>
+            );
         }
 
         return value.toString();

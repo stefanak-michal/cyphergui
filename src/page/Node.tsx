@@ -1,11 +1,12 @@
 import * as React from "react";
 import { Button, LabelButton, Property, TypeButton } from "../components/form";
-import { Integer, Node as Neo4jNode, Relationship as Neo4jRelationship } from "neo4j-driver";
+import { Integer, Node as _Node, Relationship as _Relationship } from "neo4j-driver";
 import { EPage, EPropertyType } from "../utils/enums";
 import { IPageProps } from "../utils/interfaces";
 import db from "../db";
 import { ClipboardContext } from "../utils/contexts";
 import Modal, { DeleteModal } from "../components/Modal";
+import { settings } from "../layout/Settings";
 
 interface INodeProps extends IPageProps {
     database: string;
@@ -14,7 +15,7 @@ interface INodeProps extends IPageProps {
 }
 
 interface INodeState {
-    node: Neo4jNode | null;
+    node: _Node | null;
     focus: string | null;
     labels: string[];
     properties: { name: string; key: string; value: any; type: EPropertyType }[];
@@ -41,8 +42,8 @@ class Node extends React.Component<INodeProps, INodeState> {
         showAllRels: false,
     };
 
-    rels: Neo4jRelationship[] = [];
-    nodes: Neo4jNode[] = [];
+    rels: _Relationship[] = [];
+    nodes: _Node[] = [];
 
     requestData = () => {
         if (!this.props.id) return;
@@ -60,7 +61,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                     return;
                 }
 
-                const node: Neo4jNode = response.records[0].get("n");
+                const node: _Node = response.records[0].get("n");
                 let props = [];
                 const t = new Date().getTime();
                 for (let key in node.properties) {
@@ -233,7 +234,7 @@ class Node extends React.Component<INodeProps, INodeState> {
     handleLabelInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         let value: string = e.currentTarget.value;
 
-        if (this.props.settings.forceNamingRecommendations) {
+        if (settings().forceNamingRecommendations) {
             value = value
                 .replace(/^[^a-zA-Z]*/, "")
                 .replace(/^[a-z]/, x => x.toUpperCase())
@@ -279,7 +280,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                 if (response.summary.counters.containsUpdates()) {
                     this.props.toast(this.props.id ? "Node updated" : "Node created");
                 }
-                if (this.props.settings.closeEditAfterExecuteSuccess) {
+                if (settings().closeEditAfterExecuteSuccess) {
                     this.props.tabManager.close(this.props.tabId);
                 } else if (!this.props.id) {
                     const node = response.records[0].get("n");

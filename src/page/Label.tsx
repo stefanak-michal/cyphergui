@@ -2,11 +2,12 @@ import * as React from "react";
 import Pagination from "../components/Pagination";
 import TableSortIcon from "../components/TableSortIcon";
 import { Button, Checkbox, LabelButton } from "../components/form";
-import { Integer, Node as Neo4jNode } from "neo4j-driver";
+import { Integer, Node as _Node } from "neo4j-driver";
 import { EPage } from "../utils/enums";
 import { IPageProps } from "../utils/interfaces";
 import db from "../db";
 import { DeleteModal } from "../components/Modal";
+import { settings } from "../layout/Settings";
 
 interface ILabelProps extends IPageProps {
     database: string;
@@ -14,7 +15,7 @@ interface ILabelProps extends IPageProps {
 }
 
 interface ILabelState {
-    rows: Neo4jNode[];
+    rows: _Node[];
     page: number;
     total: number;
     sort: string[];
@@ -212,22 +213,22 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                     <table className="table is-bordered is-striped is-narrow is-hoverable">
                         <thead>
                             <tr>
-                                <th colSpan={this.props.settings.tableViewShowElementId && db.hasElementId ? 3 : 2}>Node</th>
+                                <th colSpan={settings().tableViewShowElementId && db.hasElementId ? 3 : 2}>Node</th>
                                 {additionalLabels && <th rowSpan={2}>additional labels</th>}
                                 {keys.length > 0 ? <th colSpan={keys.length}>properties</th> : ""}
                             </tr>
                             <tr>
-                                <th className="nowrap is-clickable" onClick={() => this.handleSetSort("id(n)")}>
+                                <th className="wspace-nowrap is-clickable" onClick={() => this.handleSetSort("id(n)")}>
                                     id <TableSortIcon sort="id(n)" current={this.state.sort} />
                                 </th>
-                                {this.props.settings.tableViewShowElementId && db.hasElementId && (
-                                    <th className="nowrap is-clickable" onClick={() => this.handleSetSort("elementId(n)")}>
+                                {settings().tableViewShowElementId && db.hasElementId && (
+                                    <th className="wspace-nowrap is-clickable" onClick={() => this.handleSetSort("elementId(n)")}>
                                         elementId <TableSortIcon sort="elementId(n)" current={this.state.sort} />
                                     </th>
                                 )}
                                 <th></th>
                                 {keys.map(key => (
-                                    <th key={"th-" + key} className="nowrap is-clickable" onClick={() => this.handleSetSort("n." + key)}>
+                                    <th key={"th-" + key} className="wspace-nowrap is-clickable" onClick={() => this.handleSetSort("n." + key)}>
                                         {key} <TableSortIcon sort={"n." + key} current={this.state.sort} />
                                     </th>
                                 ))}
@@ -248,7 +249,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                                             text={"#" + db.strId(row.identity)}
                                         />
                                     </td>
-                                    {this.props.settings.tableViewShowElementId && db.hasElementId && <td className="nowrap">{row.elementId}</td>}
+                                    {settings().tableViewShowElementId && db.hasElementId && <td className="wspace-nowrap">{row.elementId}</td>}
                                     <td>
                                         <div className="buttons is-flex-wrap-nowrap">
                                             {this.props.stashManager.button(row, this.props.database)}

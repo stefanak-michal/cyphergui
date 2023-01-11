@@ -9,7 +9,7 @@ import Type from "./page/Type";
 import Relationship from "./page/Relationship";
 import { EPage } from "./utils/enums";
 import { Button } from "./components/form";
-import { ISettings, IStashEntry, ITabManager } from "./utils/interfaces";
+import { IStashEntry, ITabManager } from "./utils/interfaces";
 import { t_StashValue, t_ToastFn } from "./utils/types";
 import db from "./db";
 import { Integer } from "neo4j-driver";
@@ -23,7 +23,6 @@ interface ILoggedState {
     contents: { id: string; page: EPage; props: object }[];
     toasts: { key: number; message: string; color: string; delay: number; timeout: NodeJS.Timeout }[];
     settingsModal: boolean;
-    settings: ISettings;
     stashed: IStashEntry[];
 }
 
@@ -37,13 +36,6 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         contents: [],
         toasts: [],
         settingsModal: false,
-        settings: localStorage.getItem("settings")
-            ? JSON.parse(localStorage.getItem("settings"))
-            : {
-                  tableViewShowElementId: true,
-                  closeEditAfterExecuteSuccess: true,
-                  forceNamingRecommendations: true,
-              },
         stashed: [],
     };
 
@@ -262,7 +254,6 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                                         tabManager={this.tabManager}
                                         toast={this.toast}
                                         stashManager={this.stashManager}
-                                        settings={this.state.settings}
                                         {...content.props}
                                     />
                                 );
@@ -282,22 +273,13 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
 
                 {this.state.settingsModal && (
                     <Settings
-                        settings={this.state.settings}
-                        handleChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                            const name = e.currentTarget.name;
-                            const checked = e.currentTarget.checked;
-                            this.setState(state => {
-                                return { settings: { ...state.settings, [name]: checked } };
-                            });
-                        }}
                         handleClose={() => {
-                            localStorage.setItem("settings", JSON.stringify(this.state.settings));
                             this.setState({ settingsModal: false });
                         }}
                     />
                 )}
 
-                <Stash stashed={this.state.stashed} settings={this.state.settings} tabManager={this.tabManager} stashManager={this.stashManager} />
+                <Stash stashed={this.state.stashed} tabManager={this.tabManager} stashManager={this.stashManager} />
             </>
         );
     }

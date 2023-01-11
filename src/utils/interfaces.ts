@@ -13,6 +13,7 @@ export interface ISettings {
     tableViewShowElementId: boolean;
     closeEditAfterExecuteSuccess: boolean;
     forceNamingRecommendations: boolean;
+    temporalValueToStringFunction: string;
 }
 
 export interface IStashManager {
@@ -36,5 +37,4 @@ export interface IPageProps {
     tabManager: ITabManager;
     toast: t_ToastFn;
     stashManager: IStashManager;
-    settings: ISettings;
 }

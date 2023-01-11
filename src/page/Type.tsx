@@ -7,6 +7,7 @@ import { IPageProps } from "../utils/interfaces";
 import TableSortIcon from "../components/TableSortIcon";
 import { DeleteModal } from "../components/Modal";
 import db from "../db";
+import { settings } from "../layout/Settings";
 
 interface ITypeProps extends IPageProps {
     database: string;
@@ -210,40 +211,40 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                     <table className="table is-bordered is-striped is-narrow is-hoverable">
                         <thead>
                             <tr>
-                                <th colSpan={this.props.settings.tableViewShowElementId && db.hasElementId ? 3 : 2}>Relationship</th>
+                                <th colSpan={settings().tableViewShowElementId && db.hasElementId ? 3 : 2}>Relationship</th>
                                 {keys.length > 0 ? <th colSpan={keys.length}>properties</th> : ""}
-                                <th colSpan={this.props.settings.tableViewShowElementId && db.hasElementId ? 2 : 1}>Start node</th>
-                                <th colSpan={this.props.settings.tableViewShowElementId && db.hasElementId ? 2 : 1}>End node</th>
+                                <th colSpan={settings().tableViewShowElementId && db.hasElementId ? 2 : 1}>Start node</th>
+                                <th colSpan={settings().tableViewShowElementId && db.hasElementId ? 2 : 1}>End node</th>
                             </tr>
                             <tr>
-                                <th rowSpan={2} className="nowrap is-clickable" onClick={() => this.handleSetSort("id(r)")}>
+                                <th rowSpan={2} className="wspace-nowrap is-clickable" onClick={() => this.handleSetSort("id(r)")}>
                                     id <TableSortIcon sort="id(r)" current={this.state.sort} />
                                 </th>
-                                {this.props.settings.tableViewShowElementId && db.hasElementId && (
-                                    <th rowSpan={2} className="nowrap is-clickable" onClick={() => this.handleSetSort("elementId(r)")}>
+                                {settings().tableViewShowElementId && db.hasElementId && (
+                                    <th rowSpan={2} className="wspace-nowrap is-clickable" onClick={() => this.handleSetSort("elementId(r)")}>
                                         elementId <TableSortIcon sort="elementId(r)" current={this.state.sort} />
                                     </th>
                                 )}
                                 <th></th>
                                 {keys.map(key => (
-                                    <th key={"th-" + key} className="nowrap is-clickable" onClick={() => this.handleSetSort("r." + key)}>
+                                    <th key={"th-" + key} className="wspace-nowrap is-clickable" onClick={() => this.handleSetSort("r." + key)}>
                                         {key} <TableSortIcon sort={"r." + key} current={this.state.sort} />
                                     </th>
                                 ))}
 
-                                <th className="nowrap is-clickable" onClick={() => this.handleSetSort("id(a)")}>
+                                <th className="wspace-nowrap is-clickable" onClick={() => this.handleSetSort("id(a)")}>
                                     id <TableSortIcon sort={"id(a)"} current={this.state.sort} />
                                 </th>
-                                {this.props.settings.tableViewShowElementId && db.hasElementId && (
-                                    <th className="nowrap is-clickable" onClick={() => this.handleSetSort("elementId(a)")}>
+                                {settings().tableViewShowElementId && db.hasElementId && (
+                                    <th className="wspace-nowrap is-clickable" onClick={() => this.handleSetSort("elementId(a)")}>
                                         elementId <TableSortIcon sort={"elementId(a)"} current={this.state.sort} />
                                     </th>
                                 )}
-                                <th className="nowrap is-clickable" onClick={() => this.handleSetSort("id(b)")}>
+                                <th className="wspace-nowrap is-clickable" onClick={() => this.handleSetSort("id(b)")}>
                                     id <TableSortIcon sort={"id(b)"} current={this.state.sort} />
                                 </th>
-                                {this.props.settings.tableViewShowElementId && db.hasElementId && (
-                                    <th className="nowrap is-clickable" onClick={() => this.handleSetSort("elementId(b)")}>
+                                {settings().tableViewShowElementId && db.hasElementId && (
+                                    <th className="wspace-nowrap is-clickable" onClick={() => this.handleSetSort("elementId(b)")}>
                                         elementId <TableSortIcon sort={"elementId(b)"} current={this.state.sort} />
                                     </th>
                                 )}
@@ -264,7 +265,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                             text={"#" + db.strId(row.identity)}
                                         />
                                     </td>
-                                    {this.props.settings.tableViewShowElementId && db.hasElementId && <td className="nowrap">{row.elementId}</td>}
+                                    {settings().tableViewShowElementId && db.hasElementId && <td className="wspace-nowrap">{row.elementId}</td>}
                                     <td>
                                         <div className="is-flex-wrap-nowrap buttons">
                                             {this.props.stashManager.button(row, this.props.database)}
@@ -292,7 +293,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                             text={"#" + db.strId(row.start)}
                                         />
                                     </td>
-                                    {this.props.settings.tableViewShowElementId && db.hasElementId && <td className="nowrap">{row.startNodeElementId}</td>}
+                                    {settings().tableViewShowElementId && db.hasElementId && <td className="wspace-nowrap">{row.startNodeElementId}</td>}
                                     <td>
                                         <Button
                                             onClick={() =>
@@ -305,7 +306,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                             text={"#" + db.strId(row.end)}
                                         />
                                     </td>
-                                    {this.props.settings.tableViewShowElementId && db.hasElementId && <td className="nowrap">{row.endNodeElementId}</td>}
+                                    {settings().tableViewShowElementId && db.hasElementId && <td className="wspace-nowrap">{row.endNodeElementId}</td>}
                                 </tr>
                             ))}
                         </tbody>

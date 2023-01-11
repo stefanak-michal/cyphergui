@@ -1,11 +1,12 @@
 import * as React from "react";
 import { IPageProps } from "../utils/interfaces";
-import { Integer, Node as Neo4jNode, Relationship as Neo4jRelationship } from "neo4j-driver";
+import { Integer, Node as _Node, Relationship as _Relationship } from "neo4j-driver";
 import { EPage, EPropertyType } from "../utils/enums";
 import { Button, Property } from "../components/form";
 import db from "../db";
 import { ClipboardContext } from "../utils/contexts";
 import Modal, { DeleteModal } from "../components/Modal";
+import { settings } from "../layout/Settings";
 
 interface IRelationshipProps extends IPageProps {
     database: string;
@@ -14,9 +15,9 @@ interface IRelationshipProps extends IPageProps {
 }
 
 interface IRelationshipState {
-    rel: Neo4jRelationship | null;
-    start: Neo4jNode | null;
-    end: Neo4jNode | null;
+    rel: _Relationship | null;
+    start: _Node | null;
+    end: _Node | null;
     focus: string | null;
     type: string;
     properties: { name: string; key: string; value: any; type: EPropertyType }[];
@@ -60,7 +61,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                     return;
                 }
 
-                const rel: Neo4jRelationship = response.records[0].get("r");
+                const rel: _Relationship = response.records[0].get("r");
                 let props = [];
                 const t = new Date().getTime();
                 for (let key in rel.properties) {
@@ -75,8 +76,8 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                 props.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
                 this.setState({
                     rel: rel,
-                    start: response.records[0].get("a") as Neo4jNode,
-                    end: response.records[0].get("b") as Neo4jNode,
+                    start: response.records[0].get("a") as _Node,
+                    end: response.records[0].get("b") as _Node,
                     type: rel.type,
                     properties: props,
                 });
@@ -230,7 +231,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
     handleTypeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         let value: string = e.currentTarget.value;
 
-        if (this.props.settings.forceNamingRecommendations) {
+        if (settings().forceNamingRecommendations) {
             value = value.replace(/^[^a-zA-Z]*/, "").replace(/[a-z]/, x => x.toUpperCase());
         }
 

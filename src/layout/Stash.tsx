@@ -1,13 +1,12 @@
 import * as React from "react";
-import { Node as Neo4jNode, Relationship as Neo4jRelationship } from "neo4j-driver";
+import { Node as _Node, Relationship as _Relationship } from "neo4j-driver";
 import db from "../db";
-import { ISettings, IStashEntry, IStashManager, ITabManager } from "../utils/interfaces";
+import { IStashEntry, IStashManager, ITabManager } from "../utils/interfaces";
 import { EPage } from "../utils/enums";
 import { Button, LabelButton, TypeButton } from "../components/form";
 
 interface IStashProps {
     stashed: IStashEntry[];
-    settings: ISettings;
     tabManager: ITabManager;
     stashManager: IStashManager;
 }
@@ -34,14 +33,14 @@ class Stash extends React.Component<IStashProps, IStashState> {
 
     filter = (entry: IStashEntry): boolean => {
         //tab
-        if (this.state.tab === "Nodes" && !(entry.value instanceof Neo4jNode)) return false;
-        if (this.state.tab === "Relationships" && !(entry.value instanceof Neo4jRelationship)) return false;
+        if (this.state.tab === "Nodes" && !(entry.value instanceof _Node)) return false;
+        if (this.state.tab === "Relationships" && !(entry.value instanceof _Relationship)) return false;
         //search
         if (this.state.search.length === 0) return true;
         if (db.strId(entry.value.identity) === this.state.search) return true;
         if (db.hasElementId && entry.value.elementId.indexOf(this.state.search) !== -1) return true;
-        if (entry.value instanceof Neo4jNode && entry.value.labels.indexOf(this.state.search) !== -1) return true;
-        if (entry.value instanceof Neo4jRelationship && entry.value.type === this.state.search) return true;
+        if (entry.value instanceof _Node && entry.value.labels.indexOf(this.state.search) !== -1) return true;
+        if (entry.value instanceof _Relationship && entry.value.type === this.state.search) return true;
         return false;
     };
 
@@ -61,7 +60,7 @@ class Stash extends React.Component<IStashProps, IStashState> {
         return (
             <section className={"stash panel is-dark " + (this.state.active ? "is-active" : "")}>
                 <div
-                    className="panel-heading is-clickable nowrap"
+                    className="panel-heading is-clickable wspace-nowrap"
                     onClick={() =>
                         this.setState(state => {
                             return {
@@ -105,22 +104,22 @@ class Stash extends React.Component<IStashProps, IStashState> {
                                 className="is-align-items-center is-flex is-justify-content-flex-start"
                                 onClick={() =>
                                     this.props.tabManager.add(
-                                        { prefix: entry.value instanceof Neo4jNode ? "Node" : "Rel", i: entry.value.identity },
+                                        { prefix: entry.value instanceof _Node ? "Node" : "Rel", i: entry.value.identity },
                                         "fa-solid fa-pen-to-square",
-                                        entry.value instanceof Neo4jNode ? EPage.Node : EPage.Rel,
+                                        entry.value instanceof _Node ? EPage.Node : EPage.Rel,
                                         { id: db.hasElementId ? entry.value.elementId : entry.value.identity, database: entry.database }
                                     )
                                 }>
                                 <span className="panel-icon">
-                                    <i className={entry.value instanceof Neo4jNode ? "fa-regular fa-circle" : "fa-solid fa-arrow-right-long"} aria-hidden="true" />
+                                    <i className={entry.value instanceof _Node ? "fa-regular fa-circle" : "fa-solid fa-arrow-right-long"} aria-hidden="true" />
                                 </span>
                                 {db.strId(entry.value.identity)}
                                 <span className="ml-1">(db: {entry.database})</span>
                             </a>
                             <span className="ml-2 mr-1">
-                                {entry.value instanceof Neo4jNode &&
+                                {entry.value instanceof _Node &&
                                     entry.value.labels.map(label => <LabelButton key={label} label={label} database={entry.database} tabManager={this.props.tabManager} size="mr-1" />)}
-                                {entry.value instanceof Neo4jRelationship && (
+                                {entry.value instanceof _Relationship && (
                                     <TypeButton key={entry.value.type} type={entry.value.type} database={entry.database} tabManager={this.props.tabManager} size="mr-1" />
                                 )}
                             </span>

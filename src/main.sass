@@ -291,3 +291,20 @@ footer
 
 .is-copyable
   cursor: copy !important
+
+.graph
+  border-radius: $box-radius
+  box-shadow: inset $box-shadow
+  height: 70vh
+  position: relative
+  background-color: white
+
+  &:fullscreen
+    border-radius: 0
+
+  > .buttons
+    position: absolute
+    right: 20px
+    top: 20px
+    flex-direction: column
+    z-index: 1

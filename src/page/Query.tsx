@@ -1,25 +1,26 @@
 import * as React from "react";
-import { Button, Checkbox, LabelButton, Textarea, TypeButton } from "../components/form";
+import { Button, LabelButton, Textarea, TypeButton } from "../components/form";
 import { IPageProps } from "../utils/interfaces";
 import db from "../db";
 import { ClipboardContext } from "../utils/contexts";
 import {
-    Record,
-    ResultSummary,
-    Node as _Node,
-    Relationship as _Relationship,
-    Path as _Path,
     Date as _Date,
-    Time as _Time,
-    LocalTime as _LocalTime,
     DateTime as _DateTime,
-    LocalDateTime as _LocalDateTime,
     Duration as _Duration,
+    LocalDateTime as _LocalDateTime,
+    LocalTime as _LocalTime,
+    Node as _Node,
+    Path as _Path,
+    Record,
+    Relationship as _Relationship,
+    ResultSummary,
+    Time as _Time,
 } from "neo4j-driver";
 import { EPage } from "../utils/enums";
 import Modal from "../components/Modal";
 import { settings } from "../layout/Settings";
 import Duration from "../utils/Duration";
+import { Orb, OrbEventType } from "@memgraph/orb";
 
 interface IQueryProps extends IPageProps {
     query?: string;
@@ -35,15 +36,29 @@ interface IQueryState {
     propertiesModal: object | null;
 }
 
+interface MyNode {
+    id: string;
+    label: string;
+    elementId: string | null;
+}
+
+interface MyEdge {
+    id: string;
+    label: string;
+    start: any;
+    end: any;
+    elementId: string | null;
+}
+
 /**
  * Execute custom query
- * @todo
- * @todo use https://github.com/memgraph/orb to draw graph
+ * todo syntax highlight
+ * todo improve graph view (not yet defined how)
  */
 class Query extends React.Component<IQueryProps, IQueryState> {
     state: IQueryState = {
         view: 1,
-        tableSize: 1,
+        tableSize: 2,
         query: this.props.query || localStorage.getItem(this.props.tabId) || "",
         rows: [],
         summary: null,
@@ -51,12 +66,26 @@ class Query extends React.Component<IQueryProps, IQueryState> {
         propertiesModal: null,
     };
 
+    showTableSize = false;
+    graphElement = React.createRef<HTMLDivElement>();
+    orb: Orb;
+
     componentWillUnmount() {
         localStorage.removeItem(this.props.tabId);
     }
 
+    setShowTableSize = (value: any) => {
+        if (Array.isArray(value)) {
+            value.forEach(this.setShowTableSize);
+        } else if (typeof value === "object") {
+            if (value instanceof _Node || value instanceof _Relationship || value instanceof _Path) this.showTableSize = true;
+            else this.setShowTableSize(Object.values(value));
+        }
+    };
+
     handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        this.showTableSize = false;
 
         db.driver
             .session({
@@ -65,6 +94,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
             .run(this.state.query)
             .then(response => {
                 console.log(response);
+                this.setShowTableSize(response.records);
                 this.setState({
                     summary: response.summary,
                     rows: response.records,
@@ -73,14 +103,66 @@ class Query extends React.Component<IQueryProps, IQueryState> {
             })
             .catch(err => {
                 this.setState({
+                    rows: [],
+                    summary: null,
                     error: "[" + err.name + "] " + err.message,
                 });
             });
     };
 
-    render() {
-        if (!this.props.active) return;
+    changeView = (i: number) => {
+        this.setState(
+            {
+                view: i,
+            },
+            () => {
+                if (this.state.view === 2) {
+                    const current = this.graphElement.current;
+                    if (!current) return;
 
+                    this.orb = new Orb<MyNode, MyEdge>(current);
+
+                    let nodes: MyNode[] = [];
+                    let edges: MyEdge[] = [];
+                    this.state.rows.forEach(row => {
+                        for (let key of row.keys) {
+                            const value = row.get(key);
+                            if (value instanceof _Node) nodes.push({ id: db.strId(value.identity), label: ":" + value.labels.join(":"), elementId: db.hasElementId ? value.elementId : null });
+                            else if (value instanceof _Relationship)
+                                edges.push({
+                                    id: db.strId(value.identity),
+                                    start: db.strId(value.start),
+                                    end: db.strId(value.end),
+                                    label: ":" + value.type,
+                                    elementId: db.hasElementId ? value.elementId : null,
+                                });
+                        }
+                    });
+
+                    this.orb.data.setup({ nodes, edges });
+                    this.orb.view.render(() => {
+                        this.orb.view.recenter();
+                    });
+
+                    this.orb.events.on(OrbEventType.NODE_CLICK, event => {
+                        this.props.tabManager.add({ prefix: "Node", i: event.node.id }, "fa-solid fa-pen-to-square", EPage.Node, {
+                            id: db.hasElementId ? event.node.data.elementId : event.node.id,
+                            database: db.database,
+                        });
+                    });
+
+                    this.orb.events.on(OrbEventType.EDGE_CLICK, event => {
+                        this.props.tabManager.add({ prefix: "Rel", i: event.edge.id }, "fa-solid fa-pen-to-square", EPage.Rel, {
+                            id: db.hasElementId ? event.edge.data.elementId : event.edge.id,
+                            database: db.database,
+                        });
+                    });
+                }
+            }
+        );
+    };
+
+    render() {
         let keys = [];
         this.state.rows.forEach(row => {
             for (let key of row.keys) if (keys.indexOf(key) === -1) keys.push(key);
@@ -158,12 +240,12 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                 <div className="block">
                     <div className="buttons has-addons">
                         <span>
-                            <Button text="Table" color={this.state.view === 1 ? "is-link is-light is-active" : ""} icon="fa-solid fa-table" onClick={() => this.setState({ view: 1 })} />
-                            <Button text="JSON" color={this.state.view === 4 ? "is-link is-light is-active" : ""} icon="fa-brands fa-js" onClick={() => this.setState({ view: 4 })} />
-                            <Button text="Graph" color={this.state.view === 2 ? "is-link is-light is-active" : ""} icon="fa-solid fa-circle-nodes" onClick={() => this.setState({ view: 2 })} />
-                            <Button text="Summary" color={this.state.view === 3 ? "is-link is-light is-active" : ""} icon="fa-solid fa-gauge-high" onClick={() => this.setState({ view: 3 })} />
+                            <Button text="Table" color={this.state.view === 1 ? "is-link is-light is-active" : ""} icon="fa-solid fa-table" onClick={() => this.changeView(1)} />
+                            <Button text="JSON" color={this.state.view === 4 ? "is-link is-light is-active" : ""} icon="fa-brands fa-js" onClick={() => this.changeView(4)} />
+                            <Button text="Graph" color={this.state.view === 2 ? "is-link is-light is-active" : ""} icon="fa-solid fa-circle-nodes" onClick={() => this.changeView(2)} />
+                            <Button text="Summary" color={this.state.view === 3 ? "is-link is-light is-active" : ""} icon="fa-solid fa-gauge-high" onClick={() => this.changeView(3)} />
                         </span>
-                        {this.state.view === 1 && (
+                        {this.state.view === 1 && this.showTableSize && (
                             <span className="ml-3">
                                 <Button
                                     color={this.state.tableSize === 1 ? "is-link is-light is-active" : ""}
@@ -206,11 +288,46 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                                 </table>
                             </div>
                         )}
+                        {this.state.view === 2 && (
+                            <div className="graph" ref={this.graphElement}>
+                                <div className="buttons">
+                                    {document.fullscreenEnabled && (
+                                        <Button
+                                            icon={"fa-solid " + (document.fullscreenElement === null ? "fa-expand" : "fa-compress")}
+                                            color="mr-0"
+                                            onClick={() => {
+                                                if (document.fullscreenElement === null) {
+                                                    this.graphElement.current.requestFullscreen().then(() => {
+                                                        setTimeout(() => this.orb.view.recenter(), 100);
+                                                        this.setState({});
+                                                    });
+                                                } else {
+                                                    document.exitFullscreen().then(() => {
+                                                        setTimeout(() => this.orb.view.recenter(), 100);
+                                                        this.setState({});
+                                                    });
+                                                }
+                                            }}
+                                            title="Fullscreen"
+                                        />
+                                    )}
+                                    <Button icon="fa-solid fa-maximize" onClick={() => this.orb.view.recenter()} color="mr-0" title="Recenter" />
+                                </div>
+                            </div>
+                        )}
 
-                        {this.state.view === 2 && <div className="block">todo graph</div>}
-
-                        {this.state.view === 3 && <div className="block">todo summary</div>}
-
+                        {this.state.view === 3 && (
+                            <div className="control has-icons-right">
+                                <pre>{this.toJSON(this.state.summary)}</pre>
+                                <ClipboardContext.Consumer>
+                                    {copy => (
+                                        <span className="icon is-right is-clickable" onClick={copy} data-copy={this.toJSON(this.state.rows)}>
+                                            <i className="fa-regular fa-copy" />
+                                        </span>
+                                    )}
+                                </ClipboardContext.Consumer>
+                            </div>
+                        )}
                         {this.state.view === 4 && (
                             <div className="control has-icons-right">
                                 <pre>{this.toJSON(this.state.rows)}</pre>
@@ -254,6 +371,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
         );
     };
 
+    // match (a)-[r]->(b) return * limit 100
     // match p=(n)-[r]->(a) return p, n as node, r, a, n { .* } LIMIT 10
     // MATCH p=()-[]->()-[]->() RETURN p
 

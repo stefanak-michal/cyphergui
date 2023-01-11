@@ -9,7 +9,7 @@ import Type from "./page/Type";
 import Relationship from "./page/Relationship";
 import { EPage } from "./utils/enums";
 import { Button } from "./components/form";
-import { IStashEntry, ITabManager } from "./utils/interfaces";
+import { IStashEntry, IStashManager, ITabManager } from "./utils/interfaces";
 import { t_StashValue, t_ToastFn } from "./utils/types";
 import db from "./db";
 import { Integer } from "neo4j-driver";
@@ -68,12 +68,12 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         /**
          * If already exists is switches on it
          */
-        add: (title: string | { prefix: string; i?: any }, icon: string, page: EPage, props: object = {}, id?: string, active: boolean = true) => {
+        add: (title: string | { prefix: string; i?: any }, icon: string, page: EPage, props: object = {}, id: string = "", active: boolean = true) => {
             if (typeof title === "object") {
                 title = this.tabManager.generateName(title.prefix, title.i);
             }
 
-            if (!id) {
+            if (id.length === 0) {
                 //auto generate id from props or title if not provided
                 id = "id" in props && (props.id instanceof Integer || typeof props.id === "string") ? db.strId(props.id) : title;
                 if ("database" in props) id += props.database;
@@ -97,8 +97,8 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                 return obj;
             });
         },
-        close: (id: string, e?: React.PointerEvent) => {
-            !!e && e.stopPropagation();
+        close: (id: string, e: React.PointerEvent = null) => {
+            if (e !== null) e.stopPropagation();
 
             this.setState(state => {
                 let active = state.activeTab;
@@ -127,15 +127,15 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         /**
          * Create tab name with requested prefix and index (it's calculated if omitted)
          */
-        generateName: (prefix: string, i?: any): string => {
-            if (i === undefined) i = Math.max(0, ...this.state.tabs.filter(t => t.title.indexOf(prefix) === 0).map(t => parseInt(t.title.split("#")[1]))) + 1;
+        generateName: (prefix: string, i: any = null): string => {
+            if (i === null) i = Math.max(0, ...this.state.tabs.filter(t => t.title.indexOf(prefix) === 0).map(t => parseInt(t.title.split("#")[1]))) + 1;
             else i = db.strId(i);
             return prefix + "#" + i;
         },
     };
 
     // todo localStorage for stash
-    stashManager = {
+    stashManager: IStashManager = {
         //maybe add queries?
         add: (value: t_StashValue, database: string) => {
             this.setState(state => {
@@ -151,7 +151,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                 };
             });
         },
-        indexOf: (value: t_StashValue, stashed?: IStashEntry[]): number => {
+        indexOf: (value: t_StashValue, stashed: IStashEntry[] = null): number => {
             return (stashed || this.state.stashed).findIndex(s => {
                 return (db.hasElementId && value.elementId === s.value.elementId) || value.identity === s.value.identity;
             });
@@ -159,7 +159,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         empty: () => {
             if (this.state.stashed.length > 0) this.setState({ stashed: [] });
         },
-        button: (value: t_StashValue, database: string, color?: string): JSX.Element => {
+        button: (value: t_StashValue, database: string, color: string = ""): JSX.Element => {
             const i = this.stashManager.indexOf(value);
             return (
                 <Button
@@ -246,16 +246,18 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                                 }
                                 const MyComponent: typeof React.Component = this.components[content.page];
                                 return (
-                                    <MyComponent
-                                        key={"content-" + content.id}
-                                        active={content.id === this.state.activeTab}
-                                        tabName={this.state.tabs.filter(t => t.id === content.id)[0].title}
-                                        tabId={content.id}
-                                        tabManager={this.tabManager}
-                                        toast={this.toast}
-                                        stashManager={this.stashManager}
-                                        {...content.props}
-                                    />
+                                    <div style={content.id === this.state.activeTab ? {} : { display: "none" }} key={"content-" + content.id}>
+                                        <MyComponent
+                                            key={"content-" + content.id}
+                                            active={content.id === this.state.activeTab}
+                                            tabName={this.state.tabs.filter(t => t.id === content.id)[0].title}
+                                            tabId={content.id}
+                                            tabManager={this.tabManager}
+                                            toast={this.toast}
+                                            stashManager={this.stashManager}
+                                            {...content.props}
+                                        />
+                                    </div>
                                 );
                             })}
                         </section>

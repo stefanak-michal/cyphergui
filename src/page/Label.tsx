@@ -77,11 +77,8 @@ class Label extends React.Component<ILabelProps, ILabelState> {
         this.requestData();
     }
 
-    shouldComponentUpdate(nextProps: Readonly<ILabelProps>) {
-        if (nextProps.active && this.props.active !== nextProps.active) {
-            this.requestData();
-        }
-        return true;
+    componentDidUpdate(prevProps: Readonly<ILabelProps>) {
+        if (prevProps.active !== this.props.active && this.props.active) this.requestData();
     }
 
     handleChangePage = (page: number) => {
@@ -137,8 +134,6 @@ class Label extends React.Component<ILabelProps, ILabelState> {
     };
 
     render() {
-        if (!this.props.active) return;
-
         let keys = [];
         for (let row of this.state.rows) {
             for (let k in row.properties) {

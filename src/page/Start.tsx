@@ -22,11 +22,8 @@ class Start extends React.Component<IPageProps, IStartState> {
         this.requestData();
     }
 
-    shouldComponentUpdate(nextProps: Readonly<IPageProps>) {
-        if (nextProps.active && this.props.active !== nextProps.active) {
-            this.requestData();
-        }
-        return true;
+    componentDidUpdate(prevProps: Readonly<IPageProps>) {
+        if (prevProps.active !== this.props.active && this.props.active) this.requestData();
     }
 
     requestData = () => {
@@ -48,8 +45,6 @@ class Start extends React.Component<IPageProps, IStartState> {
     };
 
     render() {
-        if (!this.props.active) return;
-
         return (
             <div className="columns">
                 <div className="column is-three-fifths-desktop is-offset-one-fifth-desktop">

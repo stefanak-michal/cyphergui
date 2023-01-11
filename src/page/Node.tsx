@@ -96,8 +96,8 @@ class Node extends React.Component<INodeProps, INodeState> {
     /**
      * Check if node still exists when switching on this tab
      */
-    shouldComponentUpdate(nextProps: Readonly<INodeProps>) {
-        if (this.props.id && nextProps.active && this.props.active !== nextProps.active) {
+    componentDidUpdate(prevProps: Readonly<INodeProps>) {
+        if (this.props.id && this.props.active && this.props.active !== prevProps.active) {
             db.driver
                 .session({
                     database: this.props.database,
@@ -113,7 +113,6 @@ class Node extends React.Component<INodeProps, INodeState> {
                 })
                 .catch(console.error);
         }
-        return true;
     }
 
     handlePropertyKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -355,8 +354,6 @@ class Node extends React.Component<INodeProps, INodeState> {
     };
 
     render() {
-        if (!this.props.active) return;
-
         if (this.props.id && this.state.node === null) {
             return <span className="has-text-grey-light">Loading...</span>;
         }

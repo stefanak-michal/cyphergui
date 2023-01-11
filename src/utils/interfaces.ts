@@ -19,7 +19,7 @@ export interface ISettings {
 export interface IStashManager {
     add: (value: t_StashValue, database: string) => void;
     remove: (id: number) => void;
-    indexOf: (value: t_StashValue) => number;
+    indexOf: (value: t_StashValue, stashed?: IStashEntry[]) => number;
     empty: () => void;
     button: (value: t_StashValue, database: string, color?: string) => JSX.Element;
 }

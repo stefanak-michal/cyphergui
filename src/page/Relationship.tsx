@@ -95,8 +95,8 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
     /**
      * Check if node still exists when switching on this tab
      */
-    shouldComponentUpdate(nextProps: Readonly<IRelationshipProps>) {
-        if (this.props.id && nextProps.active && this.props.active !== nextProps.active) {
+    componentDidUpdate(prevProps: Readonly<IRelationshipProps>) {
+        if (this.props.id && this.props.active && this.props.active !== prevProps.active) {
             db.driver
                 .session({
                     database: this.props.database,
@@ -273,8 +273,6 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
     };
 
     render() {
-        if (!this.props.active) return;
-
         if (this.props.id && this.state.rel === null) {
             return <span className="has-text-grey-light">Loading...</span>;
         }

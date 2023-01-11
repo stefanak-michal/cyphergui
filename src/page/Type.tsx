@@ -77,11 +77,8 @@ class Type extends React.Component<ITypeProps, ITypeState> {
         this.requestData();
     }
 
-    shouldComponentUpdate(nextProps: Readonly<ITypeProps>) {
-        if (nextProps.active && this.props.active !== nextProps.active) {
-            this.requestData();
-        }
-        return true;
+    componentDidUpdate(prevProps: Readonly<IPageProps>) {
+        if (prevProps.active !== this.props.active && this.props.active) this.requestData();
     }
 
     handleChangePage = (page: number) => {
@@ -143,8 +140,6 @@ class Type extends React.Component<ITypeProps, ITypeState> {
     };
 
     render() {
-        if (!this.props.active) return;
-
         let keys = [];
         for (let row of this.state.rows) {
             for (let k in row.properties) {

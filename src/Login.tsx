@@ -2,6 +2,7 @@ import * as React from "react";
 import { Button, Checkbox, Input } from "./components/form";
 import db from "./db";
 import { Driver } from "neo4j-driver";
+import { Logo } from "./components/html";
 
 interface ILoginData {
     url: string;
@@ -49,7 +50,9 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
     tryConnect = (url: string, username: string, password: string, onError: (error: string) => void) => {
         let driver: Driver;
         try {
-            driver = db.neo4j.driver(url, db.neo4j.auth.basic(username, password), { userAgent: "bolt-admin" });
+            driver = db.neo4j.driver(url, username.length > 0 && password.length > 0 ? db.neo4j.auth.basic(username, password) : { scheme: "none", principal: "", credentials: "" }, {
+                userAgent: "bolt-admin",
+            });
         } catch (err) {
             onError("[" + err.name + "] " + err.message);
             return;
@@ -96,9 +99,12 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
     }
 
     render() {
+        document.title = "Login | BoltAdmin";
         return (
             <section className="mt-5 container is-fluid">
-                <h1 className="title has-text-centered">Bolt Admin</h1>
+                <h1 className="has-text-centered is-size-2">
+                    <Logo />
+                </h1>
                 <form id="login" className="columns mt-6" onSubmit={this.handleSubmit}>
                     <div className="column is-one-third is-offset-one-third box">
                         <Input label="URL" name="url" onChange={this.handleInputChange} value={this.state.url} />
@@ -116,7 +122,7 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
                             }
                         />
                         {this.state.error && <div className="notification is-danger">{this.state.error}</div>}
-                        <Button text="Login" icon="fa-solid fa-bolt" color={"mt-3 is-primary " + (this.state.submitted ? "is-loading" : "")} type="submit" />
+                        <Button text="Login" icon="fa-solid fa-check" color={"mt-3 is-primary " + (this.state.submitted ? "is-loading" : "")} type="submit" />
                     </div>
                 </form>
             </section>

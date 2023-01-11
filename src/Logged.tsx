@@ -242,7 +242,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                                     document.title =
                                         this.state.tabs.filter(t => t.id === content.id)[0].title +
                                         (db.supportsMultiDb && "database" in content.props ? " (db: " + content.props.database + ")" : "") +
-                                        " | Bolt-Admin";
+                                        " | BoltAdmin";
                                 }
                                 const MyComponent: typeof React.Component = this.components[content.page];
                                 return (

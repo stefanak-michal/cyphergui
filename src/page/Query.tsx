@@ -53,6 +53,7 @@ interface MyEdge {
 /**
  * Execute custom query
  * todo syntax highlight
+ * todo Stash query - ref pre tab?!
  * todo improve graph view (not yet defined how)
  */
 class Query extends React.Component<IQueryProps, IQueryState> {

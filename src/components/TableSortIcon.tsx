@@ -4,12 +4,12 @@ export default class TableSortIcon extends React.Component<{ current: string[]; 
     render() {
         return (
             <>
-                {this.props.current.indexOf(this.props.sort) !== -1 && (
+                {this.props.current.includes(this.props.sort) && (
                     <span className="icon">
                         <i className="fa-solid fa-sort-down" />
                     </span>
                 )}
-                {this.props.current.indexOf(this.props.sort + " DESC") !== -1 && (
+                {this.props.current.includes(this.props.sort + " DESC") && (
                     <span className="icon">
                         <i className="fa-solid fa-sort-up" />
                     </span>

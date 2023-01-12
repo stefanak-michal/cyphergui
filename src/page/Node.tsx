@@ -214,7 +214,7 @@ class Node extends React.Component<INodeProps, INodeState> {
             .run("MATCH (n) WITH DISTINCT labels(n) AS ll UNWIND ll AS l RETURN collect(DISTINCT l) AS c")
             .then(response => {
                 this.setState({
-                    labelModal: response.records[0].get("c").filter(l => this.state.labels.indexOf(l) === -1),
+                    labelModal: response.records[0].get("c").filter(l => !this.state.labels.includes(l)),
                 });
             })
             .catch(console.error);
@@ -223,7 +223,7 @@ class Node extends React.Component<INodeProps, INodeState> {
     handleLabelSelect = (label: string) => {
         this.setState(state => {
             return {
-                labels: state.labels.indexOf(label) === -1 ? state.labels.concat(label) : state.labels,
+                labels: !state.labels.includes(label) ? state.labels.concat(label) : state.labels,
                 labelModal: false,
                 labelModalInput: "",
             };
@@ -294,9 +294,9 @@ class Node extends React.Component<INodeProps, INodeState> {
     };
 
     generateQuery = (printable: boolean = false): { query: string; props: object } => {
-        let setLabels = this.props.id ? this.state.labels.filter(l => this.state.node.labels.indexOf(l) === -1).join(":") : this.state.labels.join(":");
+        let setLabels = this.props.id ? this.state.labels.filter(l => !this.state.node.labels.includes(l)).join(":") : this.state.labels.join(":");
         if (setLabels.length > 0) setLabels = " SET n:" + setLabels;
-        let removeLabels = this.props.id ? this.state.node.labels.filter(l => this.state.labels.indexOf(l) === -1).join(":") : "";
+        let removeLabels = this.props.id ? this.state.node.labels.filter(l => !this.state.labels.includes(l)).join(":") : "";
         if (removeLabels.length > 0) removeLabels = " REMOVE n:" + removeLabels;
 
         let props = {};

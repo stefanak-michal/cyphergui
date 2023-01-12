@@ -16,7 +16,7 @@ class Db {
     }
 
     set database(name: string) {
-        if (this.databases.length > 0 && this.databases.indexOf(name) === -1) return;
+        if (this.databases.length > 0 && !this.databases.includes(name)) return;
         this.activedb = name;
         localStorage.setItem("activedb", name);
         for (let fn of this.callbacks_1) fn(name);
@@ -50,7 +50,7 @@ class Db {
                             this.activedb = response.records.find(row => row.get("default")).get("name");
                             this.availableDatabases = response.records.filter(row => row.get("type") !== "system").map(row => row.get("name"));
                             const active = localStorage.getItem("activedb");
-                            if (active && this.activedb !== active) this.activedb = active;
+                            if (active && this.activedb !== active && this.availableDatabases.includes(active)) this.activedb = active;
                             callback();
                         })
                         .catch(console.error);

@@ -30,9 +30,9 @@ class App extends React.Component {
 
                 <footer className="footer">
                     <div className="content has-text-centered">
-                        <b>Bolt-Admin</b> by Michal Stefanak
+                        <b>cypherGUI</b> by Michal Stefanak
                         <br />
-                        <a href="https://github.com/stefanak-michal/bolt-admin" target="_blank" className="icon-text" rel="noreferrer">
+                        <a href="https://github.com/stefanak-michal/cyphergui" target="_blank" className="icon-text" rel="noreferrer">
                             <span className="icon">
                                 <i className="fa-brands fa-github" />
                             </span>

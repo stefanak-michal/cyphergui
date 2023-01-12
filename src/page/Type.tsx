@@ -143,7 +143,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
         let keys = [];
         for (let row of this.state.rows) {
             for (let k in row.properties) {
-                if (keys.indexOf(k) === -1) {
+                if (!keys.includes(k)) {
                     keys.push(k);
                 }
             }
@@ -151,7 +151,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
         //add sorted keys which are not available in visible rows
         for (let s of this.state.sort) {
             s = s.replace(/^r\.([^ ]+)(?: DESC)?$/, "$1");
-            if (keys.indexOf(s) === -1) keys.push(s);
+            if (!keys.includes(s)) keys.push(s);
         }
         keys.sort();
 

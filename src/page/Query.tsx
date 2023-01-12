@@ -166,7 +166,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
     render() {
         let keys = [];
         this.state.rows.forEach(row => {
-            for (let key of row.keys) if (keys.indexOf(key) === -1) keys.push(key);
+            for (let key of row.keys) if (!keys.includes(key)) keys.push(key);
         });
 
         return (

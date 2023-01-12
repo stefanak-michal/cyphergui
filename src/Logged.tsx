@@ -128,7 +128,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
          * Create tab name with requested prefix and index (it's calculated if omitted)
          */
         generateName: (prefix: string, i: any = null): string => {
-            if (i === null) i = Math.max(0, ...this.state.tabs.filter(t => t.title.indexOf(prefix) === 0).map(t => parseInt(t.title.split("#")[1]))) + 1;
+            if (i === null) i = Math.max(0, ...this.state.tabs.filter(t => t.title.startsWith(prefix)).map(t => parseInt(t.title.split("#")[1]))) + 1;
             else i = db.strId(i);
             return prefix + "#" + i;
         },
@@ -218,6 +218,12 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
     render() {
         if (this.state.tabs.length === 0 || this.state.activeTab === null) return;
 
+        const activeContent = this.state.contents.find(c => c.id === this.state.activeTab);
+        document.title =
+            this.state.tabs.find(t => t.id === this.state.activeTab).title +
+            (db.supportsMultiDb && "database" in activeContent.props ? " (db: " + activeContent.props.database + ")" : "") +
+            " / cypherGUI";
+
         return (
             <>
                 <Navbar
@@ -238,12 +244,6 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                     <ToastContext.Provider value={this.toast}>
                         <section className="container is-fluid">
                             {this.state.contents.map(content => {
-                                if (content.id === this.state.activeTab) {
-                                    document.title =
-                                        this.state.tabs.filter(t => t.id === content.id)[0].title +
-                                        (db.supportsMultiDb && "database" in content.props ? " (db: " + content.props.database + ")" : "") +
-                                        " | BoltAdmin";
-                                }
                                 const MyComponent: typeof React.Component = this.components[content.page];
                                 return (
                                     <div style={content.id === this.state.activeTab ? {} : { display: "none" }} key={"content-" + content.id}>

@@ -1,7 +1,6 @@
 import * as React from "react";
 import db from "../db";
 import { Button } from "../components/form";
-import { Logo } from "../components/html";
 
 interface INavbarProps {
     handleLogout: () => void;
@@ -51,8 +50,8 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
         return (
             <nav className="navbar" role="navigation" aria-label="main navigation">
                 <div className="navbar-brand">
-                    <span className="navbar-item icon-text is-size-3">
-                        <Logo />
+                    <span className="navbar-item">
+                        <img src="logo_sm.png" alt="cypherGUI" />
                     </span>
 
                     <a

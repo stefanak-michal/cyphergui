@@ -1,4 +1,4 @@
-import { Driver, Integer } from "neo4j-driver";
+import { Driver, Integer, Node as _Node, Relationship as _Relationship } from "neo4j-driver";
 
 class Db {
     private _neo4j = require("neo4j-driver");
@@ -90,6 +90,10 @@ class Db {
 
     strId = (id: Integer | string): string => {
         return this.isInteger(id) ? this.neo4j.integer.toString(id) : id;
+    };
+
+    getId = (entry: _Node | _Relationship, elementId: string = "elementId", identity: string = "identity"): number | string => {
+        return this.hasElementId ? entry[elementId] : this.neo4j.integer.inSafeRange(entry[identity]) ? this.neo4j.integer.toNumber(entry[identity]) : this.neo4j.integer.toString(entry[identity]);
     };
 
     //singleton

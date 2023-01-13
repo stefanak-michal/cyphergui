@@ -1,17 +1,19 @@
 import * as React from "react";
-import { Button, LabelButton, Property, TypeButton } from "../components/form";
-import { Integer, Node as _Node, Relationship as _Relationship } from "neo4j-driver";
+import { Button, Property } from "../components/form";
+import { Node as _Node, Relationship as _Relationship } from "neo4j-driver";
 import { EPage, EPropertyType } from "../utils/enums";
 import { IPageProps } from "../utils/interfaces";
 import db from "../db";
 import { ClipboardContext } from "../utils/contexts";
 import Modal, { DeleteModal } from "../components/Modal";
 import { settings } from "../layout/Settings";
+import InlineRelationship from "../components/InlineRelationship";
+import InlineNode from "../components/InlineNode";
 
 interface INodeProps extends IPageProps {
     database: string;
     label: string;
-    id: Integer | string;
+    id: number | string | null;
 }
 
 interface INodeState {
@@ -22,7 +24,7 @@ interface INodeState {
     labelModal: boolean | string[];
     labelModalInput: string;
     error: string | null;
-    delete: Integer | string | false;
+    delete: number | string | false;
     showAllRels: boolean;
 }
 
@@ -44,9 +46,15 @@ class Node extends React.Component<INodeProps, INodeState> {
 
     rels: _Relationship[] = [];
     nodes: _Node[] = [];
+    create: boolean = true;
+
+    constructor(props) {
+        super(props);
+        this.create = props.id === null;
+    }
 
     requestData = () => {
-        if (!this.props.id) return;
+        if (this.create) return;
         db.driver
             .session({
                 database: this.props.database,
@@ -97,7 +105,7 @@ class Node extends React.Component<INodeProps, INodeState> {
      * Check if node still exists when switching on this tab
      */
     componentDidUpdate(prevProps: Readonly<INodeProps>) {
-        if (this.props.id && this.props.active && this.props.active !== prevProps.active) {
+        if (!this.create && this.props.active && this.props.active !== prevProps.active) {
             db.driver
                 .session({
                     database: this.props.database,
@@ -277,14 +285,14 @@ class Node extends React.Component<INodeProps, INodeState> {
             })
             .then(response => {
                 if (response.summary.counters.containsUpdates()) {
-                    this.props.toast(this.props.id ? "Node updated" : "Node created");
+                    this.props.toast(this.create ? "Node created" : "Node updated");
                 }
                 if (settings().closeEditAfterExecuteSuccess) {
                     this.props.tabManager.close(this.props.tabId);
-                } else if (!this.props.id) {
+                } else if (this.create) {
                     const node = response.records[0].get("n");
                     this.props.tabManager.add({ prefix: "Node", i: node.identity }, "fa-solid fa-pen-to-square", EPage.Node, {
-                        id: db.hasElementId ? node.elementId : node.identity,
+                        id: db.getId(node),
                         database: this.props.database,
                     });
                     this.props.tabManager.close(this.props.tabId);
@@ -294,9 +302,9 @@ class Node extends React.Component<INodeProps, INodeState> {
     };
 
     generateQuery = (printable: boolean = false): { query: string; props: object } => {
-        let setLabels = this.props.id ? this.state.labels.filter(l => !this.state.node.labels.includes(l)).join(":") : this.state.labels.join(":");
+        let setLabels = !this.create ? this.state.labels.filter(l => !this.state.node.labels.includes(l)).join(":") : this.state.labels.join(":");
         if (setLabels.length > 0) setLabels = " SET n:" + setLabels;
-        let removeLabels = this.props.id ? this.state.node.labels.filter(l => !this.state.labels.includes(l)).join(":") : "";
+        let removeLabels = !this.create ? this.state.node.labels.filter(l => !this.state.labels.includes(l)).join(":") : "";
         if (removeLabels.length > 0) removeLabels = " REMOVE n:" + removeLabels;
 
         let props = {};
@@ -304,7 +312,7 @@ class Node extends React.Component<INodeProps, INodeState> {
 
         let query: string = "";
         if (printable) {
-            if (this.props.id) query += "MATCH (n) WHERE " + db.fnId() + " = " + (db.hasElementId ? "'" + this.props.id + "'" : db.strId(this.props.id));
+            if (!this.create) query += "MATCH (n) WHERE " + db.fnId() + " = " + (typeof this.props.id === "string" ? "'" + this.props.id + "'" : this.props.id);
             else query += "CREATE (n)";
             query += setLabels + removeLabels;
             if (this.state.properties.length) {
@@ -325,13 +333,13 @@ class Node extends React.Component<INodeProps, INodeState> {
                 query += s.join(", ") + "}";
             }
         } else {
-            query += (this.props.id ? "MATCH (n) WHERE " + db.fnId() + " = $id" : "CREATE (n)") + setLabels + removeLabels + " SET n = $p RETURN n";
+            query += (!this.create ? "MATCH (n) WHERE " + db.fnId() + " = $id" : "CREATE (n)") + setLabels + removeLabels + " SET n = $p RETURN n";
         }
 
         return { query: query, props: props };
     };
 
-    handleDeleteModalConfirm = (id: Integer | string, detach: boolean) => {
+    handleDeleteModalConfirm = (id: number | string, detach: boolean) => {
         db.driver
             .session({
                 database: this.props.database,
@@ -354,7 +362,7 @@ class Node extends React.Component<INodeProps, INodeState> {
     };
 
     render() {
-        if (this.props.id && this.state.node === null) {
+        if (!this.create && this.state.node === null) {
             return <span className="has-text-grey-light">Loading...</span>;
         }
 
@@ -389,7 +397,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                 )}
 
                 <form onSubmit={this.handleSubmit}>
-                    {this.props.id && (
+                    {!this.create && (
                         <ClipboardContext.Consumer>
                             {copy => (
                                 <div className="columns">
@@ -433,7 +441,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                                     <button className="delete" onClick={() => this.handleLabelDelete(label)} />
                                 </span>
                             ))}
-                            <Button icon="fa-solid fa-plus" color="button tag is-medium" onClick={this.handleLabelOpenModal} />
+                            <Button icon="fa-solid fa-plus" onClick={this.handleLabelOpenModal} />
                         </div>
                     </fieldset>
 
@@ -467,10 +475,8 @@ class Node extends React.Component<INodeProps, INodeState> {
                                 Relationships
                             </legend>
                             {(this.state.showAllRels ? this.rels : this.rels.slice(0, 3)).map(r => {
-                                const dir = db.strId(db.hasElementId ? r.startNodeElementId : r.start) === db.strId(db.hasElementId ? this.props.id : this.props.id) ? 1 : 2;
-                                const node = this.nodes.find(
-                                    n => (db.hasElementId ? n.elementId : n.identity) === (db.hasElementId ? (dir === 2 ? r.startNodeElementId : r.endNodeElementId) : dir === 2 ? r.start : r.end)
-                                );
+                                const dir = db.getId(r, "startNodeElementId", "start") === this.props.id ? 1 : 2;
+                                const node = this.nodes.find(n => db.getId(n) === db.getId(r, dir === 2 ? "startNodeElementId" : "endNodeElementId", dir === 2 ? "start" : "end"));
 
                                 return (
                                     <div key={db.strId(r.identity)} className="is-flex is-align-items-center is-justify-content-flex-start mb-3 mb-last-none">
@@ -479,33 +485,9 @@ class Node extends React.Component<INodeProps, INodeState> {
                                             {dir === 2 && "<"}
                                             -[
                                         </span>
-                                        <TypeButton type={r.type} database={this.props.database} tabManager={this.props.tabManager} />
-                                        <Button
-                                            onClick={() =>
-                                                this.props.tabManager.add({ prefix: "Rel", i: r.identity }, "fa-solid fa-pen-to-square", EPage.Rel, {
-                                                    id: db.hasElementId ? r.elementId : r.identity,
-                                                    database: this.props.database,
-                                                })
-                                            }
-                                            color="is-small ml-1"
-                                            icon="fa-solid fa-pen-clip"
-                                            text={"#" + db.strId(r.identity)}
-                                        />
+                                        <InlineRelationship rel={r} tabManager={this.props.tabManager} small={true} />
                                         <span className="is-size-4">]-{dir === 1 && ">"}(</span>
-                                        {node.labels.map(label => (
-                                            <LabelButton key={label} label={label} database={this.props.database} tabManager={this.props.tabManager} size="mr-1" />
-                                        ))}
-                                        <Button
-                                            onClick={() =>
-                                                this.props.tabManager.add({ prefix: "Node", i: node.identity }, "fa-solid fa-pen-to-square", EPage.Node, {
-                                                    id: db.hasElementId ? node.elementId : node.identity,
-                                                    database: this.props.database,
-                                                })
-                                            }
-                                            color="is-small"
-                                            icon="fa-solid fa-pen-clip"
-                                            text={"#" + db.strId(node.identity)}
-                                        />
+                                        <InlineNode node={node} tabManager={this.props.tabManager} small={true} />
                                         <span className=" is-size-4">)</span>
                                         <span className="ml-auto">end line buttons - stash (path)?</span>
                                     </div>
@@ -517,7 +499,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                         </fieldset>
                     )}
 
-                    <div className="mb-3">
+                    <div className="mb-3" style={{ overflowY: "auto" }}>
                         <span className="icon-text is-flex-wrap-nowrap">
                             <span className="icon">
                                 <i className="fa-solid fa-terminal" aria-hidden="true" />
@@ -535,17 +517,10 @@ class Node extends React.Component<INodeProps, INodeState> {
                     <div className="field">
                         <div className="control buttons is-justify-content-flex-end">
                             <Button color="is-success" type="submit" icon="fa-solid fa-check" text="Execute" />
-                            {this.props.id && this.props.stashManager.button(this.state.node, this.props.database)}
-                            {this.props.id && <Button icon="fa-solid fa-refresh" text="Reload" onClick={this.requestData} />}
+                            {!this.create && this.props.stashManager.button(this.state.node, this.props.database)}
+                            {!this.create && <Button icon="fa-solid fa-refresh" text="Reload" onClick={this.requestData} />}
                             <Button icon="fa-solid fa-xmark" text="Close" onClick={e => this.props.tabManager.close(this.props.tabId, e)} />
-                            {this.props.id && (
-                                <Button
-                                    icon="fa-regular fa-trash-can"
-                                    color="is-danger"
-                                    text="Delete"
-                                    onClick={() => this.setState({ delete: db.hasElementId ? this.state.node.elementId : this.state.node.identity })}
-                                />
-                            )}
+                            {!this.create && <Button icon="fa-regular fa-trash-can" color="is-danger" text="Delete" onClick={() => this.setState({ delete: db.getId(this.state.node) })} />}
                         </div>
                     </div>
                 </form>

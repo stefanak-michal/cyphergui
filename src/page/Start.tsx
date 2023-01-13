@@ -71,7 +71,7 @@ class Start extends React.Component<IPageProps, IStartState> {
                             text="Create node"
                             color=""
                             onClick={() =>
-                                this.props.tabManager.add({ prefix: "New node" }, "fa-regular fa-square-plus", EPage.Node, { id: null, database: db.database }, new Date().getTime().toString())
+                                this.props.tabManager.add({ prefix: "New node" }, "fa-solid fa-square-plus", EPage.Node, { id: null, database: db.database }, new Date().getTime().toString())
                             }
                         />
                     </div>
@@ -84,6 +84,17 @@ class Start extends React.Component<IPageProps, IStartState> {
                             <span className="has-text-grey-light">none</span>
                         )}
                     </div>
+                    <div className="buttons">
+                        <Button
+                            icon="fa-solid fa-plus"
+                            text="Create relationship"
+                            color=""
+                            onClick={() =>
+                                this.props.tabManager.add({ prefix: "New relationship" }, "fa-regular fa-square-plus", EPage.Rel, { id: null, database: db.database }, new Date().getTime().toString())
+                            }
+                        />
+                    </div>
+                    <br />
                     <br />
                 </div>
             </div>

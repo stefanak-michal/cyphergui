@@ -5,6 +5,7 @@ export enum EPage {
     Label = "label",
     Type = "type",
     Rel = "relationship",
+    History = "history",
 }
 
 export enum EPropertyType {
@@ -13,4 +14,11 @@ export enum EPropertyType {
     Float = "Float",
     Boolean = "Boolean",
     List = "List",
+}
+
+export enum EQueryView {
+    Table = 1,
+    Graph = 2,
+    Summary = 3,
+    JSON = 4,
 }

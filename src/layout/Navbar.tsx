@@ -1,11 +1,13 @@
 import * as React from "react";
 import db from "../db";
 import { Button } from "../components/form";
+import { ITabManager } from "../utils/interfaces";
+import { EPage } from "../utils/enums";
 
 interface INavbarProps {
     handleLogout: () => void;
-    handleAddQueryTab: () => void;
     handleOpenSettings: () => void;
+    tabManager: ITabManager;
 }
 
 interface INavbarState {
@@ -51,7 +53,7 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
             <nav className="navbar" role="navigation" aria-label="main navigation">
                 <div className="navbar-brand">
                     <span className="navbar-item">
-                        <img src="logo_sm.png" alt="cypherGUI" />
+                        <img src="logo.svg" alt="cypherGUI" />
                     </span>
 
                     <a
@@ -91,7 +93,8 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
                     <div className="navbar-end">
                         <div className="navbar-item">
                             <div className="buttons">
-                                <Button icon="fa-regular fa-plus" text="Query" onClick={this.props.handleAddQueryTab} color="is-info" />
+                                <Button icon="fa-regular fa-plus" text="Query" onClick={() => this.props.tabManager.add({ prefix: "Query" }, "fa-solid fa-terminal", EPage.Query)} color="is-info" />
+                                <Button icon="fa-solid fa-clock-rotate-left" onClick={() => this.props.tabManager.add("History", "fa-solid fa-clock-rotate-left", EPage.History)} />
                                 <Button icon="fa-solid fa-gears" onClick={this.props.handleOpenSettings} />
                                 <Button onClick={this.props.handleLogout} text="Log out" />
                             </div>

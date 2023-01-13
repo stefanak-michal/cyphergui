@@ -7,12 +7,12 @@ import Node from "./page/Node";
 import Label from "./page/Label";
 import Type from "./page/Type";
 import Relationship from "./page/Relationship";
+import History from "./page/History";
 import { EPage } from "./utils/enums";
 import { Button } from "./components/form";
 import { IStashEntry, IStashManager, ITabManager } from "./utils/interfaces";
 import { t_StashValue, t_ToastFn } from "./utils/types";
 import db from "./db";
-import { Integer } from "neo4j-driver";
 import Stash from "./layout/Stash";
 import Settings from "./layout/Settings";
 import { ClipboardContext, ToastContext } from "./utils/contexts";
@@ -46,6 +46,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         [EPage.Label]: Label,
         [EPage.Type]: Type,
         [EPage.Rel]: Relationship,
+        [EPage.History]: History,
     };
 
     constructor(props) {
@@ -68,14 +69,14 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         /**
          * If already exists is switches on it
          */
-        add: (title: string | { prefix: string; i?: any }, icon: string, page: EPage, props: object = {}, id: string = "", active: boolean = true) => {
+        add: (title: string | { prefix: string; i?: any }, icon: string, page: EPage, props: object = {}, id: string = "", active: boolean = true): string => {
             if (typeof title === "object") {
                 title = this.tabManager.generateName(title.prefix, title.i);
             }
 
             if (id.length === 0) {
                 //auto generate id from props or title if not provided
-                id = "id" in props && (props.id instanceof Integer || typeof props.id === "string") ? db.strId(props.id) : title;
+                id = "id" in props && (typeof props.id === "number" || typeof props.id === "string") ? props.id.toString() : title;
                 if ("database" in props) id += props.database;
             }
 
@@ -86,6 +87,10 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                     if (i !== -1) state.tabs.splice(i + 1, 0, { id: id, title: title as string, icon: icon });
                     else state.tabs.push({ id: id, title: title as string, icon: icon });
                     state.contents.push({ id: id, page: page, props: props });
+                } else {
+                    //update props of existing tab
+                    let content = state.contents.find(c => c.id === id);
+                    content.props = { ...content.props, ...props };
                 }
 
                 const obj = {
@@ -96,6 +101,8 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                 localStorage.setItem("tabs", JSON.stringify(obj));
                 return obj;
             });
+
+            return id;
         },
         close: (id: string, e: React.PointerEvent = null) => {
             if (e !== null) e.stopPropagation();
@@ -153,7 +160,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         },
         indexOf: (value: t_StashValue, stashed: IStashEntry[] = null): number => {
             return (stashed || this.state.stashed).findIndex(s => {
-                return (db.hasElementId && value.elementId === s.value.elementId) || value.identity === s.value.identity;
+                return db.getId(value) === db.getId(s.value);
             });
         },
         empty: () => {
@@ -169,6 +176,9 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                     icon={i === -1 ? "fa-solid fa-folder-plus" : "fa-solid fa-folder-minus"}
                 />
             );
+        },
+        get: (): IStashEntry[] => {
+            return this.state.stashed;
         },
     };
 
@@ -206,6 +216,18 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         } else if (target instanceof HTMLElement) {
             if ((target.firstChild instanceof HTMLInputElement && target.firstChild.disabled) || (target.firstChild instanceof HTMLTextAreaElement && target.firstChild.disabled)) {
                 if (target.firstChild.value.length > 0) text = target.firstChild.value;
+            } else if (target.className.includes("icon") && target.className.includes("is-right")) {
+                let element;
+                for (let i = 0; i < target.parentElement.children.length; i++) {
+                    element = target.parentElement.children[i];
+                    if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
+                        if (element.value.length > 0) text = element.value;
+                        break;
+                    } else if (!element.className.includes("icon")) {
+                        if (element.innerText.length > 0) text = element.innerText;
+                        break;
+                    }
+                }
             } else if (target.innerText.length > 0) text = target.innerText;
         }
 
@@ -226,11 +248,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
 
         return (
             <>
-                <Navbar
-                    handleLogout={this.props.handleLogout}
-                    handleAddQueryTab={() => this.tabManager.add({ prefix: "Query" }, "fa-solid fa-terminal", EPage.Query)}
-                    handleOpenSettings={() => this.setState({ settingsModal: true })}
-                />
+                <Navbar handleLogout={this.props.handleLogout} handleOpenSettings={() => this.setState({ settingsModal: true })} tabManager={this.tabManager} />
 
                 <section className="tabs is-boxed sticky has-background-white">
                     <ul>
@@ -248,7 +266,6 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                                 return (
                                     <div style={content.id === this.state.activeTab ? {} : { display: "none" }} key={"content-" + content.id}>
                                         <MyComponent
-                                            key={"content-" + content.id}
                                             active={content.id === this.state.activeTab}
                                             tabName={this.state.tabs.filter(t => t.id === content.id)[0].title}
                                             tabId={content.id}

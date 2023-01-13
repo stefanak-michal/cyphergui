@@ -3,7 +3,7 @@ import * as React from "react";
 import { t_StashValue, t_ToastFn } from "./types";
 
 export interface ITabManager {
-    add: (title: string | { prefix: string; i?: any }, icon: string, page: EPage, props?: object, id?: string, active?: boolean) => void;
+    add: (title: string | { prefix: string; i?: any }, icon: string, page: EPage, props?: object, id?: string, active?: boolean) => string;
     close: (id: string, e?: React.PointerEvent) => void;
     setActive: (id: string) => void;
     generateName: (prefix: string, i?: any) => string;
@@ -22,6 +22,7 @@ export interface IStashManager {
     indexOf: (value: t_StashValue, stashed?: IStashEntry[]) => number;
     empty: () => void;
     button: (value: t_StashValue, database: string, color?: string) => JSX.Element;
+    get: () => IStashEntry[];
 }
 
 export interface IStashEntry {

@@ -2,8 +2,8 @@ import * as React from "react";
 import Pagination from "../components/Pagination";
 import TableSortIcon from "../components/TableSortIcon";
 import { Button, Checkbox, LabelButton } from "../components/form";
-import { Integer, Node as _Node } from "neo4j-driver";
-import { EPage } from "../utils/enums";
+import { Node as _Node } from "neo4j-driver";
+import { EPage, EQueryView } from "../utils/enums";
 import { IPageProps } from "../utils/interfaces";
 import db from "../db";
 import { DeleteModal } from "../components/Modal";
@@ -19,7 +19,7 @@ interface ILabelState {
     page: number;
     total: number;
     sort: string[];
-    delete: Integer | string | false;
+    delete: number | string | false;
     error: string | null;
 }
 
@@ -28,6 +28,7 @@ interface ILabelState {
  */
 class Label extends React.Component<ILabelProps, ILabelState> {
     perPage: number = 20;
+    queryTabId: string;
 
     state: ILabelState = {
         rows: [],
@@ -90,7 +91,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
         );
     };
 
-    handleDeleteModalConfirm = (id: Integer | string, detach: boolean) => {
+    handleDeleteModalConfirm = (id: number | string, detach: boolean) => {
         db.driver
             .session({
                 database: this.props.database,
@@ -102,7 +103,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
             .then(response => {
                 if (response.summary.counters.updates().nodesDeleted > 0) {
                     this.requestData();
-                    this.props.tabManager.close(db.strId(id) + this.props.database);
+                    this.props.tabManager.close(id + this.props.database);
                     this.props.toast("Node deleted");
                 }
             })
@@ -151,11 +152,21 @@ class Label extends React.Component<ILabelProps, ILabelState> {
 
         const additionalLabels = this.state.rows.filter(row => row.labels.length > 1).length > 0;
 
+        const printQuery =
+            "MATCH (n:" +
+            this.props.label +
+            ") RETURN n" +
+            (this.state.sort.length ? " ORDER BY " + this.state.sort.join(", ") : "") +
+            " SKIP " +
+            (this.state.page - 1) * this.perPage +
+            " LIMIT " +
+            this.perPage;
+
         return (
             <>
                 {this.state.delete && <DeleteModal delete={this.state.delete} detach handleConfirm={this.handleDeleteModalConfirm} handleClose={() => this.setState({ delete: false })} />}
 
-                {typeof this.state.error === "string" && (
+                {this.state.error && (
                     <div className="message is-danger">
                         <div className="message-header">
                             <p>Error</p>
@@ -165,21 +176,12 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                     </div>
                 )}
 
-                <div className="mb-3">
+                <div className="mb-3" style={{ overflowY: "auto" }}>
                     <span className="icon-text is-flex-wrap-nowrap">
                         <span className="icon">
                             <i className="fa-solid fa-terminal" aria-hidden="true" />
                         </span>
-                        <span className="is-family-code">
-                            {"MATCH (n:" +
-                                this.props.label +
-                                ") RETURN n " +
-                                (this.state.sort.length ? "ORDER BY " + this.state.sort.join(", ") : "") +
-                                " SKIP " +
-                                (this.state.page - 1) * this.perPage +
-                                " LIMIT " +
-                                this.perPage}
-                        </span>
+                        <span className="is-family-code">{printQuery}</span>
                     </span>
                 </div>
 
@@ -191,7 +193,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                         onClick={() =>
                             this.props.tabManager.add(
                                 { prefix: "New node" },
-                                "fa-regular fa-square-plus",
+                                "fa-solid fa-square-plus",
                                 EPage.Node,
                                 {
                                     id: null,
@@ -200,6 +202,19 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                                 },
                                 new Date().getTime().toString()
                             )
+                        }
+                    />
+                    <Button
+                        icon=""
+                        text="View as graph"
+                        onClick={() =>
+                            (this.queryTabId = this.props.tabManager.add(
+                                { prefix: "Query" },
+                                "fa-solid fa-terminal",
+                                EPage.Query,
+                                { query: printQuery, execute: true, view: EQueryView.Graph },
+                                this.queryTabId
+                            ))
                         }
                     />
                 </div>
@@ -236,7 +251,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                                         <Button
                                             onClick={() =>
                                                 this.props.tabManager.add({ prefix: "Node", i: row.identity }, "fa-solid fa-pen-to-square", EPage.Node, {
-                                                    id: db.hasElementId ? row.elementId : row.identity,
+                                                    id: db.getId(row),
                                                     database: this.props.database,
                                                 })
                                             }
@@ -248,12 +263,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                                     <td>
                                         <div className="buttons is-flex-wrap-nowrap">
                                             {this.props.stashManager.button(row, this.props.database)}
-                                            <Button
-                                                icon="fa-regular fa-trash-can"
-                                                color="is-danger is-outlined"
-                                                title="Delete"
-                                                onClick={() => this.setState({ delete: db.hasElementId ? row.elementId : row.identity })}
-                                            />
+                                            <Button icon="fa-regular fa-trash-can" color="is-danger is-outlined" title="Delete" onClick={() => this.setState({ delete: db.getId(row) })} />
                                         </div>
                                     </td>
                                     {additionalLabels && (

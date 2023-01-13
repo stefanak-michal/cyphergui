@@ -21,7 +21,6 @@ interface ILoginState {
 /**
  * Login page
  * @todo add additional info
- * @todo update logo
  */
 class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
     state: ILoginState = {
@@ -104,7 +103,7 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
                 <div className="columns">
                     <div className="column is-one-third is-offset-one-third">
                         <h1 className="has-text-centered">
-                            <img src="logo.png" alt="cypherGUI" />
+                            <img src="logo.svg" alt="cypherGUI" />
                         </h1>
                     </div>
                 </div>

@@ -1,8 +1,8 @@
 import * as React from "react";
 import Pagination from "../components/Pagination";
-import { Integer, Relationship as Neo4jRelationship } from "neo4j-driver";
+import { Relationship as Neo4jRelationship } from "neo4j-driver";
 import { Button, Checkbox } from "../components/form";
-import { EPage } from "../utils/enums";
+import { EPage, EQueryView } from "../utils/enums";
 import { IPageProps } from "../utils/interfaces";
 import TableSortIcon from "../components/TableSortIcon";
 import { DeleteModal } from "../components/Modal";
@@ -19,7 +19,7 @@ interface ITypeState {
     page: number;
     total: number;
     sort: string[];
-    delete: Integer | string | false;
+    delete: number | string | false;
     error: string | null;
 }
 
@@ -28,6 +28,7 @@ interface ITypeState {
  */
 class Type extends React.Component<ITypeProps, ITypeState> {
     perPage: number = 20;
+    queryTabId: string;
 
     state: ITypeState = {
         rows: [],
@@ -96,7 +97,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
         });
     };
 
-    handleDeleteModalConfirm = (id: Integer | string) => {
+    handleDeleteModalConfirm = (id: number | string) => {
         db.driver
             .session({
                 database: this.props.database,
@@ -108,7 +109,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
             .then(response => {
                 if (response.summary.counters.updates().nodesDeleted > 0) {
                     this.requestData();
-                    this.props.tabManager.close(db.strId(id) + this.props.database);
+                    this.props.tabManager.close(id + this.props.database);
                     this.props.toast("Relationship deleted");
                 }
             })
@@ -169,7 +170,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                     </div>
                 )}
 
-                <div className="mb-3">
+                <div className="mb-3" style={{ overflowY: "auto" }}>
                     <span className="icon-text is-flex-wrap-nowrap">
                         <span className="icon">
                             <i className="fa-solid fa-terminal" aria-hidden="true" />
@@ -177,8 +178,8 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                         <span className="is-family-code">
                             {"MATCH (a)-[r:" +
                                 this.props.type +
-                                "]->(b) RETURN r " +
-                                (this.state.sort.length ? "ORDER BY " + this.state.sort.join(", ") : "") +
+                                "]->(b) RETURN r" +
+                                (this.state.sort.length ? " ORDER BY " + this.state.sort.join(", ") : "") +
                                 " SKIP " +
                                 (this.state.page - 1) * this.perPage +
                                 " LIMIT " +
@@ -198,6 +199,31 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                 database: this.props.database,
                                 type: this.props.type,
                             })
+                        }
+                    />
+                    <Button
+                        icon=""
+                        text="View as graph"
+                        onClick={() =>
+                            (this.queryTabId = this.props.tabManager.add(
+                                { prefix: "Query" },
+                                "fa-solid fa-terminal",
+                                EPage.Query,
+                                {
+                                    query:
+                                        "MATCH (a)-[r:" +
+                                        this.props.type +
+                                        "]->(b) RETURN a, r, b" +
+                                        (this.state.sort.length ? " ORDER BY " + this.state.sort.join(", ") : "") +
+                                        " SKIP " +
+                                        (this.state.page - 1) * this.perPage +
+                                        " LIMIT " +
+                                        this.perPage,
+                                    execute: true,
+                                    view: EQueryView.Graph,
+                                },
+                                this.queryTabId
+                            ))
                         }
                     />
                 </div>
@@ -251,8 +277,8 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                     <td>
                                         <Button
                                             onClick={() =>
-                                                this.props.tabManager.add({ prefix: "Rel", i: row.identity }, "fa-solid fa-pen-to-square", EPage.Rel, {
-                                                    id: db.hasElementId ? row.elementId : row.identity,
+                                                this.props.tabManager.add({ prefix: "Rel", i: row.identity }, "fa-regular fa-pen-to-square", EPage.Rel, {
+                                                    id: db.getId(row),
                                                     database: this.props.database,
                                                 })
                                             }
@@ -264,12 +290,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                     <td>
                                         <div className="is-flex-wrap-nowrap buttons">
                                             {this.props.stashManager.button(row, this.props.database)}
-                                            <Button
-                                                icon="fa-regular fa-trash-can"
-                                                color="is-danger is-outlined"
-                                                title="Delete"
-                                                onClick={() => this.setState({ delete: db.hasElementId ? row.elementId : row.identity })}
-                                            />
+                                            <Button icon="fa-regular fa-trash-can" color="is-danger is-outlined" title="Delete" onClick={() => this.setState({ delete: db.getId(row) })} />
                                         </div>
                                     </td>
                                     {keys.map(key => (
@@ -280,7 +301,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                         <Button
                                             onClick={() =>
                                                 this.props.tabManager.add({ prefix: "Node", i: row.start }, "fa-solid fa-pen-to-square", EPage.Node, {
-                                                    id: db.hasElementId ? row.startNodeElementId : row.start,
+                                                    id: db.getId(row, "startNodeElementId", "start"),
                                                     database: this.props.database,
                                                 })
                                             }
@@ -293,7 +314,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                         <Button
                                             onClick={() =>
                                                 this.props.tabManager.add({ prefix: "Node", i: row.end }, "fa-solid fa-pen-to-square", EPage.Node, {
-                                                    id: db.hasElementId ? row.endNodeElementId : row.end,
+                                                    id: db.getId(row, "endNodeElementId", "end"),
                                                     database: this.props.database,
                                                 })
                                             }

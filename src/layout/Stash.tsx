@@ -44,6 +44,7 @@ class Stash extends React.Component<IStashProps, IStashState> {
         return false;
     };
 
+    //todo change to use InlineNode & InlineRelationship
     render() {
         let a = [];
         for (let i = 0; i < 20; i++) {
@@ -105,9 +106,9 @@ class Stash extends React.Component<IStashProps, IStashState> {
                                 onClick={() =>
                                     this.props.tabManager.add(
                                         { prefix: entry.value instanceof _Node ? "Node" : "Rel", i: entry.value.identity },
-                                        "fa-solid fa-pen-to-square",
+                                        (entry.value instanceof _Node ? "fa-solid" : "fa-regular") + " fa-pen-to-square",
                                         entry.value instanceof _Node ? EPage.Node : EPage.Rel,
-                                        { id: db.hasElementId ? entry.value.elementId : entry.value.identity, database: entry.database }
+                                        { id: db.getId(entry.value), database: entry.database }
                                     )
                                 }>
                                 <span className="panel-icon">

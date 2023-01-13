@@ -40,7 +40,17 @@ export class Checkbox extends React.Component<{ name: string; label: string; col
 }
 
 export class Textarea extends React.Component<
-    { name: string; value: string; onChange?: (e: React.ChangeEvent) => void; autoresize?: boolean; focus?: boolean; placeholder?: string; color?: string; required?: boolean },
+    {
+        name: string;
+        value: string;
+        onChange?: (e: React.ChangeEvent) => void;
+        autoresize?: boolean;
+        focus?: boolean;
+        placeholder?: string;
+        color?: string;
+        required?: boolean;
+        onKeyDown?: (e: React.KeyboardEvent) => void;
+    },
     { height: number }
 > {
     ref = React.createRef<HTMLTextAreaElement>();
@@ -75,6 +85,7 @@ export class Textarea extends React.Component<
                 autoFocus={this.props.focus || false}
                 placeholder={this.props.placeholder}
                 required={this.props.required}
+                onKeyDown={this.props.onKeyDown}
             />
         );
     }
@@ -202,7 +213,7 @@ export class Property extends React.Component<{
                             <Textarea name={this.props.name} value={this.props.value} onChange={this.props.onValueChange} focus={this.props.focus === this.props.name} placeholder="Value" />
                             <ClipboardContext.Consumer>
                                 {copy => (
-                                    <span className="icon is-right is-clickable" onClick={copy} data-copy={this.props.value}>
+                                    <span className="icon is-right is-clickable" onClick={copy}>
                                         <i className="fa-regular fa-copy" />
                                     </span>
                                 )}
@@ -229,7 +240,7 @@ export class Property extends React.Component<{
                             />
                             <ClipboardContext.Consumer>
                                 {copy => (
-                                    <span className="icon is-right is-clickable" onClick={copy} data-copy={db.strId(this.props.value)}>
+                                    <span className="icon is-right is-clickable" onClick={copy}>
                                         <i className="fa-regular fa-copy" />
                                     </span>
                                 )}
@@ -255,7 +266,7 @@ export class Property extends React.Component<{
                             />
                             <ClipboardContext.Consumer>
                                 {copy => (
-                                    <span className="icon is-right is-clickable" onClick={copy} data-copy={this.props.value}>
+                                    <span className="icon is-right is-clickable" onClick={copy}>
                                         <i className="fa-regular fa-copy" />
                                     </span>
                                 )}

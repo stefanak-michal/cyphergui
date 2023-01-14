@@ -1,8 +1,10 @@
-# cypherGUI
+![cypherGUI](./public/logo.svg)
+
+# Introduction
 
 GUI admin tool for graph databases with bolt protocol support (neo4j, memgraph, amazon neptune). Usable without knowledge of cypher query language. Inspired by phpmyadmin.
 
-## WIP
+# WIP
 
 ## links
 

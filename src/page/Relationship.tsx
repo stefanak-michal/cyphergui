@@ -31,7 +31,6 @@ interface IRelationshipState {
 
 /**
  * Edit relationship by ID
- * @todo
  */
 class Relationship extends React.Component<IRelationshipProps, IRelationshipState> {
     state: IRelationshipState = {
@@ -48,12 +47,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
         selectNodeModal: null,
     };
 
-    create: boolean = true;
-
-    constructor(props) {
-        super(props);
-        this.create = props.id === null;
-    }
+    create: boolean = this.props.id === null;
 
     requestData = () => {
         if (this.create) return;

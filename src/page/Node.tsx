@@ -46,12 +46,7 @@ class Node extends React.Component<INodeProps, INodeState> {
 
     rels: _Relationship[] = [];
     nodes: _Node[] = [];
-    create: boolean = true;
-
-    constructor(props) {
-        super(props);
-        this.create = props.id === null;
-    }
+    create: boolean = this.props.id === null;
 
     requestData = () => {
         if (this.create) return;

@@ -17,7 +17,7 @@ export interface ISettings {
 }
 
 export interface IStashManager {
-    add: (value: t_StashValue, database: string) => void;
+    add: (value: t_StashValue, database: string, id?: number) => void;
     remove: (id: number) => void;
     indexOf: (value: t_StashValue, stashed?: IStashEntry[]) => number;
     empty: () => void;

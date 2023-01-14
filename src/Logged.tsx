@@ -11,11 +11,12 @@ import History from "./page/History";
 import { EPage } from "./utils/enums";
 import { Button } from "./components/form";
 import { IStashEntry, IStashManager, ITabManager } from "./utils/interfaces";
-import { t_StashValue, t_ToastFn } from "./utils/types";
+import { t_StashValue, t_StorageStashEntry, t_ToastFn } from "./utils/types";
 import db from "./db";
 import Stash from "./layout/Stash";
 import Settings from "./layout/Settings";
 import { ClipboardContext, ToastContext } from "./utils/contexts";
+import { Node as _Node, Relationship as _Relationship } from "neo4j-driver";
 
 interface ILoggedState {
     activeTab: string | null;
@@ -63,6 +64,40 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
 
     componentDidMount() {
         this.tabManager.add("Start", "fa-solid fa-play", EPage.Start, {}, "Start", false);
+
+        const stash = localStorage.getItem("stash");
+        if (stash) {
+            const parsed: t_StorageStashEntry[] = JSON.parse(stash);
+            let i = 1;
+            for (let p of parsed) {
+                if (!db.databases.includes(p.database)) continue;
+
+                const j = i;
+                const database = p.database;
+                i++;
+
+                switch (p.type) {
+                    case "node":
+                        db.driver
+                            .session({ defaultAccessMode: db.neo4j.session.READ, database: database })
+                            .run("MATCH (n) WHERE " + db.fnId("n") + " = $id RETURN n", { id: p.identity })
+                            .then(response => {
+                                if (response.records.length) this.stashManager.add(response.records[0].get("n"), database, j);
+                            })
+                            .catch(console.error);
+                        break;
+                    case "rel":
+                        db.driver
+                            .session({ defaultAccessMode: db.neo4j.session.READ, database: database })
+                            .run("MATCH ()-[r]->() WHERE " + db.fnId("r") + " = $id RETURN r", { id: p.identity })
+                            .then(response => {
+                                if (response.records.length) this.stashManager.add(response.records[0].get("r"), database, j);
+                            })
+                            .catch(console.error);
+                        break;
+                }
+            }
+        }
     }
 
     tabManager: ITabManager = {
@@ -141,22 +176,36 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         },
     };
 
-    // todo localStorage for stash
+    saveStashToStorage = () => {
+        localStorage.setItem(
+            "stash",
+            JSON.stringify(
+                this.state.stashed.map<t_StorageStashEntry>(s => {
+                    return {
+                        database: s.database,
+                        type: s.value instanceof _Node ? "node" : s.value instanceof _Relationship ? "rel" : "",
+                        identity: db.getId(s.value),
+                    };
+                })
+            )
+        );
+    };
+
     stashManager: IStashManager = {
         //maybe add queries?
-        add: (value: t_StashValue, database: string) => {
+        add: (value: t_StashValue, database: string, id: number = new Date().getTime()) => {
             this.setState(state => {
                 return {
-                    stashed: this.stashManager.indexOf(value, state.stashed) === -1 ? state.stashed.concat({ id: new Date().getTime(), value: value, database: database }) : state.stashed,
+                    stashed: this.stashManager.indexOf(value, state.stashed) === -1 ? state.stashed.concat({ id: id, value: value, database: database }) : state.stashed,
                 };
-            });
+            }, this.saveStashToStorage);
         },
         remove: (id: number) => {
             this.setState(state => {
                 return {
                     stashed: state.stashed.filter(s => s.id !== id),
                 };
-            });
+            }, this.saveStashToStorage);
         },
         indexOf: (value: t_StashValue, stashed: IStashEntry[] = null): number => {
             return (stashed || this.state.stashed).findIndex(s => {
@@ -165,6 +214,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         },
         empty: () => {
             if (this.state.stashed.length > 0) this.setState({ stashed: [] });
+            localStorage.removeItem("stash");
         },
         button: (value: t_StashValue, database: string, color: string = ""): JSX.Element => {
             const i = this.stashManager.indexOf(value);

@@ -20,12 +20,9 @@ GUI admin tool for graph databases with bolt protocol support (neo4j, memgraph, 
 
 ## todo
 
-- show (db: database) in page title and in stash only if there is more than one database
 - log console somewhere (new tab, btn to open in Start and navbar?) ..can be used logger from neo4j driver to fill it up?
-
-- Canvas dole vľavo powered by orb + link
-- Footer link help na gh issues
-- Canvas side lišta s detailami pri kliku na node/rel
-- Dalsie typy properties v edit.
-- query na db - urobit na to fn, aby sa nepracovalo priamo s neo4j. Aby sa db layer dal nahradit. To znamena ze bude treba aj neo4j.integer volania upravit.
+- Canvas side column with details on node/rel click
+- Add missing types (date, time, point, ...) for properties in edit tab (node/rel)
+- query db - make a fn to avoid direct call neo4j driver. To make it possible use different driver if neccesary. That means it requires update on neo4j Integer usage.
 - https://create-react-app.dev/docs/deployment/#github-pages
+- clean up public dir

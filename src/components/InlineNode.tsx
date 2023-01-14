@@ -20,7 +20,7 @@ export default class InlineNode extends React.Component<{ node: _Node; tabManage
             <>
                 {this.state.propertiesModal && <PropertiesModal properties={this.props.node.properties} handleClose={() => this.setState({ propertiesModal: false })} />}
 
-                <div className="is-flex is-align-items-center is-justify-content-flex-start">
+                <div className="is-flex is-align-items-center">
                     {this.props.node.labels.map(label => (
                         <LabelButton
                             key={label}

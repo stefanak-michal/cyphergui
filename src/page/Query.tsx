@@ -361,6 +361,12 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                                     )}
                                     <Button icon="fa-solid fa-maximize" onClick={() => this.orb.view.recenter()} color="mr-0" title="Recenter" />
                                 </div>
+                                <div className="brand is-flex is-align-items-center">
+                                    <span className="is-size-7">Powered by</span>
+                                    <a href="https://github.com/memgraph/orb" target="_blank" className="ml-1">
+                                        <img src="orb_logo.png" alt="ORB" />
+                                    </a>
+                                </div>
                             </div>
                         )}
 
@@ -416,7 +422,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
             let start = value.start;
             let first = true;
             return (
-                <div className="is-flex is-align-items-center is-justify-content-flex-start">
+                <div className="is-flex is-align-items-center">
                     {value.segments.map(segment => {
                         const r = (
                             <>

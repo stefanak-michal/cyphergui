@@ -115,7 +115,7 @@ class Stash extends React.Component<IStashProps, IStashState> {
                                     <i className={entry.value instanceof _Node ? "fa-regular fa-circle" : "fa-solid fa-arrow-right-long"} aria-hidden="true" />
                                 </span>
                                 {db.strId(entry.value.identity)}
-                                <span className="ml-1">(db: {entry.database})</span>
+                                {db.databases.length > 1 && <span className="ml-1">(db: {entry.database})</span>}
                             </a>
                             <span className="ml-2 mr-1">
                                 {entry.value instanceof _Node &&

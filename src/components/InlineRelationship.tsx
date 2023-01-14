@@ -20,7 +20,7 @@ export default class InlineRelationship extends React.Component<{ rel: _Relation
             <>
                 {this.state.propertiesModal && <PropertiesModal properties={this.props.rel.properties} handleClose={() => this.setState({ propertiesModal: false })} />}
 
-                <div className="is-flex is-align-items-center is-justify-content-flex-start">
+                <div className="is-flex is-align-items-center">
                     <TypeButton type={this.props.rel.type} database={this.props.database || db.database} tabManager={this.props.tabManager} size={"mr-1 " + (!!this.props.small ? "" : "is-medium")} />
                     <Button
                         onClick={() =>

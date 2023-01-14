@@ -134,7 +134,11 @@ export class SelectNodeModal extends React.Component<{ stashManager: IStashManag
                             .get()
                             .filter(s => s.database === this.props.database && s.value instanceof _Node)
                             .map(s => (
-                                <Button text={"#" + db.strId(s.value.identity)} color="" key={s.id} onClick={() => this.props.handleNodeSelect(s.value as _Node)} />
+                                <Button
+                                    key={s.id}
+                                    text={((s.value as _Node).labels.length > 0 ? ":" + (s.value as _Node).labels.join(":") + " " : "") + "#" + db.strId(s.value.identity)}
+                                    onClick={() => this.props.handleNodeSelect(s.value as _Node)}
+                                />
                             ))}
                     </div>
                 ) : (

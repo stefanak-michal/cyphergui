@@ -243,7 +243,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         const activeContent = this.state.contents.find(c => c.id === this.state.activeTab);
         document.title =
             this.state.tabs.find(t => t.id === this.state.activeTab).title +
-            (db.supportsMultiDb && "database" in activeContent.props ? " (db: " + activeContent.props.database + ")" : "") +
+            (db.databases.length > 1 && "database" in activeContent.props ? " (db: " + activeContent.props.database + ")" : "") +
             " / cypherGUI";
 
         return (

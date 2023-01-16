@@ -14,6 +14,13 @@ export enum EPropertyType {
     Float = "Float",
     Boolean = "Boolean",
     List = "List",
+    Point = "Point",
+    Date = "Date",
+    Time = "Time",
+    DateTime = "DateTime",
+    LocalTime = "LocalTime",
+    LocalDateTime = "LocalDateTime",
+    Duration = "Duration",
 }
 
 export enum EQueryView {

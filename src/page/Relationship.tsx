@@ -2,12 +2,15 @@ import * as React from "react";
 import { IPageProps } from "../utils/interfaces";
 import { Node as _Node, Relationship as _Relationship } from "neo4j-driver";
 import { EPage, EPropertyType } from "../utils/enums";
-import { Button, Property } from "../components/form";
+import { Button } from "../components/form";
 import db from "../db";
 import { ClipboardContext } from "../utils/contexts";
 import Modal, { DeleteModal, SelectNodeModal } from "../components/Modal";
 import { settings } from "../layout/Settings";
 import InlineNode from "../components/InlineNode";
+import PropertiesForm from "../components/PropertiesForm";
+import { t_FormProperty } from "../utils/types";
+import { resolvePropertyType } from "../utils/fn";
 
 interface IRelationshipProps extends IPageProps {
     database: string;
@@ -21,7 +24,7 @@ interface IRelationshipState {
     end: _Node | null;
     focus: string | null;
     type: string;
-    properties: { name: string; key: string; value: any; type: EPropertyType }[];
+    properties: t_FormProperty[];
     typeModal: false | string[];
     typeModalInput: string;
     error: string | null;
@@ -66,16 +69,11 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                 }
 
                 const rel: _Relationship = response.records[0].get("r");
-                let props = [];
+                let props: t_FormProperty[] = [];
                 const t = new Date().getTime();
                 for (let key in rel.properties) {
-                    //resolve property type
-                    let type = EPropertyType.String;
-                    if (typeof rel.properties[key] === "number") type = EPropertyType.Float;
-                    else if (db.isInteger(rel.properties[key])) type = EPropertyType.Integer;
-                    else if (typeof rel.properties[key] === "boolean") type = EPropertyType.Boolean;
-                    else if (Array.isArray(rel.properties[key])) type = EPropertyType.List;
-                    props.push({ name: key + t, key: key, value: rel.properties[key], type: type });
+                    let type = resolvePropertyType(rel.properties[key]);
+                    props.push({ name: key + t, key: key, value: rel.properties[key], type: type, subtype: type === EPropertyType.List ? resolvePropertyType(rel.properties[key][0]) : null });
                 }
                 props.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
                 this.setState({
@@ -118,96 +116,6 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
         }
         return true;
     }
-
-    handlePropertyKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const target = e.currentTarget;
-        this.setState(state => {
-            let props = [...state.properties];
-            const prop = props.find(p => "key." + p.name === target.name);
-            if (prop) prop.key = target.value;
-            return {
-                properties: props,
-                focus: target.name,
-            };
-        });
-    };
-
-    handlePropertyValueChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const target = e.currentTarget;
-        this.setState(state => {
-            let props = [...state.properties];
-            let value: any = target.value;
-            const prop = props.find(p => p.name === target.name);
-            if (prop) {
-                switch (prop.type) {
-                    case EPropertyType.Boolean:
-                        value = (target as HTMLInputElement).checked;
-                        break;
-                    case EPropertyType.Integer:
-                        value = db.neo4j.int((target as HTMLInputElement).valueAsNumber);
-                        break;
-                    case EPropertyType.Float:
-                        value = (target as HTMLInputElement).valueAsNumber;
-                        break;
-                }
-                prop.value = value;
-            }
-            return {
-                properties: props,
-                focus: target.name,
-            };
-        });
-    };
-
-    handlePropertyTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const target = e.currentTarget;
-        this.setState(state => {
-            let props = [...state.properties];
-            const prop = props.find(p => "type." + p.name === target.name);
-            if (prop) {
-                prop.type = EPropertyType[target.value];
-                switch (prop.type) {
-                    case EPropertyType.Boolean:
-                        prop.value = !!prop.value;
-                        break;
-                    case EPropertyType.Integer:
-                        prop.value = prop.value.length ? db.neo4j.int(prop.value) : 0;
-                        break;
-                    case EPropertyType.Float:
-                        prop.value = prop.value.length ? parseFloat(prop.value) : 0;
-                        break;
-                    case EPropertyType.String:
-                        prop.value = prop.value.toString();
-                        break;
-                }
-            }
-            return {
-                properties: props,
-                focus: target.name,
-            };
-        });
-    };
-
-    handlePropertyDelete = (name: string) => {
-        this.setState(state => {
-            let props = [...state.properties];
-            const i = props.findIndex(p => p.name === name);
-            if (i !== -1) props.splice(i, 1);
-            return {
-                properties: props,
-            };
-        });
-    };
-
-    handlePropertyAdd = () => {
-        this.setState(state => {
-            const i = new Date().getTime().toString();
-            return {
-                properties: state.properties.concat({ name: i, key: "", value: "", type: EPropertyType.String }),
-                focus: "key." + i,
-            };
-        });
-    };
 
     handleTypeOpenModal = () => {
         db.driver
@@ -364,7 +272,6 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
             })
             .then(response => {
                 if (response.summary.counters.updates().nodesDeleted > 0) {
-                    this.requestData();
                     this.props.tabManager.close(id + this.props.database);
                     this.props.toast("Relationship deleted");
                 }
@@ -484,22 +391,12 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                             <i className="fa-solid fa-rectangle-list mr-2" />
                             Properties
                         </legend>
-                        {this.state.properties.map(p => (
-                            <Property
-                                key={p.name}
-                                name={p.name}
-                                mapKey={p.key}
-                                focus={this.state.focus}
-                                value={p.value}
-                                type={p.type}
-                                onKeyChange={this.handlePropertyKeyChange}
-                                onValueChange={this.handlePropertyValueChange}
-                                onTypeChange={this.handlePropertyTypeChange}
-                                onDelete={this.handlePropertyDelete}
-                            />
-                        ))}
-
-                        <Button icon="fa-solid fa-plus" text="Add property" onClick={this.handlePropertyAdd} />
+                        <PropertiesForm
+                            properties={this.state.properties}
+                            updateProperties={properties => {
+                                this.setState({ properties: properties });
+                            }}
+                        />
                     </fieldset>
 
                     <fieldset className="box">

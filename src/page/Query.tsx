@@ -124,11 +124,14 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                         console.log(response);
                         this.setShowTableSize(response.records);
                         this.setState(
-                            {
-                                summary: response.summary,
-                                rows: response.records,
-                                error: null,
-                                loading: false,
+                            state => {
+                                return {
+                                    summary: response.summary,
+                                    rows: response.records,
+                                    error: null,
+                                    loading: false,
+                                    view: response.records.length === 0 ? EQueryView.Summary : state.view,
+                                };
                             },
                             () => {
                                 if (this.state.view === EQueryView.Graph) this.initGraphView();
@@ -370,18 +373,6 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                             </div>
                         )}
 
-                        {this.state.view === EQueryView.Summary && (
-                            <div className="control has-icons-right">
-                                <pre>{toJSON(this.state.summary)}</pre>
-                                <ClipboardContext.Consumer>
-                                    {copy => (
-                                        <span className="icon is-right is-clickable" onClick={copy}>
-                                            <i className="fa-regular fa-copy" />
-                                        </span>
-                                    )}
-                                </ClipboardContext.Consumer>
-                            </div>
-                        )}
                         {this.state.view === EQueryView.JSON && (
                             <div className="control has-icons-right">
                                 <pre>{toJSON(this.state.rows)}</pre>
@@ -397,7 +388,22 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                     </div>
                 )}
 
-                {this.state.rows.length === 0 && <div className="block">No result</div>}
+                {this.state.view === EQueryView.Summary && this.state.summary && (
+                    <div className="block">
+                        <div className="control has-icons-right">
+                            <pre>{toJSON(this.state.summary)}</pre>
+                            <ClipboardContext.Consumer>
+                                {copy => (
+                                    <span className="icon is-right is-clickable" onClick={copy}>
+                                        <i className="fa-regular fa-copy" />
+                                    </span>
+                                )}
+                            </ClipboardContext.Consumer>
+                        </div>
+                    </div>
+                )}
+
+                {this.state.rows.length === 0 && !this.state.summary && <div className="block">No result</div>}
             </>
         );
     }

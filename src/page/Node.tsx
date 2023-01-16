@@ -232,6 +232,8 @@ class Node extends React.Component<INodeProps, INodeState> {
                             break;
                         default:
                             s.push(p.key + ": " + p.value.toString());
+
+                        // todo additional types ..same in rel
                     }
                 }
                 query += s.join(", ") + "}";

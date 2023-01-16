@@ -18,11 +18,10 @@ import {
 } from "neo4j-driver";
 import { EPage, EQueryView } from "../utils/enums";
 import { settings } from "../layout/Settings";
-import Duration from "../utils/Duration";
 import { Orb, OrbEventType } from "@memgraph/orb";
 import InlineNode from "../components/InlineNode";
 import InlineRelationship from "../components/InlineRelationship";
-import { toJSON } from "../utils/fn";
+import { durationToString, toJSON } from "../utils/fn";
 
 interface IQueryProps extends IPageProps {
     query?: string;
@@ -463,7 +462,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
         if (value instanceof _Time) return <p className="wspace-nowrap">{value.toString()}</p>;
         if (value instanceof _LocalDateTime) return <p className="wspace-nowrap">{value.toStandardDate().toLocaleString()}</p>;
         if (value instanceof _LocalTime) return <p className="wspace-nowrap">{value.toString()}</p>;
-        if (value instanceof _Duration) return <p className="wspace-nowrap">{new Duration(value).toString()}</p>;
+        if (value instanceof _Duration) return <p className="wspace-nowrap">{durationToString(value)}</p>;
 
         if (typeof value === "object") {
             return (

@@ -24,7 +24,7 @@ GUI admin tool for graph databases with bolt protocol support (neo4j, memgraph, 
 
 - log console somewhere (new tab, btn to open in Start and navbar?)
 - Canvas side column with details on node/rel click
-- Add missing types (date, time, point, ...) for properties in edit tab (node/rel)
 - query db - make a fn to avoid direct call neo4j driver. To make it possible use different driver if neccesary. That means it requires update on neo4j Integer usage.
 - https://create-react-app.dev/docs/deployment/#github-pages
-
+- error handling
+- handle lost connection - send to login page

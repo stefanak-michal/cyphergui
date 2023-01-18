@@ -4,8 +4,8 @@ import { EPropertyType } from "../utils/enums";
 import db from "../db";
 import { Button, Textarea } from "./form";
 import { ClipboardContext } from "../utils/contexts";
-import { Date as _Date, DateTime as _DateTime, LocalDateTime as _LocalDateTime, LocalTime as _LocalTime, Point as _Point, Time as _Time, Duration as _Duration } from "neo4j-driver";
-import { durationToString, stringToDuration } from "../utils/fn";
+import { Date as _Date, DateTime as _DateTime, Duration as _Duration, LocalDateTime as _LocalDateTime, LocalTime as _LocalTime, Point as _Point, Time as _Time } from "neo4j-driver";
+import { getPropertyAsTemp, stringToDuration } from "../utils/fn";
 
 interface IPropertiesFormProps {
     properties: t_FormProperty[];
@@ -15,8 +15,6 @@ interface IPropertiesFormProps {
 interface IPropertiesFormState {
     focus: string;
 }
-
-// todo add additional property types (point, datetime, ...)
 
 class PropertiesForm extends React.Component<IPropertiesFormProps, IPropertiesFormState> {
     state: IPropertiesFormState = {
@@ -34,15 +32,17 @@ class PropertiesForm extends React.Component<IPropertiesFormProps, IPropertiesFo
         }
     };
 
-    handleValueChange = (name: string, value: any) => {
+    handleValueChange = (name: string, value: any, temp: any = null) => {
         let props = [...this.props.properties];
         let i = props.findIndex(p => p.name === name);
         if (i > -1) {
+            props[i].temp = temp;
             props[i].value = value;
         } else {
             i = props.findIndex(p => name.startsWith(p.name));
             if (i > -1) {
                 const index = parseInt(name.split(".", 2)[1]);
+                props[i].temp[index] = temp;
                 props[i].value[index] = value;
             }
         }
@@ -59,14 +59,17 @@ class PropertiesForm extends React.Component<IPropertiesFormProps, IPropertiesFo
         let i = props.findIndex(p => "type." + p.name === target.name);
         if (i > -1) {
             props[i].type = EPropertyType[target.value];
+            if (EPropertyType[target.value] === EPropertyType.List) props[i].subtype = EPropertyType.String;
             props[i].value = this.getDefaultValue(EPropertyType[target.value]);
+            props[i].temp = getPropertyAsTemp(EPropertyType[target.value], props[i].value);
         } else {
             i = props.findIndex(p => "subtype." + p.name === target.name);
             if (i > -1) {
-                props[i].subtype = EPropertyType.String;
-                (props[i].value as any[]).forEach((v, j) => {
-                    props[i].value[j] = this.getDefaultValue(EPropertyType[target.value]);
-                });
+                const value = this.getDefaultValue(EPropertyType[target.value]);
+                const temp = getPropertyAsTemp(EPropertyType[target.value], value);
+                props[i].subtype = EPropertyType[target.value];
+                props[i].value = [value];
+                props[i].temp = [temp];
             }
         }
 
@@ -129,29 +132,15 @@ class PropertiesForm extends React.Component<IPropertiesFormProps, IPropertiesFo
         if (target.value) {
             const i = props.findIndex(p => p.name === target.value);
             if (i > -1) {
-                let value: any = "";
-                switch (props[i].subtype) {
-                    case EPropertyType.Integer:
-                        value = db.neo4j.int(0);
-                        break;
-                    case EPropertyType.Float:
-                        value = 0;
-                        break;
-                    case EPropertyType.Boolean:
-                        value = false;
-                        break;
-
-                    // todo add additional type classes
-                }
-
+                const value = this.getDefaultValue(props[i].subtype);
                 props[i].value.push(value);
-
+                props[i].temp.push(getPropertyAsTemp(props[i].subtype, value));
                 this.props.updateProperties(props);
                 this.setState({ focus: props[i].name + "." + (props[i].value.length - 1) });
             }
         } else {
             const i = new Date().getTime().toString();
-            props.push({ name: i, key: "", value: "", type: EPropertyType.String, subtype: null });
+            props.push({ name: i, key: "", value: "", type: EPropertyType.String, subtype: null, temp: null });
 
             this.props.updateProperties(props);
             this.setState({ focus: "key." + i });
@@ -184,7 +173,7 @@ class Property extends React.Component<{
     property: t_FormProperty;
     focus: string;
     onKeyChange: (e: React.ChangeEvent) => void;
-    onValueChange: (name: string, value: any) => void;
+    onValueChange: (name: string, value: any, temp?: any) => void;
     onTypeChange: (e: React.ChangeEvent) => void;
     onDelete: (name: string) => void;
     onAdd: (e: React.PointerEvent) => void;
@@ -226,12 +215,6 @@ class Property extends React.Component<{
             </div>
         );
 
-        const propertyTypeSelect = (
-            <div className="control">
-                <PropertyType name={this.props.property.name} selected={this.props.property.type} onTypeChange={this.props.onTypeChange} subtype={false} />
-            </div>
-        );
-
         if (this.props.property.type === EPropertyType.List) {
             return (
                 <div className="field is-grouped is-hoverable p-1 mb-1">
@@ -242,8 +225,14 @@ class Property extends React.Component<{
                             const PropertyInputComponent: typeof APropertyInput = this.components["Property" + this.props.property.subtype + "Input"];
                             const focus = this.props.focus === this.props.property.name + "." + i;
                             return (
-                                <div className="field is-grouped">
-                                    <PropertyInputComponent name={this.props.property.name + "." + i} value={v} onValueChange={this.props.onValueChange} focus={focus} />
+                                <div className="field is-grouped" key={i}>
+                                    <PropertyInputComponent
+                                        name={this.props.property.name + "." + i}
+                                        value={v}
+                                        temp={this.props.property.temp[i]}
+                                        onValueChange={this.props.onValueChange}
+                                        focus={focus}
+                                    />
                                     <Button icon="fa-solid fa-circle-minus" onClick={() => this.props.onDelete(this.props.property.name + "." + i)} title="Remove array entry" />
                                 </div>
                             );
@@ -279,10 +268,13 @@ class Property extends React.Component<{
                     <PropertyInputComponent
                         name={this.props.property.name}
                         value={this.props.property.value}
+                        temp={this.props.property.temp}
                         onValueChange={this.props.onValueChange}
                         focus={this.props.focus === this.props.property.name}
                     />
-                    {propertyTypeSelect}
+                    <div className="control">
+                        <PropertyType name={this.props.property.name} selected={this.props.property.type} onTypeChange={this.props.onTypeChange} subtype={false} />
+                    </div>
                     {deleteButton}
                 </div>
             );
@@ -310,7 +302,7 @@ class PropertyType extends React.Component<{ name: string; selected: EPropertyTy
     }
 }
 
-abstract class APropertyInput extends React.Component<{ name: string; value: any; onValueChange: (name: string, value: any) => void; focus: boolean }> {}
+abstract class APropertyInput extends React.Component<{ name: string; value: any; temp: any; onValueChange: (name: string, value: any, temp?: any) => void; focus: boolean }> {}
 
 class PropertyStringInput extends APropertyInput {
     render() {
@@ -363,10 +355,10 @@ class PropertyIntegerInput extends APropertyInput {
                     name={this.props.name}
                     className="input"
                     type="number"
-                    value={db.strId(this.props.value)}
+                    value={this.props.temp}
                     step="1"
                     autoFocus={this.props.focus}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.props.onValueChange(this.props.name, db.neo4j.int(e.currentTarget.value))}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.props.onValueChange(this.props.name, db.neo4j.int(e.currentTarget.value), e.currentTarget.value)}
                     placeholder="Value"
                 />
                 <ClipboardContext.Consumer>
@@ -389,10 +381,11 @@ class PropertyFloatInput extends APropertyInput {
                     name={this.props.name}
                     className="input"
                     type="number"
-                    value={this.props.value}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.props.onValueChange(this.props.name, e.currentTarget.valueAsNumber)}
+                    value={this.props.temp}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.props.onValueChange(this.props.name, e.currentTarget.valueAsNumber || null, e.currentTarget.value)}
                     autoFocus={this.props.focus}
                     placeholder="Value"
+                    step="any"
                 />
                 <ClipboardContext.Consumer>
                     {copy => (
@@ -410,44 +403,70 @@ class PropertyFloatInput extends APropertyInput {
  * Temporal types - part controls
  */
 
-class TimeControl extends React.Component<{ value: string; handleChange: () => void; inputRef: React.RefObject<HTMLInputElement> }> {
+class TimeControl extends React.Component<{ value: string; handleChange: () => void; inputRef: React.RefObject<HTMLInputElement>; invalid?: boolean }> {
     render() {
         return (
             <div className="control is-expanded">
-                <input className="input" type="time" value={this.props.value} onChange={this.props.handleChange} step="1" ref={this.props.inputRef} title="Time" />
+                <input
+                    className={"input " + (this.props.invalid ? "is-danger" : "")}
+                    type="time"
+                    value={this.props.value}
+                    onChange={this.props.handleChange}
+                    step="1"
+                    ref={this.props.inputRef}
+                    title="Time"
+                />
             </div>
         );
     }
 }
 
-class NanosecondsControl extends React.Component<{ value: string; handleChange: () => void; inputRef: React.RefObject<HTMLInputElement> }> {
+class NanosecondsControl extends React.Component<{ value: string; handleChange: () => void; inputRef: React.RefObject<HTMLInputElement>; invalid?: boolean }> {
     render() {
         return (
             <div className="control">
-                <input className="input" type="number" step="1" min="0" max="999999999" value={this.props.value} title="Nanoseconds" ref={this.props.inputRef} onChange={this.props.handleChange} />
+                <input
+                    className={"input " + (this.props.invalid ? "is-danger" : "")}
+                    type="number"
+                    step="1"
+                    min="0"
+                    max="999999999"
+                    value={this.props.value}
+                    title="Nanoseconds"
+                    ref={this.props.inputRef}
+                    onChange={this.props.handleChange}
+                />
             </div>
         );
     }
 }
 
-class DateControl extends React.Component<{ value: string; handleChange: () => void; inputRef: React.RefObject<HTMLInputElement> }> {
+class DateControl extends React.Component<{ value: string; handleChange: () => void; inputRef: React.RefObject<HTMLInputElement>; invalid?: boolean }> {
     render() {
         return (
             <div className="control is-expanded">
-                <input className="input" type="date" value={this.props.value} onChange={this.props.handleChange} step="1" ref={this.props.inputRef} title="Date" />
+                <input
+                    className={"input " + (this.props.invalid ? "is-danger" : "")}
+                    type="date"
+                    value={this.props.value}
+                    onChange={this.props.handleChange}
+                    step="1"
+                    ref={this.props.inputRef}
+                    title="Date"
+                />
             </div>
         );
     }
 }
 
-class TimezoneControl extends React.Component<{ value: number; handleChange: () => void; selectRef: React.RefObject<HTMLSelectElement> }, any> {
+class TimezoneControl extends React.Component<{ value: number; handleChange: () => void; selectRef: React.RefObject<HTMLSelectElement>; invalid?: boolean }, any> {
     render() {
         let range = [];
         for (let i = -11; i <= 12; i++) range.push(i);
 
         return (
             <div className="control">
-                <div className="select">
+                <div className={"select " + (this.props.invalid ? "is-danger" : "")}>
                     <select ref={this.props.selectRef} value={this.props.value} onChange={this.props.handleChange}>
                         {range.map((offset, i) => (
                             <option key={i} value={offset}>
@@ -466,22 +485,38 @@ class TimezoneControl extends React.Component<{ value: number; handleChange: () 
  */
 
 class PropertyDateInput extends APropertyInput {
+    state = {
+        valid: true,
+    };
+
     dateRef = React.createRef<HTMLInputElement>();
 
     handleChange = () => {
-        const t = new _Date(this.dateRef.current.valueAsDate.getUTCFullYear(), this.dateRef.current.valueAsDate.getUTCMonth() + 1, this.dateRef.current.valueAsDate.getUTCDate());
-        this.props.onValueChange(this.props.name, t);
+        const valid = this.dateRef.current.valueAsDate !== null;
+        this.props.onValueChange(
+            this.props.name,
+            valid ? new _Date(this.dateRef.current.valueAsDate.getUTCFullYear(), this.dateRef.current.valueAsDate.getUTCMonth() + 1, this.dateRef.current.valueAsDate.getUTCDate()) : null,
+            this.dateRef.current.value
+        );
+        this.setState({ valid: valid });
     };
 
+    componentDidMount() {
+        this.setState({
+            valid: this.dateRef.current.valueAsDate !== null,
+        });
+    }
+
     render() {
-        const date = this.props.value.toString();
         return (
             <div className="control is-expanded">
                 <div className="field has-addons">
-                    <DateControl value={date} handleChange={this.handleChange} inputRef={this.dateRef} />
-                    <div className="control">
-                        <ClipboardContext.Consumer>{copy => <Button icon="fa-regular fa-copy" onClick={copy} value={(this.props.value as _Date).toString()} />}</ClipboardContext.Consumer>
-                    </div>
+                    <DateControl value={this.props.temp} handleChange={this.handleChange} inputRef={this.dateRef} invalid={!this.state.valid} />
+                    {this.state.valid && (
+                        <div className="control">
+                            <ClipboardContext.Consumer>{copy => <Button icon="fa-regular fa-copy" onClick={copy} value={this.props.temp} />}</ClipboardContext.Consumer>
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -489,37 +524,50 @@ class PropertyDateInput extends APropertyInput {
 }
 
 class PropertyTimeInput extends APropertyInput {
+    state = {
+        valid: true,
+    };
+
     timezoneRef = React.createRef<HTMLSelectElement>();
     nanosecondsRef = React.createRef<HTMLInputElement>();
     timeRef = React.createRef<HTMLInputElement>();
 
     handleChange = () => {
-        const t = new _Time(
-            this.timeRef.current.valueAsDate.getUTCHours(),
-            this.timeRef.current.valueAsDate.getUTCMinutes(),
-            this.timeRef.current.valueAsDate.getUTCSeconds(),
-            this.nanosecondsRef.current.valueAsNumber,
-            parseInt(this.timezoneRef.current.value) * 60 * 60
+        const valid = this.timeRef.current.valueAsDate !== null;
+        this.props.onValueChange(
+            this.props.name,
+            valid
+                ? new _Time(
+                      this.timeRef.current.valueAsDate.getUTCHours(),
+                      this.timeRef.current.valueAsDate.getUTCMinutes(),
+                      this.timeRef.current.valueAsDate.getUTCSeconds(),
+                      this.nanosecondsRef.current.valueAsNumber,
+                      parseInt(this.timezoneRef.current.value) * 60 * 60
+                  )
+                : null,
+            [this.timeRef.current.value, this.nanosecondsRef.current.value, parseInt(this.timezoneRef.current.value)]
         );
-        this.props.onValueChange(this.props.name, t);
+        this.setState({ valid: valid });
     };
 
-    render() {
-        let range = [];
-        for (let i = -11; i <= 12; i++) range.push(i);
-        const value = (this.props.value as _Time).toString();
-        const time = value.substring(0, 8);
-        const tz = parseFloat(db.neo4j.integer.toString((this.props.value as _Time).timeZoneOffsetSeconds)) / 60 / 60;
+    componentDidMount() {
+        this.setState({
+            valid: this.timeRef.current.valueAsDate !== null,
+        });
+    }
 
+    render() {
         return (
             <div className="control is-expanded">
                 <div className="field has-addons">
-                    <TimeControl value={time} inputRef={this.timeRef} handleChange={this.handleChange} />
-                    <NanosecondsControl value={db.neo4j.integer.toString((this.props.value as _Time).nanosecond)} handleChange={this.handleChange} inputRef={this.nanosecondsRef} />
-                    <TimezoneControl value={tz} handleChange={this.handleChange} selectRef={this.timezoneRef} />
-                    <div className="control">
-                        <ClipboardContext.Consumer>{copy => <Button icon="fa-regular fa-copy" onClick={copy} value={value} />}</ClipboardContext.Consumer>
-                    </div>
+                    <TimeControl value={this.props.temp[0]} inputRef={this.timeRef} handleChange={this.handleChange} invalid={!this.state.valid} />
+                    <NanosecondsControl value={this.props.temp[1]} handleChange={this.handleChange} inputRef={this.nanosecondsRef} invalid={!this.state.valid} />
+                    <TimezoneControl value={this.props.temp[2]} handleChange={this.handleChange} selectRef={this.timezoneRef} invalid={!this.state.valid} />
+                    {this.state.valid && (
+                        <div className="control">
+                            <ClipboardContext.Consumer>{copy => <Button icon="fa-regular fa-copy" onClick={copy} value={(this.props.value as _Time).toString()} />}</ClipboardContext.Consumer>
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -527,41 +575,55 @@ class PropertyTimeInput extends APropertyInput {
 }
 
 class PropertyDateTimeInput extends APropertyInput {
+    state = {
+        valid: true,
+    };
+
     timezoneRef = React.createRef<HTMLSelectElement>();
     nanosecondsRef = React.createRef<HTMLInputElement>();
     timeRef = React.createRef<HTMLInputElement>();
     dateRef = React.createRef<HTMLInputElement>();
 
     handleChange = () => {
-        const t = new _DateTime(
-            this.dateRef.current.valueAsDate.getUTCFullYear(),
-            this.dateRef.current.valueAsDate.getUTCMonth() + 1,
-            this.dateRef.current.valueAsDate.getUTCDate(),
-            this.timeRef.current.valueAsDate.getUTCHours(),
-            this.timeRef.current.valueAsDate.getUTCMinutes(),
-            this.timeRef.current.valueAsDate.getUTCSeconds(),
-            this.nanosecondsRef.current.valueAsNumber,
-            parseInt(this.timezoneRef.current.value) * 60 * 60
+        const valid = this.dateRef.current.valueAsDate !== null && this.timeRef.current.valueAsDate !== null;
+        this.props.onValueChange(
+            this.props.name,
+            valid
+                ? new _DateTime(
+                      this.dateRef.current.valueAsDate.getUTCFullYear(),
+                      this.dateRef.current.valueAsDate.getUTCMonth() + 1,
+                      this.dateRef.current.valueAsDate.getUTCDate(),
+                      this.timeRef.current.valueAsDate.getUTCHours(),
+                      this.timeRef.current.valueAsDate.getUTCMinutes(),
+                      this.timeRef.current.valueAsDate.getUTCSeconds(),
+                      this.nanosecondsRef.current.valueAsNumber,
+                      parseInt(this.timezoneRef.current.value) * 60 * 60
+                  )
+                : null,
+            [this.dateRef.current.value, this.timeRef.current.value, this.nanosecondsRef.current.value, parseInt(this.timezoneRef.current.value)]
         );
-        this.props.onValueChange(this.props.name, t);
+        this.setState({ valid: valid });
     };
 
+    componentDidMount() {
+        this.setState({
+            valid: this.dateRef.current.valueAsDate !== null && this.timeRef.current.valueAsDate !== null,
+        });
+    }
+
     render() {
-        let range = [];
-        for (let i = -11; i <= 12; i++) range.push(i);
-        const [date, timepart] = this.props.value.toString().split("T");
-        const time = timepart.substring(0, 8);
-        const tz = parseFloat(db.neo4j.integer.toString((this.props.value as _DateTime).timeZoneOffsetSeconds)) / 60 / 60;
         return (
             <div className="control is-expanded">
                 <div className="field has-addons">
-                    <DateControl value={date} handleChange={this.handleChange} inputRef={this.dateRef} />
-                    <TimeControl value={time} inputRef={this.timeRef} handleChange={this.handleChange} />
-                    <NanosecondsControl value={db.neo4j.integer.toString((this.props.value as _DateTime).nanosecond)} handleChange={this.handleChange} inputRef={this.nanosecondsRef} />
-                    <TimezoneControl value={tz} handleChange={this.handleChange} selectRef={this.timezoneRef} />
-                    <div className="control">
-                        <ClipboardContext.Consumer>{copy => <Button icon="fa-regular fa-copy" onClick={copy} value={(this.props.value as _DateTime).toString()} />}</ClipboardContext.Consumer>
-                    </div>
+                    <DateControl value={this.props.temp[0]} handleChange={this.handleChange} inputRef={this.dateRef} invalid={!this.state.valid} />
+                    <TimeControl value={this.props.temp[1]} inputRef={this.timeRef} handleChange={this.handleChange} invalid={!this.state.valid} />
+                    <NanosecondsControl value={this.props.temp[2]} handleChange={this.handleChange} inputRef={this.nanosecondsRef} invalid={!this.state.valid} />
+                    <TimezoneControl value={this.props.temp[3]} handleChange={this.handleChange} selectRef={this.timezoneRef} invalid={!this.state.valid} />
+                    {this.state.valid && (
+                        <div className="control">
+                            <ClipboardContext.Consumer>{copy => <Button icon="fa-regular fa-copy" onClick={copy} value={(this.props.value as _DateTime).toString()} />}</ClipboardContext.Consumer>
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -569,33 +631,45 @@ class PropertyDateTimeInput extends APropertyInput {
 }
 
 class PropertyLocalTimeInput extends APropertyInput {
+    state = {
+        valid: true,
+    };
+
     nanosecondsRef = React.createRef<HTMLInputElement>();
     timeRef = React.createRef<HTMLInputElement>();
 
     handleChange = () => {
-        const t = new _LocalTime(
-            this.timeRef.current.valueAsDate.getUTCHours(),
-            this.timeRef.current.valueAsDate.getUTCMinutes(),
-            this.timeRef.current.valueAsDate.getUTCSeconds(),
-            this.nanosecondsRef.current.valueAsNumber
+        const valid = this.timeRef.current.valueAsDate !== null;
+        this.props.onValueChange(
+            this.props.name,
+            valid
+                ? new _LocalTime(
+                      this.timeRef.current.valueAsDate.getUTCHours(),
+                      this.timeRef.current.valueAsDate.getUTCMinutes(),
+                      this.timeRef.current.valueAsDate.getUTCSeconds(),
+                      this.nanosecondsRef.current.valueAsNumber
+                  )
+                : null,
+            [this.timeRef.current.value, this.nanosecondsRef.current.value]
         );
-        this.props.onValueChange(this.props.name, t);
+        this.setState({ valid: valid });
     };
 
-    render() {
-        let range = [];
-        for (let i = -11; i <= 12; i++) range.push(i);
-        const value = (this.props.value as _LocalTime).toString();
-        const time = value.substring(0, 8);
+    componentDidMount() {
+        this.setState({ valid: this.timeRef.current.valueAsDate !== null });
+    }
 
+    render() {
         return (
             <div className="control is-expanded">
                 <div className="field has-addons">
-                    <TimeControl value={time} inputRef={this.timeRef} handleChange={this.handleChange} />
-                    <NanosecondsControl value={db.neo4j.integer.toString((this.props.value as _LocalTime).nanosecond)} handleChange={this.handleChange} inputRef={this.nanosecondsRef} />
-                    <div className="control">
-                        <ClipboardContext.Consumer>{copy => <Button icon="fa-regular fa-copy" onClick={copy} value={value} />}</ClipboardContext.Consumer>
-                    </div>
+                    <TimeControl value={this.props.temp[0]} inputRef={this.timeRef} handleChange={this.handleChange} invalid={!this.state.valid} />
+                    <NanosecondsControl value={this.props.temp[1]} handleChange={this.handleChange} inputRef={this.nanosecondsRef} invalid={!this.state.valid} />
+                    {this.state.valid && (
+                        <div className="control">
+                            <ClipboardContext.Consumer>{copy => <Button icon="fa-regular fa-copy" onClick={copy} value={(this.props.value as _LocalTime).toString()} />}</ClipboardContext.Consumer>
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -603,35 +677,50 @@ class PropertyLocalTimeInput extends APropertyInput {
 }
 
 class PropertyLocalDateTimeInput extends APropertyInput {
+    state = {
+        valid: true,
+    };
+
     nanosecondsRef = React.createRef<HTMLInputElement>();
     timeRef = React.createRef<HTMLInputElement>();
     dateRef = React.createRef<HTMLInputElement>();
 
     handleChange = () => {
-        const t = new _LocalDateTime(
-            this.dateRef.current.valueAsDate.getUTCFullYear(),
-            this.dateRef.current.valueAsDate.getUTCMonth() + 1,
-            this.dateRef.current.valueAsDate.getUTCDate(),
-            this.timeRef.current.valueAsDate.getUTCHours(),
-            this.timeRef.current.valueAsDate.getUTCMinutes(),
-            this.timeRef.current.valueAsDate.getUTCSeconds(),
-            this.nanosecondsRef.current.valueAsNumber
+        const valid = this.dateRef.current.valueAsDate !== null && this.timeRef.current.valueAsDate !== null;
+        this.props.onValueChange(
+            this.props.name,
+            valid
+                ? new _LocalDateTime(
+                      this.dateRef.current.valueAsDate.getUTCFullYear(),
+                      this.dateRef.current.valueAsDate.getUTCMonth() + 1,
+                      this.dateRef.current.valueAsDate.getUTCDate(),
+                      this.timeRef.current.valueAsDate.getUTCHours(),
+                      this.timeRef.current.valueAsDate.getUTCMinutes(),
+                      this.timeRef.current.valueAsDate.getUTCSeconds(),
+                      this.nanosecondsRef.current.valueAsNumber
+                  )
+                : null,
+            [this.dateRef.current.value, this.timeRef.current.value, this.nanosecondsRef.current.value]
         );
-        this.props.onValueChange(this.props.name, t);
+        this.setState({ valid: valid });
     };
 
+    componentDidMount() {
+        this.setState({ valid: this.dateRef.current.valueAsDate !== null && this.timeRef.current.valueAsDate !== null });
+    }
+
     render() {
-        const [date, timepart] = this.props.value.toString().split("T");
-        const time = timepart.substring(0, 8);
         return (
             <div className="control is-expanded">
                 <div className="field has-addons">
-                    <DateControl value={date} handleChange={this.handleChange} inputRef={this.dateRef} />
-                    <TimeControl value={time} inputRef={this.timeRef} handleChange={this.handleChange} />
-                    <NanosecondsControl value={db.neo4j.integer.toString((this.props.value as _LocalDateTime).nanosecond)} handleChange={this.handleChange} inputRef={this.nanosecondsRef} />
-                    <div className="control">
-                        <ClipboardContext.Consumer>{copy => <Button icon="fa-regular fa-copy" onClick={copy} value={(this.props.value as _LocalDateTime).toString()} />}</ClipboardContext.Consumer>
-                    </div>
+                    <DateControl value={this.props.temp[0]} handleChange={this.handleChange} inputRef={this.dateRef} invalid={!this.state.valid} />
+                    <TimeControl value={this.props.temp[1]} inputRef={this.timeRef} handleChange={this.handleChange} invalid={!this.state.valid} />
+                    <NanosecondsControl value={this.props.temp[2]} handleChange={this.handleChange} inputRef={this.nanosecondsRef} invalid={!this.state.valid} />
+                    {this.state.valid && (
+                        <div className="control">
+                            <ClipboardContext.Consumer>{copy => <Button icon="fa-regular fa-copy" onClick={copy} value={(this.props.value as _LocalDateTime).toString()} />}</ClipboardContext.Consumer>
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -639,32 +728,16 @@ class PropertyLocalDateTimeInput extends APropertyInput {
 }
 
 class PropertyDurationInput extends APropertyInput {
-    state = {
-        duration: durationToString(this.props.value as _Duration),
-    };
-
-    onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const target = e.currentTarget;
-        this.setState(
-            {
-                duration: target.value,
-            },
-            () => {
-                this.props.onValueChange(this.props.name, stringToDuration(target.value));
-            }
-        );
-    };
-
     render() {
         return (
             <div className="control is-expanded has-icons-right">
                 <input
                     className="input"
                     type="text"
-                    value={this.state.duration}
+                    value={this.props.temp}
                     name={this.props.name}
                     autoFocus={this.props.focus}
-                    onChange={this.onChange}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.props.onValueChange(this.props.name, stringToDuration(e.currentTarget.value), e.currentTarget.value)}
                     pattern="P(\d+Y)?(\d+M)?(\d+D)?(T(\d+H)?(\d+M)?([\d\.]+S)?)?"
                 />
                 <ClipboardContext.Consumer>
@@ -693,16 +766,16 @@ class PropertyPointInput extends APropertyInput {
     ];
 
     handleChange = () => {
+        const hasZ = ["4979", "9157"].includes(this.sridRef.current.value);
         this.props.onValueChange(
             this.props.name,
-            this.is3D()
+            hasZ
                 ? new _Point(db.neo4j.int(this.sridRef.current.value), this.xRef.current.valueAsNumber, this.yRef.current.valueAsNumber, this.zRef.current.valueAsNumber)
-                : new _Point(db.neo4j.int(this.sridRef.current.value), this.xRef.current.valueAsNumber, this.yRef.current.valueAsNumber)
+                : new _Point(db.neo4j.int(this.sridRef.current.value), this.xRef.current.valueAsNumber, this.yRef.current.valueAsNumber),
+            hasZ
+                ? [this.sridRef.current.value, this.xRef.current.value, this.yRef.current.value, this.zRef.current.value]
+                : [this.sridRef.current.value, this.xRef.current.value, this.yRef.current.value]
         );
-    };
-
-    is3D = (): boolean => {
-        return ["4979", "9157"].includes(db.neo4j.integer.toString((this.props.value as _Point).srid));
     };
 
     render() {
@@ -711,7 +784,7 @@ class PropertyPointInput extends APropertyInput {
                 <div className="field has-addons">
                     <div className="control has-icons-left">
                         <div className="select">
-                            <select ref={this.sridRef} value={db.neo4j.integer.toString((this.props.value as _Point).srid)} onChange={this.handleChange} title="SRID">
+                            <select ref={this.sridRef} value={this.props.temp[0]} onChange={this.handleChange} title="SRID">
                                 {this.availableSRID.map(type => (
                                     <option key={type[1]} value={type[0]}>
                                         {type[1]} ({type[0]})
@@ -724,25 +797,23 @@ class PropertyPointInput extends APropertyInput {
                         </span>
                     </div>
                     <div className="control is-expanded has-icons-left">
-                        <input type="number" title="X" ref={this.xRef} className="input" value={(this.props.value as _Point).x} onChange={this.handleChange} />
+                        <input type="number" title="X" ref={this.xRef} className="input" value={this.props.temp[1]} onChange={this.handleChange} step="any" />
                         <span className="icon is-left">
                             <i className="fa-solid fa-x" />
                         </span>
                     </div>
                     <div className="control is-expanded has-icons-left">
-                        <input type="number" title="Y" ref={this.yRef} className="input" value={(this.props.value as _Point).y} onChange={this.handleChange} />
+                        <input type="number" title="Y" ref={this.yRef} className="input" value={this.props.temp[2]} onChange={this.handleChange} step="any" />
                         <span className="icon is-left">
                             <i className="fa-solid fa-y" />
                         </span>
                     </div>
-                    {this.is3D() && (
-                        <div className="control is-expanded has-icons-left">
-                            <input type="number" title="Z" ref={this.zRef} className="input" value={(this.props.value as _Point).z} onChange={this.handleChange} />
-                            <span className="icon is-left">
-                                <i className="fa-solid fa-z" />
-                            </span>
-                        </div>
-                    )}
+                    <div className={"control is-expanded has-icons-left " + (this.props.temp.length === 4 ? "" : "is-hidden")}>
+                        <input type="number" title="Z" ref={this.zRef} className="input" value={this.props.temp[3] || 0} onChange={this.handleChange} step="any" />
+                        <span className="icon is-left">
+                            <i className="fa-solid fa-z" />
+                        </span>
+                    </div>
                     <div className="control">
                         <ClipboardContext.Consumer>{copy => <Button icon="fa-regular fa-copy" onClick={copy} value={(this.props.value as _Point).toString()} />}</ClipboardContext.Consumer>
                     </div>

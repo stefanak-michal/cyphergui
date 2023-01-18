@@ -10,7 +10,7 @@ import { settings } from "../layout/Settings";
 import InlineNode from "../components/InlineNode";
 import PropertiesForm from "../components/PropertiesForm";
 import { t_FormProperty } from "../utils/types";
-import { resolvePropertyType } from "../utils/fn";
+import { getPropertyAsTemp, printProperties, resolvePropertyType } from "../utils/fn";
 
 interface IRelationshipProps extends IPageProps {
     database: string;
@@ -72,8 +72,9 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                 let props: t_FormProperty[] = [];
                 const t = new Date().getTime();
                 for (let key in rel.properties) {
-                    let type = resolvePropertyType(rel.properties[key]);
-                    props.push({ name: key + t, key: key, value: rel.properties[key], type: type, subtype: type === EPropertyType.List ? resolvePropertyType(rel.properties[key][0]) : null });
+                    const type = resolvePropertyType(rel.properties[key]);
+                    const subtype = type === EPropertyType.List ? resolvePropertyType(rel.properties[key][0]) : null;
+                    props.push({ name: key + t, key: key, value: rel.properties[key], type: type, subtype: subtype, temp: getPropertyAsTemp(type, rel.properties[key], subtype) });
                 }
                 props.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
                 this.setState({
@@ -238,21 +239,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
 
         if (printable) {
             if (this.state.properties.length) {
-                query += " SET r = {";
-                let s = [];
-                for (let p of this.state.properties) {
-                    switch (p.type) {
-                        case EPropertyType.String:
-                            s.push(p.key + ": '" + p.value.replaceAll("'", "\\'").replaceAll("\n", "\\n") + "'");
-                            break;
-                        case EPropertyType.Integer:
-                            s.push(p.key + ": " + db.strId(p.value));
-                            break;
-                        default:
-                            s.push(p.key + ": " + p.value.toString());
-                    }
-                }
-                query += s.join(", ") + "}";
+                query += " SET r = " + printProperties(this.state.properties);
             }
         } else {
             query += " SET r = $p RETURN r";

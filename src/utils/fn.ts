@@ -1,6 +1,7 @@
 import db from "../db";
 import { EPropertyType } from "./enums";
-import { Duration } from "neo4j-driver";
+import { DateTime as _DateTime, Duration as _Duration, LocalDateTime as _LocalDateTime, LocalTime as _LocalTime, Point as _Point, Time as _Time } from "neo4j-driver";
+import { t_FormProperty } from "./types";
 
 export function toJSON(data: any[] | object): string {
     let obj;
@@ -40,7 +41,83 @@ export function resolvePropertyType(value: any): EPropertyType {
     return EPropertyType.String;
 }
 
-export function stringToDuration(value: string): Duration {
+export function getPropertyAsTemp(type: EPropertyType, value: any, subtype: EPropertyType = null): any {
+    switch (type) {
+        case EPropertyType.Integer:
+            return db.strId(value);
+        case EPropertyType.DateTime:
+            return (() => {
+                const [date, timepart] = value.toString().split("T");
+                const time = timepart.substring(0, 8);
+                const tz = parseInt(db.strId((value as _DateTime).timeZoneOffsetSeconds)) / 60 / 60;
+                const nanosec = db.strId((value as _DateTime).nanosecond);
+                return [date, time, nanosec, tz];
+            })();
+        case EPropertyType.Duration:
+            return durationToString(value as _Duration);
+        case EPropertyType.LocalDateTime:
+            return (() => {
+                const [date, timepart] = value.toString().split("T");
+                const time = timepart.substring(0, 8);
+                const nanosec = db.strId((value as _LocalDateTime).nanosecond);
+                return [date, time, nanosec];
+            })();
+        case EPropertyType.LocalTime:
+            return [(value as _LocalTime).toString().substring(0, 8), db.strId((value as _LocalTime).nanosecond)];
+        case EPropertyType.Point:
+            const srid = db.strId((value as _Point).srid);
+            return ["4979", "9157"].includes(srid) ? [srid, (value as _Point).x, (value as _Point).y, (value as _Point).z] : [srid, (value as _Point).x, (value as _Point).y];
+        case EPropertyType.Time:
+            return [(value as _Time).toString().substring(0, 8), db.strId((value as _Time).nanosecond), parseInt(db.strId((value as _Time).timeZoneOffsetSeconds)) / 60 / 60];
+        case EPropertyType.List:
+            return value.map(v => getPropertyAsTemp(subtype, v));
+
+        case EPropertyType.String:
+        case EPropertyType.Boolean:
+            return null;
+
+        case EPropertyType.Float:
+        case EPropertyType.Date:
+        default:
+            return value ? value.toString() : null;
+    }
+}
+
+export function printProperties(properties: t_FormProperty[]): string {
+    return "{" + properties.map(p => p.key + ": " + printProperty(p)).join(", ") + "}";
+}
+
+function printProperty(property: t_FormProperty): string {
+    if (property.value === null) return "null";
+    switch (property.type) {
+        case EPropertyType.String:
+            return "'" + property.value.replaceAll("'", "\\'").replaceAll("\n", "\\n") + "'";
+        case EPropertyType.Integer:
+            return property.temp;
+        case EPropertyType.Boolean:
+            return property.value ? "true" : "false";
+        case EPropertyType.List:
+            return "[" + property.value.map((entry, i) => printProperty({ ...property, value: entry, temp: property.temp[i], type: property.subtype })).join(", ") + "]";
+        case EPropertyType.Point:
+            return "point({srid: " + property.temp[0] + ", x: " + property.temp[1] + ", y: " + property.temp[2] + (property.temp.length === 4 ? ", z: " + property.temp[3] : "") + "})";
+        case EPropertyType.Date:
+            return "date('" + property.temp + "')";
+        case EPropertyType.DateTime:
+            return "datetime('" + property.value.toString() + "')";
+        case EPropertyType.Time:
+            return "time('" + property.value.toString() + "')";
+        case EPropertyType.LocalTime:
+            return "localtime('" + property.value.toString() + "')";
+        case EPropertyType.LocalDateTime:
+            return "localdatetime('" + property.value.toString() + "')";
+        case EPropertyType.Duration:
+            return "duration('" + property.temp + "')";
+        default:
+            return property.value.toString();
+    }
+}
+
+export function stringToDuration(value: string): _Duration {
     let months = 0;
     let days = 0;
     let seconds = 0;
@@ -82,10 +159,10 @@ export function stringToDuration(value: string): Duration {
         }
     }
 
-    return new Duration(db.neo4j.int(months), db.neo4j.int(days), db.neo4j.int(seconds), db.neo4j.int(nanoseconds));
+    return new _Duration(db.neo4j.int(months), db.neo4j.int(days), db.neo4j.int(seconds), db.neo4j.int(nanoseconds));
 }
 
-export function durationToString(duration: Duration): string {
+export function durationToString(duration: _Duration): string {
     let r: string = "P";
 
     const months = db.neo4j.integer.toNumber(duration.months);

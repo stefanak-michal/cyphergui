@@ -11,7 +11,7 @@ import InlineRelationship from "../components/InlineRelationship";
 import InlineNode from "../components/InlineNode";
 import { t_FormProperty } from "../utils/types";
 import PropertiesForm from "../components/PropertiesForm";
-import { resolvePropertyType } from "../utils/fn";
+import { getPropertyAsTemp, printProperties, resolvePropertyType } from "../utils/fn";
 
 interface INodeProps extends IPageProps {
     database: string;
@@ -71,8 +71,9 @@ class Node extends React.Component<INodeProps, INodeState> {
                 let props: t_FormProperty[] = [];
                 const t = new Date().getTime();
                 for (let key in node.properties) {
-                    let type = resolvePropertyType(node.properties[key]);
-                    props.push({ name: key + t, key: key, value: node.properties[key], type: type, subtype: type === EPropertyType.List ? resolvePropertyType(node.properties[key][0]) : null });
+                    const type = resolvePropertyType(node.properties[key]);
+                    const subtype = type === EPropertyType.List ? resolvePropertyType(node.properties[key][0]) : null;
+                    props.push({ name: key + t, key: key, value: node.properties[key], type: type, subtype: subtype, temp: getPropertyAsTemp(type, node.properties[key], subtype) });
                 }
                 props.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
 
@@ -220,23 +221,7 @@ class Node extends React.Component<INodeProps, INodeState> {
             else query += "CREATE (n)";
             query += setLabels + removeLabels;
             if (this.state.properties.length) {
-                query += " SET n = {";
-                let s = [];
-                for (let p of this.state.properties) {
-                    switch (p.type) {
-                        case EPropertyType.String:
-                            s.push(p.key + ": '" + p.value.replaceAll("'", "\\'").replaceAll("\n", "\\n") + "'");
-                            break;
-                        case EPropertyType.Integer:
-                            s.push(p.key + ": " + db.strId(p.value));
-                            break;
-                        default:
-                            s.push(p.key + ": " + p.value.toString());
-
-                        // todo additional types ..same in rel
-                    }
-                }
-                query += s.join(", ") + "}";
+                query += " SET n = " + printProperties(this.state.properties);
             }
         } else {
             query += (!this.create ? "MATCH (n) WHERE " + db.fnId() + " = $id" : "CREATE (n)") + setLabels + removeLabels + " SET n = $p RETURN n";

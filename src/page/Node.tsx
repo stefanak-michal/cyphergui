@@ -86,10 +86,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                     properties: props,
                 });
             })
-            .catch(err => {
-                console.error(err);
-                this.props.tabManager.close(this.props.tabId);
-            });
+            .catch(() => this.props.tabManager.close(this.props.tabId));
     };
 
     componentDidMount() {
@@ -114,7 +111,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                         this.props.tabManager.close(this.props.tabId);
                     }
                 })
-                .catch(console.error);
+                .catch(() => this.props.tabManager.close(this.props.tabId));
         }
     }
 
@@ -130,7 +127,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                     labelModal: response.records[0].get("c").filter(l => !this.state.labels.includes(l)),
                 });
             })
-            .catch(console.error);
+            .catch(err => this.setState({ error: "[" + err.name + "] " + err.message }));
     };
 
     handleLabelSelect = (label: string) => {
@@ -178,7 +175,6 @@ class Node extends React.Component<INodeProps, INodeState> {
 
         const { query, props } = this.generateQuery();
 
-        //todo log query somewhere? create log terminal?
         db.driver
             .session({
                 database: this.props.database,
@@ -203,7 +199,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                     this.props.tabManager.close(this.props.tabId);
                 }
             })
-            .catch(console.error);
+            .catch(err => this.setState({ error: "[" + err.name + "] " + err.message }));
     };
 
     generateQuery = (printable: boolean = false): { query: string; props: object } => {
@@ -394,6 +390,16 @@ class Node extends React.Component<INodeProps, INodeState> {
                             </ClipboardContext.Consumer>
                         </span>
                     </div>
+
+                    {this.state.error && (
+                        <div className="message is-danger">
+                            <div className="message-header">
+                                <p>Error</p>
+                                <button className="delete" aria-label="delete" onClick={() => this.setState({ error: null })} />
+                            </div>
+                            <div className="message-body">{this.state.error}</div>
+                        </div>
+                    )}
 
                     <div className="field">
                         <div className="control buttons is-justify-content-flex-end">

@@ -37,7 +37,6 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
         this.setState({ submitted: true });
 
         this.tryConnect(this.state.url, this.state.username, this.state.password, err => {
-            console.log(err);
             this.setState({
                 submitted: false,
                 error: err,
@@ -61,10 +60,14 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
             .run("CREATE (n) DELETE n RETURN n")
             .then(response => {
                 if (response.records.length) {
-                    db.setDriver(driver, () => {
-                        db.hasElementId = "elementId" in response.records[0].get("n");
-                        if (this.state.remember) localStorage.setItem("login", JSON.stringify({ url: url, username: username, password: password } as ILoginData));
-                        this.props.handleLogin();
+                    db.setDriver(driver, err => {
+                        if (err) {
+                            onError("[" + err.name + "] " + err.message);
+                        } else {
+                            db.hasElementId = "elementId" in response.records[0].get("n");
+                            if (this.state.remember) localStorage.setItem("login", JSON.stringify({ url: url, username: username, password: password } as ILoginData));
+                            this.props.handleLogin();
+                        }
                     });
                 } else {
                     onError("Initial test query wasn't successful");

@@ -69,34 +69,39 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         if (stash) {
             const parsed: t_StorageStashEntry[] = JSON.parse(stash);
             let i = 1;
-            for (let p of parsed) {
-                if (!db.databases.includes(p.database)) continue;
 
-                const j = i;
-                const database = p.database;
-                i++;
-
-                switch (p.type) {
-                    case "node":
-                        db.driver
-                            .session({ defaultAccessMode: db.neo4j.session.READ, database: database })
-                            .run("MATCH (n) WHERE " + db.fnId("n") + " = $id RETURN n", { id: p.identity })
-                            .then(response => {
-                                if (response.records.length) this.stashManager.add(response.records[0].get("n"), database, j);
-                            })
-                            .catch(console.error);
-                        break;
-                    case "rel":
-                        db.driver
-                            .session({ defaultAccessMode: db.neo4j.session.READ, database: database })
-                            .run("MATCH ()-[r]->() WHERE " + db.fnId("r") + " = $id RETURN r", { id: p.identity })
-                            .then(response => {
-                                if (response.records.length) this.stashManager.add(response.records[0].get("r"), database, j);
-                            })
-                            .catch(console.error);
-                        break;
+            db.databases.forEach(database => {
+                const dbName = database;
+                const id_nodes = parsed.filter(p => p.database === dbName && p.type === "node").map(p => p.identity);
+                if (id_nodes.length) {
+                    db.driver
+                        .session({ defaultAccessMode: db.neo4j.session.READ, database: dbName })
+                        .run("MATCH (n) WHERE " + db.fnId("n") + " IN $id RETURN n", { id: id_nodes })
+                        .then(response => {
+                            if (response.records.length) {
+                                response.records.forEach(rec => {
+                                    this.stashManager.add(rec.get("n"), dbName, i++);
+                                });
+                            }
+                        })
+                        .catch(console.error);
                 }
-            }
+
+                const id_rels = parsed.filter(p => p.database === dbName && p.type === "rel").map(p => p.identity);
+                if (id_rels.length) {
+                    db.driver
+                        .session({ defaultAccessMode: db.neo4j.session.READ, database: dbName })
+                        .run("MATCH ()-[r]->() WHERE " + db.fnId("r") + " IN $id RETURN r", { id: id_rels })
+                        .then(response => {
+                            if (response.records.length) {
+                                response.records.forEach(rec => {
+                                    this.stashManager.add(rec.get("r"), dbName, i++);
+                                });
+                            }
+                        })
+                        .catch(console.error);
+                }
+            });
         }
     }
 
@@ -314,7 +319,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                             {this.state.contents.map(content => {
                                 const MyComponent: typeof React.Component = this.components[content.page];
                                 return (
-                                    <div style={content.id === this.state.activeTab ? {} : { display: "none" }} key={"content-" + content.id}>
+                                    <div key={"content-" + content.id} className={content.id === this.state.activeTab ? "" : "is-hidden"}>
                                         <MyComponent
                                             active={content.id === this.state.activeTab}
                                             tabName={this.state.tabs.filter(t => t.id === content.id)[0].title}

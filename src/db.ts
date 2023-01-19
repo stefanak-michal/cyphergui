@@ -35,7 +35,7 @@ class Db {
         return this.availableDatabases;
     }
 
-    setDriver = (driver: Driver, callback: () => void) => {
+    setDriver = (driver: Driver, callback: (error?: Error) => void) => {
         this._driver = driver;
 
         driver
@@ -53,12 +53,12 @@ class Db {
                             if (active && this.activedb !== active && this.availableDatabases.includes(active)) this.activedb = active;
                             callback();
                         })
-                        .catch(console.error);
+                        .catch(callback);
                 } else {
                     callback();
                 }
             })
-            .catch(console.error);
+            .catch(callback);
     };
 
     get driver(): Driver {

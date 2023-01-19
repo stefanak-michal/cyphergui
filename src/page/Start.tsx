@@ -8,6 +8,7 @@ interface IStartState {
     labels: string[];
     types: string[];
     serverInfo: object;
+    error: string | null;
 }
 
 class Start extends React.Component<IPageProps, IStartState> {
@@ -15,6 +16,7 @@ class Start extends React.Component<IPageProps, IStartState> {
         labels: [],
         types: [],
         serverInfo: {},
+        error: null,
     };
 
     componentDidMount() {
@@ -39,15 +41,23 @@ class Start extends React.Component<IPageProps, IStartState> {
                     serverInfo: responses[2],
                 });
             })
-            .catch(error => {
-                console.error(error);
-            });
+            .catch(err => this.setState({ error: "[" + err.name + "] " + err.message }));
     };
 
     render() {
         return (
             <div className="columns">
                 <div className="column is-three-fifths-desktop is-offset-one-fifth-desktop">
+                    {this.state.error && (
+                        <div className="message is-danger">
+                            <div className="message-header">
+                                <p>Error</p>
+                                <button className="delete" aria-label="delete" onClick={() => this.setState({ error: null })} />
+                            </div>
+                            <div className="message-body">{this.state.error}</div>
+                        </div>
+                    )}
+
                     <div className="subtitle mb-2">Server</div>
                     {Object.keys(this.state.serverInfo).length ? (
                         <div>

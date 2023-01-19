@@ -120,7 +120,6 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                     })
                     .run(this.state.query)
                     .then(response => {
-                        console.log(response);
                         this.setShowTableSize(response.records);
                         this.setState(
                             state => {
@@ -314,93 +313,88 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                     </div>
                 </div>
 
-                {this.state.rows.length > 0 && (
-                    <div className="block">
-                        {this.state.view === EQueryView.Table && (
-                            <div className="table-container">
-                                <table className="table is-bordered is-striped is-narrow is-hoverable">
-                                    <thead>
-                                        <tr>
-                                            {keys.map(key => (
-                                                <th key={key}>{key}</th>
-                                            ))}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {this.state.rows.map((row, i) => (
-                                            <tr key={i}>
-                                                {keys.map(key => (
-                                                    <td key={key}>{row.has(key) ? this.printValue(row.get(key)) : ""}</td>
-                                                ))}
-                                            </tr>
+                <div className={"block " + (this.state.view === EQueryView.Table && this.state.rows.length ? "" : "is-hidden")}>
+                    <div className="table-container">
+                        <table className="table is-bordered is-striped is-narrow is-hoverable">
+                            <thead>
+                                <tr>
+                                    {keys.map(key => (
+                                        <th key={key}>{key}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {this.state.rows.map((row, i) => (
+                                    <tr key={i}>
+                                        {keys.map(key => (
+                                            <td key={key}>{row.has(key) ? this.printValue(row.get(key)) : ""}</td>
                                         ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                        {this.state.view === EQueryView.Graph && (
-                            <div className="graph" ref={this.graphElement}>
-                                <div className="buttons">
-                                    {document.fullscreenEnabled && (
-                                        <Button
-                                            icon={"fa-solid " + (document.fullscreenElement === null ? "fa-expand" : "fa-compress")}
-                                            color="mr-0"
-                                            onClick={() => {
-                                                if (document.fullscreenElement === null) {
-                                                    this.graphElement.current.requestFullscreen().then(() => {
-                                                        setTimeout(() => this.orb.view.recenter(), 100);
-                                                        this.setState({});
-                                                    });
-                                                } else {
-                                                    document.exitFullscreen().then(() => {
-                                                        setTimeout(() => this.orb.view.recenter(), 100);
-                                                        this.setState({});
-                                                    });
-                                                }
-                                            }}
-                                            title="Fullscreen"
-                                        />
-                                    )}
-                                    <Button icon="fa-solid fa-maximize" onClick={() => this.orb.view.recenter()} color="mr-0" title="Recenter" />
-                                </div>
-                                <div className="brand is-flex is-align-items-center">
-                                    <span className="is-size-7">Powered by</span>
-                                    <a href="https://github.com/memgraph/orb" target="_blank" className="ml-1">
-                                        <img src="orb_logo.png" alt="ORB" />
-                                    </a>
-                                </div>
-                            </div>
-                        )}
-
-                        {this.state.view === EQueryView.JSON && (
-                            <div className="control has-icons-right">
-                                <pre>{toJSON(this.state.rows)}</pre>
-                                <ClipboardContext.Consumer>
-                                    {copy => (
-                                        <span className="icon is-right is-clickable" onClick={copy}>
-                                            <i className="fa-regular fa-copy" />
-                                        </span>
-                                    )}
-                                </ClipboardContext.Consumer>
-                            </div>
-                        )}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
-                )}
+                </div>
 
-                {this.state.view === EQueryView.Summary && this.state.summary && (
-                    <div className="block">
-                        <div className="control has-icons-right">
-                            <pre>{toJSON(this.state.summary)}</pre>
-                            <ClipboardContext.Consumer>
-                                {copy => (
-                                    <span className="icon is-right is-clickable" onClick={copy}>
-                                        <i className="fa-regular fa-copy" />
-                                    </span>
-                                )}
-                            </ClipboardContext.Consumer>
+                <div className={"block " + (this.state.view === EQueryView.Graph && this.state.rows.length ? "" : "is-hidden")}>
+                    <div className="graph" ref={this.graphElement}>
+                        <div className="buttons">
+                            {document.fullscreenEnabled && (
+                                <Button
+                                    icon={"fa-solid " + (document.fullscreenElement === null ? "fa-expand" : "fa-compress")}
+                                    color="mr-0"
+                                    onClick={() => {
+                                        if (document.fullscreenElement === null) {
+                                            this.graphElement.current.requestFullscreen().then(() => {
+                                                setTimeout(() => this.orb.view.recenter(), 100);
+                                                this.setState({});
+                                            });
+                                        } else {
+                                            document.exitFullscreen().then(() => {
+                                                setTimeout(() => this.orb.view.recenter(), 100);
+                                                this.setState({});
+                                            });
+                                        }
+                                    }}
+                                    title="Fullscreen"
+                                />
+                            )}
+                            <Button icon="fa-solid fa-maximize" onClick={() => this.orb.view.recenter()} color="mr-0" title="Recenter" />
+                        </div>
+                        <div className="brand is-flex is-align-items-center">
+                            <span className="is-size-7">Powered by</span>
+                            <a href="https://github.com/memgraph/orb" target="_blank" className="ml-1">
+                                <img src="orb_logo.png" alt="ORB" />
+                            </a>
                         </div>
                     </div>
-                )}
+                </div>
+
+                <div className={"block " + (this.state.view === EQueryView.JSON && this.state.rows.length ? "" : "is-hidden")}>
+                    <div className="control has-icons-right">
+                        <pre>{toJSON(this.state.rows)}</pre>
+                        <ClipboardContext.Consumer>
+                            {copy => (
+                                <span className="icon is-right is-clickable" onClick={copy}>
+                                    <i className="fa-regular fa-copy" />
+                                </span>
+                            )}
+                        </ClipboardContext.Consumer>
+                    </div>
+                </div>
+
+                <div className={"block " + (this.state.view === EQueryView.Summary && this.state.summary ? "" : "is-hidden")}>
+                    <div className="control has-icons-right">
+                        <pre>{toJSON(this.state.summary)}</pre>
+                        <ClipboardContext.Consumer>
+                            {copy => (
+                                <span className="icon is-right is-clickable" onClick={copy}>
+                                    <i className="fa-regular fa-copy" />
+                                </span>
+                            )}
+                        </ClipboardContext.Consumer>
+                    </div>
+                </div>
 
                 {this.state.rows.length === 0 && !this.state.summary && <div className="block">No result</div>}
             </>

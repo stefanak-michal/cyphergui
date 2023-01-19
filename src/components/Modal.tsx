@@ -1,10 +1,7 @@
 import * as React from "react";
-import { Node as _Node } from "neo4j-driver";
 import { Button, Checkbox } from "./form";
 import { ClipboardContext } from "../utils/contexts";
 import { toJSON } from "../utils/fn";
-import { IStashManager } from "../utils/interfaces";
-import db from "../db";
 
 export default class Modal extends React.Component<{ title: string; color?: string; handleClose: () => void; children: React.ReactNode; icon?: string; backdrop?: boolean }> {
     render() {
@@ -86,86 +83,6 @@ export class PropertiesModal extends React.Component<{ properties: object; handl
                         )}
                     </ClipboardContext.Consumer>
                 </div>
-            </Modal>
-        );
-    }
-}
-
-export class SelectNodeModal extends React.Component<{ stashManager: IStashManager; handleNodeSelect: (node: _Node) => void; handleClose: () => void; database: string }, {}> {
-    state = {
-        id: "",
-        error: null,
-    };
-
-    handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        const isNum = /^\d+$/.test(this.state.id);
-
-        db.driver
-            .session({ database: this.props.database, defaultAccessMode: db.neo4j.session.READ })
-            .run("MATCH (n) WHERE " + (isNum ? "id(n)" : "elementId") + " = $id RETURN n", {
-                id: isNum ? db.neo4j.int(this.state.id) : this.state.id,
-            })
-            .then(response => {
-                if (response.records.length > 0) {
-                    this.props.handleNodeSelect(response.records[0].get("n"));
-                    return true;
-                } else {
-                    this.setState({
-                        error: "Node not found",
-                    });
-                    return false;
-                }
-            })
-            .catch(err => {
-                this.setState({
-                    error: "[" + err.name + "] " + err.message,
-                });
-            });
-    };
-
-    render() {
-        return (
-            <Modal title="Select node" handleClose={this.props.handleClose} backdrop={true}>
-                <label className="label">Stashed nodes</label>
-                {this.props.stashManager.get().filter(s => s.value instanceof _Node).length > 0 ? (
-                    <div className="buttons">
-                        {this.props.stashManager
-                            .get()
-                            .filter(s => s.database === this.props.database && s.value instanceof _Node)
-                            .map(s => (
-                                <Button
-                                    key={s.id}
-                                    text={((s.value as _Node).labels.length > 0 ? ":" + (s.value as _Node).labels.join(":") + " " : "") + "#" + db.strId(s.value.identity)}
-                                    onClick={() => this.props.handleNodeSelect(s.value as _Node)}
-                                />
-                            ))}
-                    </div>
-                ) : (
-                    <div className="has-text-grey-light mb-3">none</div>
-                )}
-                <form onSubmit={this.handleSubmit}>
-                    <label className="label">Or enter id {db.hasElementId ? "or elementId" : ""}</label>
-                    <div className="field is-grouped">
-                        <div className="control is-expanded">
-                            <input
-                                autoFocus
-                                required
-                                className="input"
-                                type="text"
-                                value={this.state.id}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                    const target = e.currentTarget;
-                                    this.setState({ id: target.value, error: null });
-                                }}
-                            />
-                        </div>
-                        <div className="control">
-                            <Button icon="fa-solid fa-check" type="submit" />
-                        </div>
-                    </div>
-                    {this.state.error && <div className="notification is-danger">{this.state.error}</div>}
-                </form>
             </Modal>
         );
     }

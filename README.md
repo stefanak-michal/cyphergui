@@ -2,11 +2,13 @@
 
 # Introduction
 
-GUI admin tool for graph databases with bolt protocol support (neo4j, memgraph, amazon neptune). Usable without knowledge of cypher query language. Inspired by phpmyadmin.
+GUI admin tool for graph databases with bolt protocol support ([neo4j](https://neo4j.com/), [memgraph](https://memgraph.com/), [amazon neptune](https://aws.amazon.com/neptune/)). Usable without knowledge of cypher query language. Inspired by phpmyadmin.
 
-# WIP
+## Support
 
-## links
+<a href='https://ko-fi.com/Z8Z5ABMLW' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://cdn.ko-fi.com/cdn/kofi1.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+
+### Useful links for development
 
 - https://fontawesome.com/search?o=r&m=free
 - https://bulma.io/documentation/
@@ -19,12 +21,3 @@ GUI admin tool for graph databases with bolt protocol support (neo4j, memgraph, 
 - https://javascript.info/promise-api
 - https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/forms_and_events/
 - https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage
-
-## todo
-
-- log console somewhere (new tab, btn to open in Start and navbar?)
-- Canvas side column with details on node/rel click
-- query db - make a fn to avoid direct call neo4j driver. To make it possible use different driver if neccesary. That means it requires update on neo4j Integer usage.
-- https://create-react-app.dev/docs/deployment/#github-pages
-- error handling
-- handle lost connection - send to login page

@@ -12,6 +12,7 @@ interface ILoginState {
     remember: boolean;
     submitted: boolean;
     error: string | null;
+    mixedContentInfo: boolean;
 }
 
 /**
@@ -26,6 +27,7 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
         remember: false,
         submitted: false,
         error: null,
+        mixedContentInfo: false,
     };
 
     handleSubmit = async (e: React.FormEvent) => {
@@ -84,6 +86,7 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
 
         let obj = {};
         obj[name] = value;
+        if (name === "url") obj["mixedContentInfo"] = this.isMixedContent(value as string);
         this.setState(obj);
     };
 
@@ -97,40 +100,61 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
                 });
             } catch (Error) {}
         }
+
+        if (this.isMixedContent(this.state.url)) this.setState({ mixedContentInfo: true });
     }
+
+    isMixedContent = (url: string): boolean => {
+        try {
+            const parser = new URL(url);
+            if (location.protocol === "https:" && (parser.protocol === "bolt:" || parser.protocol === "neo4j:")) return true;
+        } catch (Error) {}
+        return false;
+    };
 
     render() {
         document.title = "Login / cypherGUI";
         return (
             <section className="mt-5 container is-fluid">
                 <div className="columns">
-                    <div className="column is-one-third is-offset-one-third">
+                    <div className="column is-6-desktop is-offset-3-desktop">
                         <h1 className="has-text-centered">
                             <img src={logo} alt="cypherGUI" />
                         </h1>
+
+                        <form id="login" className="mt-6 box" onSubmit={this.handleSubmit}>
+                            <Input label="URL" name="url" onChange={this.handleInputChange} value={this.state.url} />
+                            {this.state.mixedContentInfo && (
+                                <div className="help mb-3">
+                                    Not encrypted protocol won't work on encrypted website (https) because of
+                                    <a href="https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content" target="_blank" className="pl-1" referrerPolicy="no-referrer">
+                                        mixed content
+                                    </a>
+                                    . You can run cypherGUI
+                                    <a href="https://github.com/stefanak-michal/cyphergui/blob/master/README.md#local-instance" target="_blank" className="px-1">
+                                        locally
+                                    </a>
+                                    or add certificate to your graph database instance.
+                                </div>
+                            )}
+                            <Input label="Username" name="username" onChange={this.handleInputChange} value={this.state.username} focus={true} />
+                            <Input label="Password" name="password" type="password" onChange={this.handleInputChange} />
+                            <Checkbox
+                                name="remember"
+                                label="Remember (not secure)"
+                                checked={this.state.remember}
+                                color="is-primary"
+                                onChange={() =>
+                                    this.setState(state => {
+                                        return { remember: !state.remember };
+                                    })
+                                }
+                            />
+                            {this.state.error && <div className="notification is-danger mt-3 mb-0">{this.state.error}</div>}
+                            <Button text="Login" icon="fa-solid fa-check" color={"mt-3 is-primary " + (this.state.submitted ? "is-loading" : "")} type="submit" />
+                        </form>
                     </div>
                 </div>
-
-                <form id="login" className="columns mt-6" onSubmit={this.handleSubmit}>
-                    <div className="column is-one-third is-offset-one-third box">
-                        <Input label="URL" name="url" onChange={this.handleInputChange} value={this.state.url} />
-                        <Input label="Username" name="username" onChange={this.handleInputChange} value={this.state.username} focus={true} />
-                        <Input label="Password" name="password" type="password" onChange={this.handleInputChange} />
-                        <Checkbox
-                            name="remember"
-                            label="Remember (not secure)"
-                            checked={this.state.remember}
-                            color="is-primary"
-                            onChange={() =>
-                                this.setState(state => {
-                                    return { remember: !state.remember };
-                                })
-                            }
-                        />
-                        {this.state.error && <div className="notification is-danger">{this.state.error}</div>}
-                        <Button text="Login" icon="fa-solid fa-check" color={"mt-3 is-primary " + (this.state.submitted ? "is-loading" : "")} type="submit" />
-                    </div>
-                </form>
             </section>
         );
     }

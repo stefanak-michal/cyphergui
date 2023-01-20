@@ -3,12 +3,7 @@ import { Button, Checkbox, Input } from "./components/form";
 import db from "./db";
 import { Driver } from "neo4j-driver";
 import logo from "./assets/logo.png";
-
-interface ILoginData {
-    url: string;
-    username: string;
-    password: string;
-}
+import { ILoginData } from "./utils/interfaces";
 
 interface ILoginState {
     url: string;
@@ -25,7 +20,7 @@ interface ILoginState {
  */
 class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
     state: ILoginState = {
-        url: "bolt://localhost:7687",
+        url: localStorage.getItem("host") || "bolt://localhost:7687",
         username: "",
         password: "",
         remember: false,
@@ -50,7 +45,6 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
         try {
             driver = db.neo4j.driver(url, username.length > 0 && password.length > 0 ? db.neo4j.auth.basic(username, password) : { scheme: "none", principal: "", credentials: "" }, {
                 userAgent: "stefanak-michal/cypherGUI",
-                encrypted: false,
             });
         } catch (err) {
             onError("[" + err.name + "] " + err.message);
@@ -67,7 +61,9 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
                             onError("[" + err.name + "] " + err.message);
                         } else {
                             db.hasElementId = "elementId" in response.records[0].get("n");
-                            if (this.state.remember) localStorage.setItem("login", JSON.stringify({ url: url, username: username, password: password } as ILoginData));
+                            localStorage.setItem("host", url);
+                            if (this.state.remember) localStorage.setItem("login", JSON.stringify({ username: username, password: password }));
+
                             this.props.handleLogin();
                         }
                     });
@@ -93,11 +89,13 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
 
     componentDidMount() {
         let login = localStorage.getItem("login");
-        if (!!login) {
-            let parsed = JSON.parse(login) as ILoginData;
-            this.tryConnect(parsed.url, parsed.username, parsed.password, () => {
-                localStorage.removeItem("login");
-            });
+        if (login) {
+            try {
+                let parsed = JSON.parse(login);
+                this.tryConnect(this.state.url, parsed.username, parsed.password, () => {
+                    localStorage.removeItem("login");
+                });
+            } catch (Error) {}
         }
     }
 

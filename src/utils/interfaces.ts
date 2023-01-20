@@ -39,3 +39,9 @@ export interface IPageProps {
     toast: t_ToastFn;
     stashManager: IStashManager;
 }
+
+export interface ILoginData {
+    url: string;
+    username?: string;
+    password?: string;
+}

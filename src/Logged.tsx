@@ -17,6 +17,8 @@ import Stash from "./layout/Stash";
 import Settings from "./layout/Settings";
 import { ClipboardContext, ToastContext } from "./utils/contexts";
 import { Node as _Node, Relationship as _Relationship } from "neo4j-driver";
+import Modal from "./components/Modal";
+import kofi_icon from "./assets/ko-fi_icon.png";
 
 interface ILoggedState {
     activeTab: string | null;
@@ -25,6 +27,7 @@ interface ILoggedState {
     toasts: { key: number; message: string; color: string; delay: number; timeout: NodeJS.Timeout }[];
     settingsModal: boolean;
     stashed: IStashEntry[];
+    uptimeModal: boolean;
 }
 
 /**
@@ -38,6 +41,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         toasts: [],
         settingsModal: false,
         stashed: [],
+        uptimeModal: false,
     };
 
     components = {
@@ -49,6 +53,8 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         [EPage.Rel]: Relationship,
         [EPage.History]: History,
     };
+
+    uptimeInterval;
 
     constructor(props) {
         super(props);
@@ -102,6 +108,18 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                         .catch(console.error);
                 }
             });
+        }
+
+        if (!this.uptimeInterval) {
+            this.uptimeInterval = setInterval(() => {
+                const min = parseInt(localStorage.getItem("uptime") || "0") + 1;
+                localStorage.setItem("uptime", min.toString());
+                if (min % 60 === 0) {
+                    this.setState({
+                        uptimeModal: true,
+                    });
+                }
+            }, 1000 * 60);
         }
     }
 
@@ -353,6 +371,33 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                 )}
 
                 <Stash stashed={this.state.stashed} tabManager={this.tabManager} stashManager={this.stashManager} />
+
+                {this.state.uptimeModal && (
+                    <Modal title="Support" handleClose={() => this.setState({ uptimeModal: false })} color="is-info">
+                        <p className="mb-2">It is amazing you have been using this project for {Math.floor(parseInt(localStorage.getItem("uptime") || "0") / 60)} hours.</p>
+                        <p className="mb-2">
+                            This project was made with <i className="fa-solid fa-heart has-text-danger" title="Heart" /> and for free but as you guess it costs
+                            <i className="fa-solid fa-clock has-text-link mx-1" title="Time" />
+                            and I would like to add new features and take <i className="fa-solid fa-hand-holding-medical" title="Care" /> of it.
+                        </p>
+                        <p>Please consider support with Ko-fi donate button, GitHub sponsors or at least with star at GitHub repository.</p>
+                        <div className="buttons is-justify-content-flex-end mt-3">
+                            <a href="https://ko-fi.com/michalstefanak" target="_blank" className="button is-link pl-5">
+                                <span className="icon mr-2">
+                                    <img src={kofi_icon} alt="ko-fi" className="kofi-tada" />
+                                </span>
+                                <span>Ko-fi</span>
+                            </a>
+                            <a href="https://github.com/stefanak-michal/cyphergui" target="_blank" className="button is-link">
+                                <span className="icon">
+                                    <i className="fa-brands fa-github" />
+                                </span>
+                                <span>GitHub</span>
+                            </a>
+                            <Button text="Close" icon="fa-solid fa-xmark" onClick={() => this.setState({ uptimeModal: false })} color="is-secondary" />
+                        </div>
+                    </Modal>
+                )}
             </>
         );
     }

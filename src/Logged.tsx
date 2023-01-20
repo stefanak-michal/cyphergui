@@ -287,8 +287,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         }
 
         if (text.length > 0) {
-            navigator.clipboard.writeText(text);
-            this.toast("Copied to clipboard", "is-success is-light");
+            navigator.clipboard.writeText(text).then(() => this.toast("Copied to clipboard", "is-success is-light"));
         }
     };
 

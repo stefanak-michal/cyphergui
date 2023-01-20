@@ -22,6 +22,7 @@ import { Orb, OrbEventType } from "@memgraph/orb";
 import InlineNode from "../components/InlineNode";
 import InlineRelationship from "../components/InlineRelationship";
 import { durationToString, toJSON } from "../utils/fn";
+import orb_logo from "../assets/orb_logo.png";
 
 interface IQueryProps extends IPageProps {
     query?: string;
@@ -364,7 +365,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                         <div className="brand is-flex is-align-items-center">
                             <span className="is-size-7">Powered by</span>
                             <a href="https://github.com/memgraph/orb" target="_blank" className="ml-1">
-                                <img src="orb_logo.png" alt="ORB" />
+                                <img src={orb_logo} alt="ORB" />
                             </a>
                         </div>
                     </div>

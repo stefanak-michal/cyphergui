@@ -2,6 +2,7 @@ import * as React from "react";
 import { Button, Checkbox, Input } from "./components/form";
 import db from "./db";
 import { Driver } from "neo4j-driver";
+import logo from "./assets/logo.png";
 
 interface ILoginData {
     url: string;
@@ -106,7 +107,7 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
                 <div className="columns">
                     <div className="column is-one-third is-offset-one-third">
                         <h1 className="has-text-centered">
-                            <img src="logo.svg" alt="cypherGUI" />
+                            <img src={logo} alt="cypherGUI" />
                         </h1>
                     </div>
                 </div>

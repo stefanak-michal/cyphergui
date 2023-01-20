@@ -5,6 +5,7 @@ import Logged from "./Logged";
 import db from "./db";
 import { Button } from "./components/form";
 import Modal from "./components/Modal";
+import kofi_icon from "./assets/ko-fi_icon.png";
 
 class App extends React.Component {
     state = {
@@ -49,14 +50,21 @@ class App extends React.Component {
 
                 {this.state.uptimeModal && (
                     <Modal title="Support" handleClose={() => this.setState({ uptimeModal: false })} color="is-info">
-                        <p>
+                        <p className="mb-2">It is amazing you have been using this project for {Math.floor(parseInt(localStorage.getItem("uptime") || "0") / 60)} hours.</p>
+                        <p className="mb-2">
                             This project was made with <i className="fa-solid fa-heart has-text-danger" title="Heart" /> and for free but as you guess it costs
-                            <i className="fa-solid fa-clock has-text-link ml-1" title="Time" />
+                            <i className="fa-solid fa-clock has-text-link mx-1" title="Time" />
+                            and I would like to add new features and take <i className="fa-solid fa-hand-holding-medical" title="Care" /> of it.
                         </p>
-                        <p>It is amazing you have been using this project for {Math.floor(parseInt(localStorage.getItem("uptime") || "0") / 60)} hours.</p>
-                        <p>Please consider support with donate button or at least with star at GitHub.</p>
+                        <p>Please consider support with Ko-fi donate button, GitHub sponsors or at least with star at GitHub repository.</p>
                         <div className="buttons is-justify-content-flex-end mt-3">
-                            <a href="https://github.com/stefanak-michal/cyphergui" target="_blank" className="button is-info">
+                            <a href="https://ko-fi.com/michalstefanak" target="_blank" className="button is-link pl-5">
+                                <span className="icon mr-2">
+                                    <img src={kofi_icon} alt="ko-fi" className="kofi-tada" />
+                                </span>
+                                <span>Ko-fi</span>
+                            </a>
+                            <a href="https://github.com/stefanak-michal/cyphergui" target="_blank" className="button is-link">
                                 <span className="icon">
                                     <i className="fa-brands fa-github" />
                                 </span>

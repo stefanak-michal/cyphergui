@@ -3,6 +3,7 @@ import db from "../db";
 import { Button } from "../components/form";
 import { ITabManager } from "../utils/interfaces";
 import { EPage } from "../utils/enums";
+import logo from "../assets/logo_small.png";
 
 interface INavbarProps {
     handleLogout: () => void;
@@ -53,7 +54,7 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
             <nav className="navbar" role="navigation" aria-label="main navigation">
                 <div className="navbar-brand">
                     <span className="navbar-item">
-                        <img src="logo.svg" alt="cypherGUI" />
+                        <img src={logo} alt="cypherGUI" />
                     </span>
 
                     <a

@@ -50,6 +50,7 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
         try {
             driver = db.neo4j.driver(url, username.length > 0 && password.length > 0 ? db.neo4j.auth.basic(username, password) : { scheme: "none", principal: "", credentials: "" }, {
                 userAgent: "stefanak-michal/cypherGUI",
+                encrypted: false,
             });
         } catch (err) {
             onError("[" + err.name + "] " + err.message);

@@ -3,13 +3,12 @@ import { Driver, Integer, Node as _Node, Relationship as _Relationship } from "n
 class Db {
     private _neo4j = require("neo4j-driver");
     private _driver: Driver;
-    private activedb: string;
+    private activedb: string = undefined;
     private availableDatabases: string[] = [];
     private callbacks_1: ((database: string) => void)[] = [];
     private callbacks_2: ((databases: string[]) => void)[] = [];
 
     hasElementId: boolean = false;
-    supportsMultiDb: boolean = false;
 
     get neo4j() {
         return this._neo4j;
@@ -39,26 +38,18 @@ class Db {
         this._driver = driver;
 
         driver
-            .supportsMultiDb()
-            .then(result => {
-                this.supportsMultiDb = result;
-                if (result) {
-                    driver
-                        .session({ defaultAccessMode: db.neo4j.session.READ })
-                        .run("SHOW DATABASES")
-                        .then(response => {
-                            this.activedb = response.records.find(row => row.get("default")).get("name");
-                            this.availableDatabases = response.records.filter(row => row.get("type") !== "system").map(row => row.get("name"));
-                            const active = localStorage.getItem("activedb");
-                            if (active && this.activedb !== active && this.availableDatabases.includes(active)) this.activedb = active;
-                            callback();
-                        })
-                        .catch(callback);
-                } else {
-                    callback();
-                }
+            .session({ defaultAccessMode: db.neo4j.session.READ })
+            .run("SHOW DATABASES")
+            .then(response => {
+                this.activedb = response.records.find(row => row.get("default")).get("name");
+                this.availableDatabases = response.records.filter(row => row.get("type") !== "system").map(row => row.get("name"));
+                const active = localStorage.getItem("activedb");
+                if (active && this.activedb !== active && this.availableDatabases.includes(active)) this.activedb = active;
+                callback();
             })
-            .catch(callback);
+            .catch(() => {
+                callback();
+            });
     };
 
     get driver(): Driver {

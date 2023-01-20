@@ -3,7 +3,6 @@ import { Button, Checkbox, Input } from "./components/form";
 import db from "./db";
 import { Driver } from "neo4j-driver";
 import logo from "./assets/logo.png";
-import { ILoginData } from "./utils/interfaces";
 
 interface ILoginState {
     url: string;
@@ -45,7 +44,7 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
     tryConnect = (url: string, username: string, password: string, onError: (error: string) => void) => {
         let driver: Driver;
         try {
-            driver = db.neo4j.driver(url, username.length > 0 && password.length > 0 ? db.neo4j.auth.basic(username, password) : { scheme: "none", principal: "", credentials: "" }, {
+            driver = db.neo4j.driver(url, username.length > 0 && password.length > 0 ? db.neo4j.auth.basic(username, password) : { scheme: "none", principal: null, credentials: null }, {
                 userAgent: "stefanak-michal/cypherGUI",
             });
         } catch (err) {
@@ -53,10 +52,10 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
             return;
         }
 
-        driver
-            .session({ defaultAccessMode: db.neo4j.session.WRITE })
-            .run("CREATE (n) DELETE n RETURN n")
+        const tx = driver.session({ defaultAccessMode: db.neo4j.session.WRITE }).beginTransaction();
+        tx.run("CREATE (n) RETURN n")
             .then(response => {
+                console.log(response);
                 if (response.records.length) {
                     db.setDriver(driver, err => {
                         if (err) {
@@ -76,6 +75,8 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
             .catch(err => {
                 onError("[" + err.name + "] " + err.message);
             });
+
+        tx.rollback();
     };
 
     handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {

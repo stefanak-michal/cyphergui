@@ -1,7 +1,4 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
-name: Create new GH pages release 
+name: Create new GH pages release
 
 on:
   workflow_dispatch:
@@ -21,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CI: '' # temporaly disable because @memgraph/orb throws warnings on build and on CI warnings acts like errors
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -30,9 +28,11 @@ jobs:
       with:
         node-version: 'latest'
         cache: 'npm'
-        
-    - run: git config --global user.email "github-actions@github.com"
-    - run: git config --global user.name "github-actions"
+
+    - run: |
+        git config --global user.email "github-actions-bot@github.com"
+        git config --global user.name "github-actions-bot"
+        git remote set-url origin https://git:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
     
     - name: npm install
       run: npm ci
@@ -40,7 +40,7 @@ jobs:
     - name: npm bump version
       run: npm version ${{ inputs.version }}
       
-    - name: GH pages
+    - name: Deploy with gh-pages
       run: npm run deploy
     
     - name: Commit bumped version

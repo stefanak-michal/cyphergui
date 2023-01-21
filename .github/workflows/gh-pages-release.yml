@@ -39,7 +39,7 @@ jobs:
       run: npm version ${{ inputs.version }}
       
     - name: GH pages
-      run: gh-pages -d build
+      run: npm run deploy
     
     - name: Commit bumped version
       run: git commit -m "bumped version"

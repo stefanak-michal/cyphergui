@@ -42,9 +42,6 @@ jobs:
       
     - name: Deploy with gh-pages
       run: npm run deploy
-    
-    - name: Commit bumped version
-      run: git commit -m "bumped version"
-      
+
     - name: Push commit
       run: git push --tags

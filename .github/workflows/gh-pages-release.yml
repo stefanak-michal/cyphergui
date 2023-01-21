@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CI: '' # temporaly disable because @memgraph/orb throws warnings on build and on CI warnings acts like errors
-      GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      PUSH_TOKEN: ${{ secrets.PUSH_TOKEN }}
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -32,7 +32,7 @@ jobs:
     - run: |
         git config --global user.email "github-actions-bot@github.com"
         git config --global user.name "github-actions-bot"
-        git remote set-url origin https://git:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
+        git remote set-url origin https://git:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
     
     - name: npm install
       run: npm ci

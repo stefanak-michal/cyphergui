@@ -16,7 +16,8 @@ jobs:
         uses: actions/checkout@v3
 
       # Check if version in package.json has changed
-      - run: |
+      - name: check version
+        run: |
           echo "DIFF=$(git show --format= --minimal -U0 -1 package.json | grep -E '\"version\":\s+\"[0-9\.]+\"' | wc -l)" >> $GITHUB_ENV
 
       - name: Setup node.js
@@ -27,7 +28,9 @@ jobs:
           cache: 'npm'
 
       - name: npm install
+        if: env.DIFF == 2
         run: npm ci
 
       - name: deploy with gh-pages
+        if: env.DIFF == 2
         run: npm run deploy

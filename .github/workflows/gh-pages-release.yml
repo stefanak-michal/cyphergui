@@ -19,6 +19,8 @@ jobs:
   release:
     name: Create and publish new release
     runs-on: ubuntu-latest
+    env:
+      CI: '' # temporaly disable because @memgraph/orb throws warnings on build and on CI warnings acts like errors
     steps:
     - name: Checkout
       uses: actions/checkout@v3

@@ -1,47 +1,33 @@
-name: Create new GH pages release
+name: Automatically deploy new version on github pages
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: Which version part to update
-        required: true
-        type: choice
-        options:
-        - major
-        - minor
-        - patch
-  
+  push:
+    branches:
+      - 'master'
+
 jobs:
-  release:
+  build-deploy:
     name: Create and publish new release
     runs-on: ubuntu-latest
     env:
       CI: '' # temporaly disable because @memgraph/orb throws warnings on build and on CI warnings acts like errors
-      PUSH_TOKEN: ${{ secrets.PUSH_TOKEN }}
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-      
-    - name: Setup node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: 'latest'
-        cache: 'npm'
+      - name: Checkout
+        uses: actions/checkout@v3
 
-    - run: |
-        git config --global user.email "github-actions-bot@github.com"
-        git config --global user.name "github-actions-bot"
-        git remote set-url origin https://git:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
-    
-    - name: npm install
-      run: npm ci
-      
-    - name: npm bump version
-      run: npm version ${{ inputs.version }}
-      
-    - name: Deploy with gh-pages
-      run: npm run deploy
+      # Check if version in package.json has changed
+      - run: |
+          echo "DIFF=$(git show --format= --minimal -U0 -1 package.json | grep -E '\"version\":\s+\"[0-9\.]+\"' | wc -l)" >> $GITHUB_ENV
 
-    - name: Push commit
-      run: git push --tags
+      - name: Setup node.js
+        if: env.DIFF == 2
+        uses: actions/setup-node@v3
+        with:
+          node-version: 'latest'
+          cache: 'npm'
+
+      - name: npm install
+        run: npm ci
+
+      - name: deploy with gh-pages
+        run: npm run deploy

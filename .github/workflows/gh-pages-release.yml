@@ -21,16 +21,16 @@ jobs:
           echo "DIFF=$(git show --format= --minimal -U0 -1 package.json | grep -E '\"version\":\s+\"[0-9\.]+\"' | wc -l)" >> $GITHUB_ENV
 
       - name: Setup node.js
-        if: env.DIFF == 2
+        if: env.DIFF == '2'
         uses: actions/setup-node@v3
         with:
           node-version: 'latest'
           cache: 'npm'
 
       - name: npm install
-        if: env.DIFF == 2
+        if: env.DIFF == '2'
         run: npm ci
 
       - name: deploy with gh-pages
-        if: env.DIFF == 2
+        if: env.DIFF == '2'
         run: npm run deploy

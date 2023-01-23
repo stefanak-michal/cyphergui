@@ -366,7 +366,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                                         <span className="is-size-4">]-{dir === 1 && ">"}(</span>
                                         <InlineNode node={node} tabManager={this.props.tabManager} small={true} />
                                         <span className=" is-size-4">)</span>
-                                        <span className="ml-auto">end line buttons - stash (path)?</span>
+                                        <span className="ml-auto"></span>
                                     </div>
                                 );
                             })}

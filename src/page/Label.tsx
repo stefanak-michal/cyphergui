@@ -47,8 +47,8 @@ class Label extends React.Component<ILabelProps, ILabelState> {
             })
             .run("MATCH (n:" + this.props.label + ") RETURN COUNT(n) AS cnt")
             .then(response1 => {
-                const cnt: number = response1.records[0].get("cnt");
-                const page: number = this.state.page >= Math.ceil(cnt / this.perPage) ? Math.ceil(cnt / this.perPage) : this.state.page;
+                const cnt: number = parseFloat(db.neo4j.integer.toString(response1.records[0].get("cnt")));
+                const page: number = Math.min(this.state.page, Math.ceil(cnt / this.perPage));
 
                 db.driver
                     .session({
@@ -68,7 +68,10 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                     })
                     .catch(err => this.setState({ error: "[" + err.name + "] " + err.message }));
             })
-            .catch(() => this.props.tabManager.close(this.props.tabId));
+            .catch(err => {
+                console.log(err);
+                this.props.tabManager.close(this.props.tabId);
+            });
     };
 
     componentDidMount() {

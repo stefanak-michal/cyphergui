@@ -55,7 +55,6 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
         const tx = driver.session({ defaultAccessMode: db.neo4j.session.WRITE }).beginTransaction();
         tx.run("CREATE (n) RETURN n")
             .then(response => {
-                console.log(response);
                 if (response.records.length) {
                     db.setDriver(driver, err => {
                         if (err) {

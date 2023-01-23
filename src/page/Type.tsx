@@ -47,8 +47,8 @@ class Type extends React.Component<ITypeProps, ITypeState> {
             })
             .run("MATCH ()-[r:" + this.props.type + "]->() RETURN COUNT(r) AS cnt")
             .then(response1 => {
-                const cnt: number = response1.records[0].get("cnt");
-                const page: number = this.state.page >= Math.ceil(cnt / this.perPage) ? Math.ceil(cnt / this.perPage) : this.state.page;
+                const cnt: number = parseFloat(db.neo4j.integer.toString(response1.records[0].get("cnt")));
+                const page: number = Math.min(this.state.page, Math.ceil(cnt / this.perPage));
 
                 db.driver
                     .session({

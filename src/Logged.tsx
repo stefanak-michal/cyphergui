@@ -11,14 +11,13 @@ import History from "./page/History";
 import { EPage } from "./utils/enums";
 import { Button } from "./components/form";
 import { IStashEntry, IStashManager, ITabManager } from "./utils/interfaces";
-import { t_StashValue, t_StorageStashEntry, t_ToastFn } from "./utils/types";
+import { t_ShowPropertiesModalFn, t_StashValue, t_StorageStashEntry, t_ToastFn } from "./utils/types";
 import db from "./db";
 import Stash from "./layout/Stash";
 import Settings from "./layout/Settings";
-import { ClipboardContext, ToastContext } from "./utils/contexts";
+import { ClipboardContext, PropertiesModalContext, ToastContext } from "./utils/contexts";
 import { Node as _Node, Relationship as _Relationship } from "neo4j-driver";
-import Modal from "./components/Modal";
-import kofi_icon from "./assets/ko-fi_icon.png";
+import { PropertiesModal } from "./components/Modal";
 
 interface ILoggedState {
     activeTab: string | null;
@@ -27,7 +26,7 @@ interface ILoggedState {
     toasts: { key: number; message: string; color: string; delay: number; timeout: NodeJS.Timeout }[];
     settingsModal: boolean;
     stashed: IStashEntry[];
-    uptimeModal: boolean;
+    propertiesModal: object | null;
 }
 
 /**
@@ -41,7 +40,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         toasts: [],
         settingsModal: false,
         stashed: [],
-        uptimeModal: false,
+        propertiesModal: null,
     };
 
     components = {
@@ -53,8 +52,6 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         [EPage.Rel]: Relationship,
         [EPage.History]: History,
     };
-
-    uptimeInterval;
 
     constructor(props) {
         super(props);
@@ -108,18 +105,6 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                         .catch(console.error);
                 }
             });
-        }
-
-        if (!this.uptimeInterval) {
-            this.uptimeInterval = setInterval(() => {
-                const min = parseInt(localStorage.getItem("uptime") || "0") + 1;
-                localStorage.setItem("uptime", min.toString());
-                if (min % 60 === 0) {
-                    this.setState({
-                        uptimeModal: true,
-                    });
-                }
-            }, 1000 * 60);
         }
     }
 
@@ -309,6 +294,10 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         }
     };
 
+    handleShowPropertiesModal: t_ShowPropertiesModalFn = (properties: object) => {
+        this.setState({ propertiesModal: properties });
+    };
+
     render() {
         if (this.state.tabs.length === 0 || this.state.activeTab === null) return;
 
@@ -330,28 +319,32 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                     </ul>
                 </section>
 
-                <ClipboardContext.Provider value={this.handleCopyToClipboard}>
-                    <ToastContext.Provider value={this.toast}>
-                        <section className="container is-fluid">
-                            {this.state.contents.map(content => {
-                                const MyComponent: typeof React.Component = this.components[content.page];
-                                return (
-                                    <div key={"content-" + content.id} className={content.id === this.state.activeTab ? "" : "is-hidden"}>
-                                        <MyComponent
-                                            active={content.id === this.state.activeTab}
-                                            tabName={this.state.tabs.filter(t => t.id === content.id)[0].title}
-                                            tabId={content.id}
-                                            tabManager={this.tabManager}
-                                            toast={this.toast}
-                                            stashManager={this.stashManager}
-                                            {...content.props}
-                                        />
-                                    </div>
-                                );
-                            })}
-                        </section>
-                    </ToastContext.Provider>
-                </ClipboardContext.Provider>
+                <PropertiesModalContext.Provider value={this.handleShowPropertiesModal}>
+                    <ClipboardContext.Provider value={this.handleCopyToClipboard}>
+                        <ToastContext.Provider value={this.toast}>
+                            <section className="container is-fluid">
+                                {this.state.contents.map(content => {
+                                    const MyComponent: typeof React.Component = this.components[content.page];
+                                    return (
+                                        <div key={"content-" + content.id} className={content.id === this.state.activeTab ? "" : "is-hidden"}>
+                                            <MyComponent
+                                                active={content.id === this.state.activeTab}
+                                                tabName={this.state.tabs.filter(t => t.id === content.id)[0].title}
+                                                tabId={content.id}
+                                                tabManager={this.tabManager}
+                                                toast={this.toast}
+                                                stashManager={this.stashManager}
+                                                {...content.props}
+                                            />
+                                        </div>
+                                    );
+                                })}
+                            </section>
+                        </ToastContext.Provider>
+                    </ClipboardContext.Provider>
+
+                    <Stash stashed={this.state.stashed} tabManager={this.tabManager} stashManager={this.stashManager} />
+                </PropertiesModalContext.Provider>
 
                 <section className="notifications">
                     {this.state.toasts.map(toast => (
@@ -370,34 +363,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                     />
                 )}
 
-                <Stash stashed={this.state.stashed} tabManager={this.tabManager} stashManager={this.stashManager} />
-
-                {this.state.uptimeModal && (
-                    <Modal title="Support" handleClose={() => this.setState({ uptimeModal: false })} color="is-info">
-                        <p className="mb-2">It is amazing you have been using this project for {Math.floor(parseInt(localStorage.getItem("uptime") || "0") / 60)} hours.</p>
-                        <p className="mb-2">
-                            This project was made with <i className="fa-solid fa-heart has-text-danger" title="Heart" /> and for free but as you guess it costs
-                            <i className="fa-solid fa-clock has-text-link mx-1" title="Time" />
-                            and I would like to add new features and take <i className="fa-solid fa-hand-holding-medical" title="Care" /> of it.
-                        </p>
-                        <p>Please consider support with Ko-fi donate button, GitHub sponsors or at least with star at GitHub repository.</p>
-                        <div className="buttons is-justify-content-flex-end mt-3">
-                            <a href="https://ko-fi.com/michalstefanak" target="_blank" className="button is-link pl-5">
-                                <span className="icon mr-2">
-                                    <img src={kofi_icon} alt="ko-fi" className="kofi-tada" />
-                                </span>
-                                <span>Ko-fi</span>
-                            </a>
-                            <a href="https://github.com/stefanak-michal/cyphergui" target="_blank" className="button is-link">
-                                <span className="icon">
-                                    <i className="fa-brands fa-github" />
-                                </span>
-                                <span>GitHub</span>
-                            </a>
-                            <Button text="Close" icon="fa-solid fa-xmark" onClick={() => this.setState({ uptimeModal: false })} color="is-secondary" />
-                        </div>
-                    </Modal>
-                )}
+                {this.state.propertiesModal && <PropertiesModal properties={this.state.propertiesModal} handleClose={() => this.setState({ propertiesModal: null })} />}
             </>
         );
     }

@@ -33,9 +33,6 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
             activeDb: db.database,
         });
 
-        db.registerChangeActiveDatabaseCallback(db => {
-            this.setState({ activeDb: db });
-        });
         db.registerChangeDatabasesCallback(databases => {
             this.setState({ databases: databases });
         });
@@ -83,6 +80,7 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
                                             className={(this.state.activeDb === name ? "is-active" : "") + " navbar-item"}
                                             onClick={() => {
                                                 db.database = name;
+                                                this.setState({ activeDb: name });
                                             }}>
                                             {name}
                                         </a>

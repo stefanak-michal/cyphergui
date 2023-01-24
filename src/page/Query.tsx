@@ -121,6 +121,17 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                     })
                     .run(this.state.query)
                     .then(response => {
+                        //check create/delete database
+                        if (/\s*CREATE\s+(COMPOSITE\s+)?DATABASE/i.test(this.state.query) || /\s*DROP\s+(COMPOSITE\s+)?DATABASE/i.test(this.state.query)) {
+                            db.driver
+                                .session({ defaultAccessMode: db.neo4j.session.READ })
+                                .run("SHOW DATABASES")
+                                .then(response => {
+                                    db.databases = response.records.filter(row => row.get("type") !== "system").map(row => row.get("name"));
+                                })
+                                .catch(() => {});
+                        }
+
                         this.setShowTableSize(response.records);
                         this.setState(
                             state => {

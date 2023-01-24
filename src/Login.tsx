@@ -16,7 +16,6 @@ interface ILoginState {
 
 /**
  * Login page
- * @todo add additional info
  */
 class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
     state: ILoginState = {

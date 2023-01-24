@@ -2,8 +2,9 @@ import * as React from "react";
 import { Node as _Node, Relationship as _Relationship } from "neo4j-driver";
 import db from "../db";
 import { IStashEntry, IStashManager, ITabManager } from "../utils/interfaces";
-import { EPage } from "../utils/enums";
-import { Button, LabelButton, TypeButton } from "../components/form";
+import { Button } from "../components/form";
+import InlineNode from "../components/InlineNode";
+import InlineRelationship from "../components/InlineRelationship";
 
 interface IStashProps {
     stashed: IStashEntry[];
@@ -44,7 +45,6 @@ class Stash extends React.Component<IStashProps, IStashState> {
         return false;
     };
 
-    //todo change to use InlineNode & InlineRelationship
     render() {
         let a = [];
         for (let i = 0; i < 20; i++) {
@@ -101,29 +101,9 @@ class Stash extends React.Component<IStashProps, IStashState> {
                     </p>
                     {this.props.stashed.filter(this.filter).map(entry => (
                         <div className="panel-block is-hoverable" key={entry.id}>
-                            <a
-                                className="is-align-items-center is-flex is-justify-content-flex-start"
-                                onClick={() =>
-                                    this.props.tabManager.add(
-                                        { prefix: entry.value instanceof _Node ? "Node" : "Rel", i: entry.value.identity },
-                                        (entry.value instanceof _Node ? "fa-solid" : "fa-regular") + " fa-pen-to-square",
-                                        entry.value instanceof _Node ? EPage.Node : EPage.Rel,
-                                        { id: db.getId(entry.value), database: entry.database }
-                                    )
-                                }>
-                                <span className="panel-icon">
-                                    <i className={entry.value instanceof _Node ? "fa-regular fa-circle" : "fa-solid fa-arrow-right-long"} aria-hidden="true" />
-                                </span>
-                                {db.strId(entry.value.identity)}
-                                {db.databases.length > 1 && <span className="ml-1">(db: {entry.database})</span>}
-                            </a>
-                            <span className="ml-2 mr-1">
-                                {entry.value instanceof _Node &&
-                                    entry.value.labels.map(label => <LabelButton key={label} label={label} database={entry.database} tabManager={this.props.tabManager} size="mr-1" />)}
-                                {entry.value instanceof _Relationship && (
-                                    <TypeButton key={entry.value.type} type={entry.value.type} database={entry.database} tabManager={this.props.tabManager} size="mr-1" />
-                                )}
-                            </span>
+                            {entry.value instanceof _Node && <InlineNode node={entry.value} tabManager={this.props.tabManager} database={entry.database} small={true} />}
+                            {entry.value instanceof _Relationship && <InlineRelationship rel={entry.value} tabManager={this.props.tabManager} database={entry.database} small={true} />}
+                            {db.databases.length > 1 && <span className="ml-1">(db: {entry.database})</span>}
                             <button className="delete ml-auto" onClick={() => this.props.stashManager.remove(entry.id)} />
                         </div>
                     ))}

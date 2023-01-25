@@ -25,7 +25,11 @@ class Settings extends React.Component<{ handleClose: () => void }, ISettingsSta
 
     render() {
         return (
-            <Modal title="Settings" handleClose={this.props.handleClose}>
+            <Modal
+                title="Settings"
+                icon="fa-solid fa-gears"
+                handleClose={this.props.handleClose}
+                buttons={<Button text="Close" icon="fa-solid fa-xmark" onClick={this.props.handleClose} color="is-secondary" />}>
                 {db.hasElementId && (
                     <div className="mb-3">
                         <Checkbox
@@ -70,10 +74,6 @@ class Settings extends React.Component<{ handleClose: () => void }, ISettingsSta
                         </div>
                     </div>
                     <p className="help">date, datetime</p>
-                </div>
-
-                <div className="buttons is-justify-content-flex-end">
-                    <Button text="Close" icon="fa-solid fa-xmark" onClick={this.props.handleClose} color="is-secondary" />
                 </div>
             </Modal>
         );

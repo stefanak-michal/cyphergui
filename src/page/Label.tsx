@@ -40,25 +40,19 @@ class Label extends React.Component<ILabelProps, ILabelState> {
     };
 
     requestData = () => {
-        db.driver
-            .session({
-                database: this.props.database,
-                defaultAccessMode: db.neo4j.session.READ,
-            })
-            .run("MATCH (n:" + this.props.label + ") RETURN COUNT(n) AS cnt")
+        db.query("MATCH (n:" + this.props.label + ") RETURN COUNT(n) AS cnt", {}, this.props.database)
             .then(response1 => {
-                const cnt: number = parseFloat(db.neo4j.integer.toString(response1.records[0].get("cnt")));
+                const cnt: number = db.fromInt(response1.records[0].get("cnt"));
                 const page: number = Math.min(this.state.page, Math.ceil(cnt / this.perPage));
 
-                db.driver
-                    .session({
-                        database: this.props.database,
-                        defaultAccessMode: db.neo4j.session.READ,
-                    })
-                    .run("MATCH (n:" + this.props.label + ") RETURN n " + (this.state.sort.length ? "ORDER BY " + this.state.sort.join(", ") : "") + " SKIP $s LIMIT $l", {
-                        s: db.neo4j.int((page - 1) * this.perPage),
-                        l: db.neo4j.int(this.perPage),
-                    })
+                db.query(
+                    "MATCH (n:" + this.props.label + ") RETURN n " + (this.state.sort.length ? "ORDER BY " + this.state.sort.join(", ") : "") + " SKIP $s LIMIT $l",
+                    {
+                        s: db.toInt((page - 1) * this.perPage),
+                        l: db.toInt(this.perPage),
+                    },
+                    this.props.database
+                )
                     .then(response2 => {
                         this.setState({
                             rows: response2.records.map(record => record.get("n")),
@@ -92,14 +86,14 @@ class Label extends React.Component<ILabelProps, ILabelState> {
     };
 
     handleDeleteModalConfirm = (id: number | string, detach: boolean) => {
-        db.driver
-            .session({
-                database: this.props.database,
-                defaultAccessMode: db.neo4j.session.WRITE,
-            })
-            .run("MATCH (n) WHERE " + db.fnId() + " = $id " + (detach ? "DETACH " : "") + "DELETE n", {
+        db.query(
+            "MATCH (n) WHERE " + db.fnId() + " = $id " + (detach ? "DETACH " : "") + "DELETE n",
+            {
                 id: id,
-            })
+            },
+            this.props.database,
+            true
+        )
             .then(response => {
                 if (response.summary.counters.updates().nodesDeleted > 0) {
                     this.requestData();
@@ -246,7 +240,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                         </thead>
                         <tbody>
                             {this.state.rows.map(row => (
-                                <tr key={"tr-" + db.strId(row.identity)}>
+                                <tr key={"tr-" + db.strInt(row.identity)}>
                                     <td>
                                         <Button
                                             onClick={() =>
@@ -256,7 +250,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                                                 })
                                             }
                                             icon="fa-solid fa-pen-clip"
-                                            text={"#" + db.strId(row.identity)}
+                                            text={"#" + db.strInt(row.identity)}
                                         />
                                     </td>
                                     {settings().tableViewShowElementId && db.hasElementId && <td className="wspace-nowrap">{row.elementId}</td>}
@@ -292,7 +286,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
     }
 
     printProperty = (property: any): string | JSX.Element => {
-        if (db.isInteger(property)) return db.strId(property);
+        if (db.isInt(property)) return db.strInt(property);
         if (Array.isArray(property)) return "[" + property.join(", ") + "]";
         if (typeof property === "boolean") return <Checkbox name="" label="" checked={property} disabled />;
         return property.toString();

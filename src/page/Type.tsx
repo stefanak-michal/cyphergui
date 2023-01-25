@@ -40,25 +40,19 @@ class Type extends React.Component<ITypeProps, ITypeState> {
     };
 
     requestData = () => {
-        db.driver
-            .session({
-                database: this.props.database,
-                defaultAccessMode: db.neo4j.session.READ,
-            })
-            .run("MATCH ()-[r:" + this.props.type + "]->() RETURN COUNT(r) AS cnt")
+        db.query("MATCH ()-[r:" + this.props.type + "]->() RETURN COUNT(r) AS cnt", {}, this.props.database)
             .then(response1 => {
-                const cnt: number = parseFloat(db.neo4j.integer.toString(response1.records[0].get("cnt")));
+                const cnt: number = db.fromInt(response1.records[0].get("cnt"));
                 const page: number = Math.min(this.state.page, Math.ceil(cnt / this.perPage));
 
-                db.driver
-                    .session({
-                        database: this.props.database,
-                        defaultAccessMode: db.neo4j.session.READ,
-                    })
-                    .run("MATCH (a)-[r:" + this.props.type + "]->(b) RETURN r " + (this.state.sort.length ? "ORDER BY " + this.state.sort.join(", ") : "") + " SKIP $s LIMIT $l", {
-                        s: db.neo4j.int((page - 1) * this.perPage),
-                        l: db.neo4j.int(this.perPage),
-                    })
+                db.query(
+                    "MATCH (a)-[r:" + this.props.type + "]->(b) RETURN r " + (this.state.sort.length ? "ORDER BY " + this.state.sort.join(", ") : "") + " SKIP $s LIMIT $l",
+                    {
+                        s: db.toInt((page - 1) * this.perPage),
+                        l: db.toInt(this.perPage),
+                    },
+                    this.props.database
+                )
                     .then(response2 => {
                         this.setState({
                             rows: response2.records.map(record => record.get("r")),
@@ -95,14 +89,14 @@ class Type extends React.Component<ITypeProps, ITypeState> {
     };
 
     handleDeleteModalConfirm = (id: number | string) => {
-        db.driver
-            .session({
-                database: this.props.database,
-                defaultAccessMode: db.neo4j.session.WRITE,
-            })
-            .run("MATCH ()-[r]-() WHERE " + db.fnId("r") + " = $id DELETE r", {
+        db.query(
+            "MATCH ()-[r]-() WHERE " + db.fnId("r") + " = $id DELETE r",
+            {
                 id: id,
-            })
+            },
+            this.props.database,
+            true
+        )
             .then(response => {
                 if (response.summary.counters.updates().nodesDeleted > 0) {
                     this.requestData();
@@ -270,7 +264,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                         </thead>
                         <tbody>
                             {this.state.rows.map(row => (
-                                <tr key={"tr-" + db.strId(row.identity)}>
+                                <tr key={"tr-" + db.strInt(row.identity)}>
                                     <td>
                                         <Button
                                             onClick={() =>
@@ -280,7 +274,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                                 })
                                             }
                                             icon="fa-solid fa-pen-clip"
-                                            text={"#" + db.strId(row.identity)}
+                                            text={"#" + db.strInt(row.identity)}
                                         />
                                     </td>
                                     {settings().tableViewShowElementId && db.hasElementId && <td className="wspace-nowrap">{row.elementId}</td>}
@@ -303,7 +297,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                                 })
                                             }
                                             icon="fa-solid fa-pen-clip"
-                                            text={"#" + db.strId(row.start)}
+                                            text={"#" + db.strInt(row.start)}
                                         />
                                     </td>
                                     {settings().tableViewShowElementId && db.hasElementId && <td className="wspace-nowrap">{row.startNodeElementId}</td>}
@@ -316,7 +310,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                                 })
                                             }
                                             icon="fa-solid fa-pen-clip"
-                                            text={"#" + db.strId(row.end)}
+                                            text={"#" + db.strInt(row.end)}
                                         />
                                     </td>
                                     {settings().tableViewShowElementId && db.hasElementId && <td className="wspace-nowrap">{row.endNodeElementId}</td>}
@@ -332,7 +326,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
     }
 
     printProperty = (property: any): string | JSX.Element => {
-        if (db.isInteger(property)) return db.strId(property);
+        if (db.isInt(property)) return db.strInt(property);
         if (Array.isArray(property)) return "[" + property.join(", ") + "]";
         if (typeof property === "boolean") return <Checkbox name="" label="" checked={property} disabled />;
         return property.toString();

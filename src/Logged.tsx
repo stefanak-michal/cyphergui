@@ -77,9 +77,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                 const dbName = database;
                 const id_nodes = parsed.filter(p => p.database === dbName && p.type === "node").map(p => p.identity);
                 if (id_nodes.length) {
-                    db.driver
-                        .session({ defaultAccessMode: db.neo4j.session.READ, database: dbName })
-                        .run("MATCH (n) WHERE " + db.fnId("n") + " IN $id RETURN n", { id: id_nodes })
+                    db.query("MATCH (n) WHERE " + db.fnId("n") + " IN $id RETURN n", { id: id_nodes }, dbName)
                         .then(response => {
                             if (response.records.length) {
                                 response.records.forEach(rec => {
@@ -92,9 +90,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
 
                 const id_rels = parsed.filter(p => p.database === dbName && p.type === "rel").map(p => p.identity);
                 if (id_rels.length) {
-                    db.driver
-                        .session({ defaultAccessMode: db.neo4j.session.READ, database: dbName })
-                        .run("MATCH ()-[r]->() WHERE " + db.fnId("r") + " IN $id RETURN r", { id: id_rels })
+                    db.query("MATCH ()-[r]->() WHERE " + db.fnId("r") + " IN $id RETURN r", { id: id_rels }, dbName)
                         .then(response => {
                             if (response.records.length) {
                                 response.records.forEach(rec => {
@@ -179,7 +175,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
          */
         generateName: (prefix: string, i: any = null): string => {
             if (i === null) i = Math.max(0, ...this.state.tabs.filter(t => t.title.startsWith(prefix)).map(t => parseInt(t.title.split("#")[1]))) + 1;
-            else i = db.strId(i);
+            else i = db.strInt(i);
             return prefix + "#" + i;
         },
     };

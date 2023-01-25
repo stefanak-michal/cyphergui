@@ -1,4 +1,4 @@
-import { Driver, Integer, Node as _Node, Relationship as _Relationship } from "neo4j-driver";
+import { Driver, Integer, Node as _Node, QueryResult, Relationship as _Relationship } from "neo4j-driver";
 
 class Db {
     private _neo4j = require("neo4j-driver");
@@ -37,9 +37,7 @@ class Db {
     setDriver = (driver: Driver, callback: (error?: Error) => void) => {
         this._driver = driver;
 
-        driver
-            .session({ defaultAccessMode: db.neo4j.session.READ })
-            .run("SHOW DATABASES")
+        this.query("SHOW DATABASES")
             .then(response => {
                 this.activedb = response.records.find(row => row.get("default")).get("name");
                 this.availableDatabases = response.records.filter(row => row.get("type") !== "system").map(row => row.get("name"));
@@ -57,7 +55,7 @@ class Db {
     }
 
     disconnect = () => {
-        if (this.driver) this.driver.close();
+        if (this._driver) this._driver.close();
         this._driver = null;
     };
 
@@ -71,20 +69,32 @@ class Db {
         this.callbacks_2.push(fn);
     };
 
-    isInteger = (value: any): boolean => {
-        return value instanceof Integer;
-    };
-
     fnId = (name: string = "n"): string => {
         return this.hasElementId ? "elementId(" + name + ")" : "id(" + name + ")";
     };
 
-    strId = (id: Integer | string): string => {
-        return this.isInteger(id) ? this.neo4j.integer.toString(id) : id;
+    getId = (entry: _Node | _Relationship, elementId: string = "elementId", identity: string = "identity"): number | string => {
+        return this.hasElementId ? entry[elementId] : this._neo4j.integer.inSafeRange(entry[identity]) ? this._neo4j.integer.toNumber(entry[identity]) : this._neo4j.integer.toString(entry[identity]);
     };
 
-    getId = (entry: _Node | _Relationship, elementId: string = "elementId", identity: string = "identity"): number | string => {
-        return this.hasElementId ? entry[elementId] : this.neo4j.integer.inSafeRange(entry[identity]) ? this.neo4j.integer.toNumber(entry[identity]) : this.neo4j.integer.toString(entry[identity]);
+    isInt = (value: any): boolean => {
+        return value instanceof Integer;
+    };
+
+    strInt = (id: Integer | string): string => {
+        return this.isInt(id) ? this._neo4j.integer.toString(id) : id;
+    };
+
+    fromInt = (val: Integer): number => {
+        return this._neo4j.integer.inSafeRange(val) ? this._neo4j.integer.toNumber(val) : parseFloat(this._neo4j.integer.toString(val));
+    };
+
+    toInt = (val: number | string): Integer => {
+        return this._neo4j.int(val);
+    };
+
+    query = (stmt: string, params: object = {}, db: string = undefined, write: boolean = false): Promise<QueryResult> => {
+        return this._driver.session({ defaultAccessMode: write ? this._neo4j.session.WRITE : this._neo4j.session.READ, database: db }).run(stmt, params);
     };
 
     //singleton

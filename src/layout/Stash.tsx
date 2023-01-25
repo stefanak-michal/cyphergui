@@ -38,7 +38,7 @@ class Stash extends React.Component<IStashProps, IStashState> {
         if (this.state.tab === "Relationships" && !(entry.value instanceof _Relationship)) return false;
         //search
         if (this.state.search.length === 0) return true;
-        if (db.strId(entry.value.identity) === this.state.search) return true;
+        if (db.strInt(entry.value.identity) === this.state.search) return true;
         if (db.hasElementId && entry.value.elementId.includes(this.state.search)) return true;
         if (entry.value instanceof _Node && entry.value.labels.includes(this.state.search)) return true;
         if (entry.value instanceof _Relationship && entry.value.type === this.state.search) return true;

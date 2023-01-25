@@ -13,7 +13,7 @@ $family-monospace: "Oxygen Mono", monospace
   flex-direction: column
   min-height: 100vh
 
-footer
+.page-footer
   align-self: flex-end
   width: 100%
   margin-top: 3rem
@@ -128,6 +128,31 @@ footer
 
             &:before
               background-color: $color-light
+
+// color variations for modal card
+.modal .modal-card-head
+  @each $name, $pair in $colors
+    $color: nth($pair, 1)
+    $color-invert: nth($pair, 2)
+    &.is-#{$name}
+      background-color: $color
+
+      > *
+        color: $color-invert
+
+      @if length($pair) >= 4
+        $color-light: nth($pair, 3)
+        $color-dark: nth($pair, 4)
+        &.is-light
+          background-color: $color-light
+
+          > *
+            color: $color-dark
+        &.is-dark
+          background-color: $color-dark
+
+          > *
+            color: $color-light
 
 // fix for message container radius https://github.com/jgthms/bulma/pull/3612
 .message

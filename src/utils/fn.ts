@@ -19,7 +19,7 @@ export function toJSON(data: any[] | object): string {
     return JSON.stringify(
         obj,
         (key, value) => {
-            if (db.isInteger(value)) return parseFloat(db.strId(value));
+            if (db.isInt(value)) return db.fromInt(value);
             return value;
         },
         2
@@ -28,7 +28,7 @@ export function toJSON(data: any[] | object): string {
 
 export function resolvePropertyType(value: any): EPropertyType {
     if (typeof value === "number") return EPropertyType.Float;
-    if (db.isInteger(value)) return EPropertyType.Integer;
+    if (db.isInt(value)) return EPropertyType.Integer;
     if (typeof value === "boolean") return EPropertyType.Boolean;
     if (Array.isArray(value)) return EPropertyType.List;
     if (db.neo4j.isDate(value)) return EPropertyType.Date;
@@ -44,13 +44,13 @@ export function resolvePropertyType(value: any): EPropertyType {
 export function getPropertyAsTemp(type: EPropertyType, value: any, subtype: EPropertyType = null): any {
     switch (type) {
         case EPropertyType.Integer:
-            return db.strId(value);
+            return db.strInt(value);
         case EPropertyType.DateTime:
             return (() => {
                 const [date, timepart] = value.toString().split("T");
                 const time = timepart.substring(0, 8);
-                const tz = parseInt(db.strId((value as _DateTime).timeZoneOffsetSeconds)) / 60 / 60;
-                const nanosec = db.strId((value as _DateTime).nanosecond);
+                const tz = db.fromInt((value as _DateTime).timeZoneOffsetSeconds) / 60 / 60;
+                const nanosec = db.strInt((value as _DateTime).nanosecond);
                 return [date, time, nanosec, tz];
             })();
         case EPropertyType.Duration:
@@ -59,16 +59,16 @@ export function getPropertyAsTemp(type: EPropertyType, value: any, subtype: EPro
             return (() => {
                 const [date, timepart] = value.toString().split("T");
                 const time = timepart.substring(0, 8);
-                const nanosec = db.strId((value as _LocalDateTime).nanosecond);
+                const nanosec = db.strInt((value as _LocalDateTime).nanosecond);
                 return [date, time, nanosec];
             })();
         case EPropertyType.LocalTime:
-            return [(value as _LocalTime).toString().substring(0, 8), db.strId((value as _LocalTime).nanosecond)];
+            return [(value as _LocalTime).toString().substring(0, 8), db.strInt((value as _LocalTime).nanosecond)];
         case EPropertyType.Point:
-            const srid = db.strId((value as _Point).srid);
+            const srid = db.strInt((value as _Point).srid);
             return ["4979", "9157"].includes(srid) ? [srid, (value as _Point).x, (value as _Point).y, (value as _Point).z] : [srid, (value as _Point).x, (value as _Point).y];
         case EPropertyType.Time:
-            return [(value as _Time).toString().substring(0, 8), db.strId((value as _Time).nanosecond), parseInt(db.strId((value as _Time).timeZoneOffsetSeconds)) / 60 / 60];
+            return [(value as _Time).toString().substring(0, 8), db.strInt((value as _Time).nanosecond), db.fromInt((value as _Time).timeZoneOffsetSeconds) / 60 / 60];
         case EPropertyType.List:
             return value.map(v => getPropertyAsTemp(subtype, v));
 
@@ -159,21 +159,21 @@ export function stringToDuration(value: string): _Duration {
         }
     }
 
-    return new _Duration(db.neo4j.int(months), db.neo4j.int(days), db.neo4j.int(seconds), db.neo4j.int(nanoseconds));
+    return new _Duration(db.toInt(months), db.toInt(days), db.toInt(seconds), db.toInt(nanoseconds));
 }
 
 export function durationToString(duration: _Duration): string {
     let r: string = "P";
 
-    const months = db.neo4j.integer.toNumber(duration.months);
+    const months = db.fromInt(duration.months);
     const years = Math.floor(months / 12);
     if (years > 0) r += years + "Y";
     if (months % 12 > 0) r += (months % 12) + "M";
-    const days = db.neo4j.integer.toNumber(duration.days);
+    const days = db.fromInt(duration.days);
     if (days > 0) r += days + "D";
 
     let time: string = "";
-    let seconds = db.neo4j.integer.toNumber(duration.seconds);
+    let seconds = db.fromInt(duration.seconds);
     const hours = Math.floor(seconds / 3600);
     if (hours > 0) time += hours + "H";
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -186,7 +186,7 @@ export function durationToString(duration: _Duration): string {
 
     time = "";
     if ((seconds % 3600) % 60 > 0) time += (seconds % 3600) % 60;
-    const nano = db.neo4j.integer.toString(duration.nanoseconds);
+    const nano = db.strInt(duration.nanoseconds);
     if (nano.length > 0 && nano !== "0") time += (time.length === 0 ? "0." : ".") + nano.substring(0, 6).replace(/0*$/, "");
     if (time.length > 0) r += (t ? "T" : "") + time + "S";
 

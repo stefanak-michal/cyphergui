@@ -53,14 +53,13 @@ class Node extends React.Component<INodeProps, INodeState> {
 
     requestData = () => {
         if (this.create) return;
-        db.driver
-            .session({
-                database: this.props.database,
-                defaultAccessMode: db.neo4j.session.READ,
-            })
-            .run("MATCH (n) WHERE " + db.fnId() + " = $id OPTIONAL MATCH (n)-[r]-(a) RETURN n, collect(DISTINCT r) AS r, collect(DISTINCT a) AS a", {
+        db.query(
+            "MATCH (n) WHERE " + db.fnId() + " = $id OPTIONAL MATCH (n)-[r]-(a) RETURN n, collect(DISTINCT r) AS r, collect(DISTINCT a) AS a",
+            {
                 id: this.props.id,
-            })
+            },
+            this.props.database
+        )
             .then(response => {
                 if (response.records.length === 0) {
                     this.props.tabManager.close(this.props.tabId);
@@ -98,16 +97,15 @@ class Node extends React.Component<INodeProps, INodeState> {
      */
     componentDidUpdate(prevProps: Readonly<INodeProps>) {
         if (!this.create && this.props.active && this.props.active !== prevProps.active) {
-            db.driver
-                .session({
-                    database: this.props.database,
-                    defaultAccessMode: db.neo4j.session.READ,
-                })
-                .run("MATCH (n) WHERE " + db.fnId() + " = $id RETURN COUNT(n) AS c", {
+            db.query(
+                "MATCH (n) WHERE " + db.fnId() + " = $id RETURN COUNT(n) AS c",
+                {
                     id: this.props.id,
-                })
+                },
+                this.props.database
+            )
                 .then(response => {
-                    if (db.neo4j.integer.toNumber(response.records[0].get("c")) !== 1) {
+                    if (db.fromInt(response.records[0].get("c")) !== 1) {
                         this.props.tabManager.close(this.props.tabId);
                     }
                 })
@@ -116,12 +114,7 @@ class Node extends React.Component<INodeProps, INodeState> {
     }
 
     handleLabelOpenModal = () => {
-        db.driver
-            .session({
-                database: this.props.database,
-                defaultAccessMode: db.neo4j.session.READ,
-            })
-            .run("MATCH (n) WITH DISTINCT labels(n) AS ll UNWIND ll AS l RETURN collect(DISTINCT l) AS c")
+        db.query("MATCH (n) WITH DISTINCT labels(n) AS ll UNWIND ll AS l RETURN collect(DISTINCT l) AS c", {}, this.props.database)
             .then(response => {
                 this.setState({
                     labelModal: response.records[0].get("c").filter(l => !this.state.labels.includes(l)),
@@ -175,15 +168,15 @@ class Node extends React.Component<INodeProps, INodeState> {
 
         const { query, props } = this.generateQuery();
 
-        db.driver
-            .session({
-                database: this.props.database,
-                defaultAccessMode: db.neo4j.session.WRITE,
-            })
-            .run(query, {
+        db.query(
+            query,
+            {
                 id: this.props.id,
                 p: props,
-            })
+            },
+            this.props.database,
+            true
+        )
             .then(response => {
                 if (response.summary.counters.containsUpdates()) {
                     this.props.toast(this.create ? "Node created" : "Node updated");
@@ -227,14 +220,14 @@ class Node extends React.Component<INodeProps, INodeState> {
     };
 
     handleDeleteModalConfirm = (id: number | string, detach: boolean) => {
-        db.driver
-            .session({
-                database: this.props.database,
-                defaultAccessMode: db.neo4j.session.WRITE,
-            })
-            .run("MATCH (n) WHERE " + db.fnId() + " = $id " + (detach ? "DETACH " : "") + "DELETE n", {
+        db.query(
+            "MATCH (n) WHERE " + db.fnId() + " = $id " + (detach ? "DETACH " : "") + "DELETE n",
+            {
                 id: id,
-            })
+            },
+            this.props.database,
+            true
+        )
             .then(response => {
                 if (response.summary.counters.updates().nodesDeleted > 0) {
                     this.props.tabManager.close(this.props.tabId);
@@ -293,7 +286,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                                             <label className="label">identity</label>
 
                                             <div className="control" onClick={copy}>
-                                                <input className="input is-copyable" disabled type="text" value={db.strId(this.state.node.identity)} />
+                                                <input className="input is-copyable" disabled type="text" value={db.strInt(this.state.node.identity)} />
                                             </div>
                                         </div>
                                     </div>
@@ -356,7 +349,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                                 const node = this.nodes.find(n => db.getId(n) === db.getId(r, dir === 2 ? "startNodeElementId" : "endNodeElementId", dir === 2 ? "start" : "end"));
 
                                 return (
-                                    <div key={db.strId(r.identity)} className="is-flex is-align-items-center is-justify-content-flex-start mb-3 mb-last-none">
+                                    <div key={db.strInt(r.identity)} className="is-flex is-align-items-center is-justify-content-flex-start mb-3 mb-last-none">
                                         <i className="fa-regular fa-circle" />
                                         <span className="is-size-4">
                                             {dir === 2 && "<"}

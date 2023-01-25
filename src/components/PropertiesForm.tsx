@@ -80,7 +80,7 @@ class PropertiesForm extends React.Component<IPropertiesFormProps, IPropertiesFo
     };
 
     getDefaultValue = (type: EPropertyType): any => {
-        const int0 = db.neo4j.int(0);
+        const int0 = db.toInt(0);
         switch (type) {
             case EPropertyType.String:
                 return "";
@@ -358,7 +358,7 @@ class PropertyIntegerInput extends APropertyInput {
                     value={this.props.temp}
                     step="1"
                     autoFocus={this.props.focus}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.props.onValueChange(this.props.name, db.neo4j.int(e.currentTarget.value), e.currentTarget.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.props.onValueChange(this.props.name, db.toInt(e.currentTarget.value), e.currentTarget.value)}
                     placeholder="Value"
                 />
                 <ClipboardContext.Consumer>
@@ -770,8 +770,8 @@ class PropertyPointInput extends APropertyInput {
         this.props.onValueChange(
             this.props.name,
             hasZ
-                ? new _Point(db.neo4j.int(this.sridRef.current.value), this.xRef.current.valueAsNumber, this.yRef.current.valueAsNumber, this.zRef.current.valueAsNumber)
-                : new _Point(db.neo4j.int(this.sridRef.current.value), this.xRef.current.valueAsNumber, this.yRef.current.valueAsNumber),
+                ? new _Point(db.toInt(this.sridRef.current.value), this.xRef.current.valueAsNumber, this.yRef.current.valueAsNumber, this.zRef.current.valueAsNumber)
+                : new _Point(db.toInt(this.sridRef.current.value), this.xRef.current.valueAsNumber, this.yRef.current.valueAsNumber),
             hasZ
                 ? [this.sridRef.current.value, this.xRef.current.value, this.yRef.current.value, this.zRef.current.value]
                 : [this.sridRef.current.value, this.xRef.current.value, this.yRef.current.value]

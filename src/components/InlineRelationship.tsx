@@ -20,7 +20,7 @@ export default class InlineRelationship extends React.Component<{ rel: _Relation
                     }
                     icon="fa-solid fa-pen-clip"
                     color={!!this.props.small ? "is-small" : ""}
-                    text={"#" + db.strId(this.props.rel.identity)}
+                    text={"#" + db.strInt(this.props.rel.identity)}
                 />
                 {Object.keys(this.props.rel.properties).length > 0 && (
                     <PropertiesModalContext.Consumer>

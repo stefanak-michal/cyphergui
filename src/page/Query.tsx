@@ -115,17 +115,11 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                 loading: true,
             },
             () => {
-                db.driver
-                    .session({
-                        database: db.database,
-                    })
-                    .run(this.state.query)
+                db.query(this.state.query, {}, db.database, true)
                     .then(response => {
                         //check create/delete database
                         if (/\s*CREATE\s+(COMPOSITE\s+)?DATABASE/i.test(this.state.query) || /\s*DROP\s+(COMPOSITE\s+)?DATABASE/i.test(this.state.query)) {
-                            db.driver
-                                .session({ defaultAccessMode: db.neo4j.session.READ })
-                                .run("SHOW DATABASES")
+                            db.query("SHOW DATABASES")
                                 .then(response => {
                                     db.databases = response.records.filter(row => row.get("type") !== "system").map(row => row.get("name"));
                                 })
@@ -187,12 +181,12 @@ class Query extends React.Component<IQueryProps, IQueryState> {
         this.state.rows.forEach(row => {
             for (let key of row.keys) {
                 const value = row.get(key);
-                if (value instanceof _Node) nodes.push({ id: db.strId(value.identity), label: ":" + value.labels.join(":"), identity: db.getId(value) });
+                if (value instanceof _Node) nodes.push({ id: db.strInt(value.identity), label: ":" + value.labels.join(":"), identity: db.getId(value) });
                 else if (value instanceof _Relationship)
                     edges.push({
-                        id: db.strId(value.identity),
-                        start: db.strId(value.start),
-                        end: db.strId(value.end),
+                        id: db.strInt(value.identity),
+                        start: db.strInt(value.start),
+                        end: db.strInt(value.end),
                         label: ":" + value.type,
                         identity: db.getId(value),
                     });
@@ -413,15 +407,11 @@ class Query extends React.Component<IQueryProps, IQueryState> {
         );
     }
 
-    // match (a)-[r]->(b) return * limit 100
-    // match p=(n)-[r]->(a) return p, n as node, r, a, n { .* } LIMIT 10
-    // MATCH p=()-[]->()-[]->() RETURN p
-
     printValue = (value: any): JSX.Element => {
-        if (db.isInteger(value)) return <>{db.strId(value)}</>;
+        if (db.isInt(value)) return <>{db.strInt(value)}</>;
         if (Array.isArray(value)) return <>[{value.map<React.ReactNode>(entry => this.printValue(entry)).reduce((prev, curr) => [prev, ", ", curr])}]</>;
         if (typeof value === "boolean") return <>{value ? "true" : "false"}</>;
-        if (typeof value === "string") return <p className="wspace-pre">{value}</p>;
+        if (typeof value === "string") return <p className="wspace-pre is-inline-block">{value}</p>;
 
         if (value instanceof _Node) {
             return <InlineNode node={value} tabManager={this.props.tabManager} small={this.state.tableSize === 1} />;
@@ -440,14 +430,14 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                                 {first && (
                                     <>
                                         <span className="is-size-4">(</span>
-                                        {this.printValue(db.strId(segment.start.identity) === db.strId(start.identity) ? segment.start : segment.end)}
+                                        {this.printValue(db.strInt(segment.start.identity) === db.strInt(start.identity) ? segment.start : segment.end)}
                                         <span className="is-size-4">)</span>
                                     </>
                                 )}
-                                <span className="is-size-4 wspace-nowrap">{db.strId(segment.start.identity) === db.strId(start.identity) ? "-" : "<-"}[</span>
+                                <span className="is-size-4 wspace-nowrap">{db.strInt(segment.start.identity) === db.strInt(start.identity) ? "-" : "<-"}[</span>
                                 {this.printValue(segment.relationship)}
-                                <span className="is-size-4 wspace-nowrap">]{db.strId(segment.start.identity) === db.strId(start.identity) ? "->" : "-"}(</span>
-                                {this.printValue(db.strId(segment.start.identity) === db.strId(start.identity) ? segment.end : segment.start)}
+                                <span className="is-size-4 wspace-nowrap">]{db.strInt(segment.start.identity) === db.strInt(start.identity) ? "->" : "-"}(</span>
+                                {this.printValue(db.strInt(segment.start.identity) === db.strInt(start.identity) ? segment.end : segment.start)}
                                 <span className="is-size-4">)</span>
                             </>
                         );

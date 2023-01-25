@@ -30,8 +30,8 @@ class Start extends React.Component<IPageProps, IStartState> {
 
     requestData = () => {
         Promise.all([
-            db.driver.session({ database: db.database, defaultAccessMode: db.neo4j.session.READ }).run("MATCH (n) WITH DISTINCT labels(n) AS ll UNWIND ll AS l RETURN collect(DISTINCT l) AS c"),
-            db.driver.session({ database: db.database, defaultAccessMode: db.neo4j.session.READ }).run("MATCH ()-[n]-() RETURN collect(DISTINCT type(n)) AS c"),
+            db.query("MATCH (n) WITH DISTINCT labels(n) AS ll UNWIND ll AS l RETURN collect(DISTINCT l) AS c", {}, db.database),
+            db.query("MATCH ()-[n]-() RETURN collect(DISTINCT type(n)) AS c", {}, db.database),
             db.driver.getServerInfo(),
         ])
             .then(responses => {

@@ -54,14 +54,13 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
 
     requestData = () => {
         if (this.create) return;
-        db.driver
-            .session({
-                database: this.props.database,
-                defaultAccessMode: db.neo4j.session.READ,
-            })
-            .run("MATCH (a)-[r]->(b) WHERE " + db.fnId("r") + " = $id RETURN r, a, b", {
+        db.query(
+            "MATCH (a)-[r]->(b) WHERE " + db.fnId("r") + " = $id RETURN r, a, b",
+            {
                 id: this.props.id,
-            })
+            },
+            this.props.database
+        )
             .then(response => {
                 if (response.records.length === 0) {
                     this.props.tabManager.close(this.props.tabId);
@@ -97,16 +96,15 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
      */
     componentDidUpdate(prevProps: Readonly<IRelationshipProps>) {
         if (!this.create && this.props.active && this.props.active !== prevProps.active) {
-            db.driver
-                .session({
-                    database: this.props.database,
-                    defaultAccessMode: db.neo4j.session.READ,
-                })
-                .run("MATCH ()-[r]->() WHERE " + db.fnId("r") + " = $id RETURN COUNT(r) AS c", {
+            db.query(
+                "MATCH ()-[r]->() WHERE " + db.fnId("r") + " = $id RETURN COUNT(r) AS c",
+                {
                     id: this.props.id,
-                })
+                },
+                this.props.database
+            )
                 .then(response => {
-                    if (db.neo4j.integer.toNumber(response.records[0].get("c")) !== 1) {
+                    if (db.fromInt(response.records[0].get("c")) !== 1) {
                         this.props.tabManager.close(this.props.tabId);
                     }
                 })
@@ -116,12 +114,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
     }
 
     handleTypeOpenModal = () => {
-        db.driver
-            .session({
-                database: this.props.database,
-                defaultAccessMode: db.neo4j.session.READ,
-            })
-            .run("MATCH ()-[r]->() RETURN collect(DISTINCT type(r)) AS c")
+        db.query("MATCH ()-[r]->() RETURN collect(DISTINCT type(r)) AS c", {}, this.props.database)
             .then(response => {
                 this.setState({
                     typeModal: response.records[0].get("c").filter(t => this.state.type !== t),
@@ -172,17 +165,17 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
 
         const { query, props } = this.generateQuery();
 
-        db.driver
-            .session({
-                database: this.props.database,
-                defaultAccessMode: db.neo4j.session.WRITE,
-            })
-            .run(query, {
+        db.query(
+            query,
+            {
                 id: this.state.rel ? (db.hasElementId ? this.state.rel.elementId : this.state.rel.identity) : null,
                 a: db.hasElementId ? this.state.start.elementId : this.state.start.identity,
                 b: db.hasElementId ? this.state.end.elementId : this.state.end.identity,
                 p: props,
-            })
+            },
+            this.props.database,
+            true
+        )
             .then(response => {
                 if (response.summary.counters.containsUpdates()) {
                     this.props.toast(this.create ? "Relationship created" : "Relationship updated");
@@ -245,14 +238,14 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
     };
 
     handleDeleteModalConfirm = (id: number | string) => {
-        db.driver
-            .session({
-                database: this.props.database,
-                defaultAccessMode: db.neo4j.session.WRITE,
-            })
-            .run("MATCH ()-[r]-() WHERE " + db.fnId("r") + " = $id DELETE r", {
+        db.query(
+            "MATCH ()-[r]-() WHERE " + db.fnId("r") + " = $id DELETE r",
+            {
                 id: id,
-            })
+            },
+            this.props.database,
+            true
+        )
             .then(response => {
                 if (response.summary.counters.updates().nodesDeleted > 0) {
                     this.props.tabManager.close(id + this.props.database);
@@ -331,7 +324,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                                         <div className="field">
                                             <label className="label">identity</label>
                                             <div className="control" onClick={copy}>
-                                                <input className="input is-copyable" disabled type="text" value={db.strId(this.state.rel.identity)} />
+                                                <input className="input is-copyable" disabled type="text" value={db.strInt(this.state.rel.identity)} />
                                             </div>
                                         </div>
                                     </div>
@@ -458,11 +451,13 @@ class SelectNodeModal extends React.Component<{ stashManager: IStashManager; han
         e.preventDefault();
         const isNum = /^\d+$/.test(this.state.id);
 
-        db.driver
-            .session({ database: this.props.database, defaultAccessMode: db.neo4j.session.READ })
-            .run("MATCH (n) WHERE " + (isNum ? "id(n)" : "elementId") + " = $id RETURN n", {
-                id: isNum ? db.neo4j.int(this.state.id) : this.state.id,
-            })
+        db.query(
+            "MATCH (n) WHERE " + (isNum ? "id(n)" : "elementId") + " = $id RETURN n",
+            {
+                id: isNum ? db.toInt(this.state.id) : this.state.id,
+            },
+            this.props.database
+        )
             .then(response => {
                 if (response.records.length > 0) {
                     this.props.handleNodeSelect(response.records[0].get("n"));
@@ -493,7 +488,7 @@ class SelectNodeModal extends React.Component<{ stashManager: IStashManager; han
                             .map(s => (
                                 <Button
                                     key={s.id}
-                                    text={((s.value as _Node).labels.length > 0 ? ":" + (s.value as _Node).labels.join(":") + " " : "") + "#" + db.strId(s.value.identity)}
+                                    text={((s.value as _Node).labels.length > 0 ? ":" + (s.value as _Node).labels.join(":") + " " : "") + "#" + db.strInt(s.value.identity)}
                                     onClick={() => this.props.handleNodeSelect(s.value as _Node)}
                                 />
                             ))}

@@ -22,7 +22,7 @@ export default class InlineNode extends React.Component<{ node: _Node; tabManage
                     }
                     icon="fa-solid fa-pen-clip"
                     color={!!this.props.small ? "is-small" : ""}
-                    text={"#" + db.strId(this.props.node.identity)}
+                    text={"#" + db.strInt(this.props.node.identity)}
                 />
                 {Object.keys(this.props.node.properties).length > 0 && (
                     <PropertiesModalContext.Consumer>

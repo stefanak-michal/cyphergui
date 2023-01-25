@@ -251,7 +251,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                 {this.state.delete && <DeleteModal delete={this.state.delete} detach handleConfirm={this.handleDeleteModalConfirm} handleClose={() => this.setState({ delete: false })} />}
 
                 {Array.isArray(this.state.labelModal) && (
-                    <Modal title="Add label" handleClose={this.handleLabelModalClose}>
+                    <Modal title="Add label" icon="fa-solid fa-tag" handleClose={this.handleLabelModalClose}>
                         <div className="buttons">
                             {this.state.labelModal.map(label => (
                                 <Button text={label} color="is-link is-rounded" key={label} onClick={() => this.handleLabelSelect(label)} />

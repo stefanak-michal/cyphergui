@@ -28,7 +28,7 @@ class App extends React.Component {
             <>
                 {this.state.logged ? <Logged handleLogout={this.handleLogout} /> : <Login handleLogin={this.handleLogin} />}
 
-                <footer className="footer">
+                <footer className="footer page-footer">
                     <div className="content has-text-centered">
                         <p>
                             <b>cypherGUI</b> by Michal Stefanak. Awarded author of PHP Bolt driver.

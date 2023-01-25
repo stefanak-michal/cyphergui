@@ -269,7 +269,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                 {this.state.delete && <DeleteModal delete={this.state.delete} handleConfirm={this.handleDeleteModalConfirm} handleClose={() => this.setState({ delete: false })} />}
 
                 {Array.isArray(this.state.typeModal) && (
-                    <Modal title="Set type" handleClose={this.handleTypeModalClose}>
+                    <Modal title="Set type" icon="fa-solid fa-tag" handleClose={this.handleTypeModalClose}>
                         <div className="buttons">
                             {this.state.typeModal.map(label => (
                                 <Button text={label} color="is-info is-rounded" key={label} onClick={() => this.handleTypeSelect(label)} />
@@ -478,7 +478,7 @@ class SelectNodeModal extends React.Component<{ stashManager: IStashManager; han
 
     render() {
         return (
-            <Modal title="Select node" handleClose={this.props.handleClose} backdrop={true}>
+            <Modal title="Select node" icon="fa-regular fa-circle" handleClose={this.props.handleClose} backdrop={true}>
                 <label className="label">Stashed nodes</label>
                 {this.props.stashManager.get().filter(s => s.value instanceof _Node).length > 0 ? (
                     <div className="buttons">

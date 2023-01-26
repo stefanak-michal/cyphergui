@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Button, Checkbox, Input } from "./components/form";
 import db from "./db";
-import { Driver } from "neo4j-driver";
+import { Driver, QueryResult } from "neo4j-driver";
 import logo from "./assets/logo.png";
 
 interface ILoginState {
@@ -51,30 +51,40 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
             return;
         }
 
-        const tx = driver.session({ defaultAccessMode: db.neo4j.session.WRITE }).beginTransaction();
-        tx.run("CREATE (n) RETURN n")
+        const handleResponse = (response: QueryResult = null) => {
+            db.setDriver(driver, err => {
+                if (err) {
+                    onError("[" + err.name + "] " + err.message);
+                } else {
+                    db.hasElementId = response ? "elementId" in response.records[0].get("n") : false;
+                    localStorage.setItem("host", url);
+                    if (this.state.remember) localStorage.setItem("login", JSON.stringify({ username: username, password: password }));
+                    this.props.handleLogin();
+                }
+            });
+        };
+
+        driver
+            .session({ defaultAccessMode: db.neo4j.session.READ })
+            .run("MATCH (n) RETURN n LIMIT 1")
             .then(response => {
                 if (response.records.length) {
-                    db.setDriver(driver, err => {
-                        if (err) {
-                            onError("[" + err.name + "] " + err.message);
-                        } else {
-                            db.hasElementId = "elementId" in response.records[0].get("n");
-                            localStorage.setItem("host", url);
-                            if (this.state.remember) localStorage.setItem("login", JSON.stringify({ username: username, password: password }));
-
-                            this.props.handleLogin();
-                        }
-                    });
+                    handleResponse(response);
                 } else {
-                    onError("Initial test query wasn't successful");
+                    const tx = driver.session({ defaultAccessMode: db.neo4j.session.WRITE }).beginTransaction();
+                    tx.run("CREATE (n) RETURN n")
+                        .then(response => {
+                            handleResponse(response.records.length ? response : null);
+                            tx.rollback();
+                        })
+                        .catch(() => {
+                            handleResponse();
+                        });
                 }
             })
             .catch(err => {
                 onError("[" + err.name + "] " + err.message);
             });
-
-        tx.rollback();
     };
 
     handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {

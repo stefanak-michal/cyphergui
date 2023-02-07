@@ -8,8 +8,9 @@
     "name": "Michal Stefanak",
     "url": "https://www.linkedin.com/in/michalstefanak/"
   },
+  "funding": "https://ko-fi.com/michalstefanak",
   "engines": {
-    "node": ">=19.0.0"
+    "node": "^19.0.0"
   },
   "repository": {
     "type": "git",

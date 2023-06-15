@@ -452,7 +452,7 @@ class SelectNodeModal extends React.Component<{ stashManager: IStashManager; han
         const isNum = /^\d+$/.test(this.state.id);
 
         db.query(
-            "MATCH (n) WHERE " + (isNum ? "id(n)" : "elementId") + " = $id RETURN n",
+            "MATCH (n) WHERE " + (isNum ? "id(n)" : "elementId(n)") + " = $id RETURN n",
             {
                 id: isNum ? db.toInt(this.state.id) : this.state.id,
             },

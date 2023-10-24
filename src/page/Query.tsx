@@ -23,6 +23,7 @@ import InlineNode from "../components/InlineNode";
 import InlineRelationship from "../components/InlineRelationship";
 import { durationToString, toJSON } from "../utils/fn";
 import orb_logo from "../assets/orb_logo.png";
+import { t_StashQuery } from "../utils/types";
 
 interface IQueryProps extends IPageProps {
     query?: string;
@@ -56,15 +57,13 @@ interface MyEdge {
 
 /**
  * Execute custom query
- * todo syntax highlight
- * todo Stash query - ref pre tab?!
  * todo improve graph view (not yet defined how)
  */
 class Query extends React.Component<IQueryProps, IQueryState> {
     state: IQueryState = {
         view: this.props.view || EQueryView.Table,
         tableSize: parseInt(localStorage.getItem("query.tableSize") || "2"),
-        query: this.props.query || localStorage.getItem(this.props.tabId) || "",
+        query: this.props.query || "",
         rows: [],
         summary: null,
         error: null,
@@ -77,25 +76,6 @@ class Query extends React.Component<IQueryProps, IQueryState> {
 
     componentDidMount() {
         if (this.props.execute) this.handleSubmit(null);
-    }
-
-    componentWillUnmount() {
-        localStorage.removeItem(this.props.tabId);
-    }
-
-    shouldComponentUpdate(nextProps: Readonly<IQueryProps>, nextState: Readonly<IQueryState>): boolean {
-        if (this.props.execute && this.props.query !== nextProps.query) {
-            this.setState(
-                {
-                    query: nextProps.query,
-                },
-                () => {
-                    this.handleSubmit(null);
-                }
-            );
-        }
-
-        return Object.keys(this.props).some(k => this.props[k] !== nextProps[k]) || Object.keys(this.state).some(k => this.state[k] !== nextState[k]);
     }
 
     setShowTableSize = (value: any) => {
@@ -234,7 +214,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                                 value={this.state.query}
                                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
                                     this.setState({ query: e.currentTarget.value });
-                                    localStorage.setItem(this.props.tabId, e.currentTarget.value);
+                                    this.props.tabManager.add(this.props.tabName, "fa-solid fa-terminal", EPage.Query, { query: e.currentTarget.value }, this.props.tabId);
                                 }}
                                 color="is-family-code"
                                 focus={true}
@@ -267,6 +247,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                     <div className="field">
                         <div className="buttons is-justify-content-flex-end">
                             <Button color={"is-success " + (this.state.loading ? "is-loading" : "")} type="submit" icon="fa-solid fa-check" text="Execute" />
+                            {this.props.stashManager.button(new t_StashQuery(this.props.tabId, this.state.query), "")}
                             <Button icon="fa-solid fa-xmark" text="Close" onClick={e => this.props.tabManager.close(this.props.tabId, e)} />
                         </div>
                     </div>
@@ -417,7 +398,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
         );
     }
 
-    printValue = (value: any): JSX.Element => {
+    printValue = (value: any): React.ReactElement => {
         if (db.isInt(value)) return <>{db.strInt(value)}</>;
         if (Array.isArray(value)) return <>[{value.map<React.ReactNode>(entry => this.printValue(entry)).reduce((prev, curr) => [prev, ", ", curr])}]</>;
         if (typeof value === "boolean") return <>{value ? "true" : "false"}</>;

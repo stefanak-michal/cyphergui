@@ -325,7 +325,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
         );
     }
 
-    printProperty = (property: any): string | JSX.Element => {
+    printProperty = (property: any): string | React.ReactElement => {
         if (db.isInt(property)) return db.strInt(property);
         if (Array.isArray(property)) return "[" + property.join(", ") + "]";
         if (typeof property === "boolean") return <Checkbox name="" label="" checked={property} disabled />;

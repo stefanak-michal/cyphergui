@@ -5,6 +5,8 @@ import { IStashEntry, IStashManager, ITabManager } from "../utils/interfaces";
 import { Button } from "../components/form";
 import InlineNode from "../components/InlineNode";
 import InlineRelationship from "../components/InlineRelationship";
+import { EPage } from "../utils/enums";
+import { t_StashQuery } from "../utils/types";
 
 interface IStashProps {
     stashed: IStashEntry[];
@@ -36,12 +38,14 @@ class Stash extends React.Component<IStashProps, IStashState> {
         //tab
         if (this.state.tab === "Nodes" && !(entry.value instanceof _Node)) return false;
         if (this.state.tab === "Relationships" && !(entry.value instanceof _Relationship)) return false;
+        if (this.state.tab === "Queries" && !(entry.value instanceof t_StashQuery)) return false;
         //search
         if (this.state.search.length === 0) return true;
         if (db.strInt(entry.value.identity) === this.state.search) return true;
-        if (db.hasElementId && entry.value.elementId.includes(this.state.search)) return true;
+        if ("elementId" in entry.value && db.hasElementId && entry.value.elementId.includes(this.state.search)) return true;
         if (entry.value instanceof _Node && entry.value.labels.includes(this.state.search)) return true;
         if (entry.value instanceof _Relationship && entry.value.type === this.state.search) return true;
+        if (entry.value instanceof t_StashQuery && entry.value.query.indexOf(this.state.search) >= 0) return true;
         return false;
     };
 
@@ -93,7 +97,7 @@ class Stash extends React.Component<IStashProps, IStashState> {
                         </p>
                     </div>
                     <p className="panel-tabs">
-                        {["All", "Nodes", "Relationships"].map(t => (
+                        {["All", "Nodes", "Relationships", "Queries"].map(t => (
                             <a key={t} className={this.state.tab === t ? "is-active" : ""} onClick={() => this.setState({ tab: t })}>
                                 {t}
                             </a>
@@ -103,7 +107,19 @@ class Stash extends React.Component<IStashProps, IStashState> {
                         <div className="panel-block is-hoverable" key={entry.id}>
                             {entry.value instanceof _Node && <InlineNode node={entry.value} tabManager={this.props.tabManager} database={entry.database} small={true} />}
                             {entry.value instanceof _Relationship && <InlineRelationship rel={entry.value} tabManager={this.props.tabManager} database={entry.database} small={true} />}
-                            {db.databases.length > 1 && <span className="ml-1">(db: {entry.database})</span>}
+                            {entry.value instanceof t_StashQuery && (
+                                <a
+                                    className="is-align-items-center"
+                                    title={entry.value.query.length > 25 ? entry.value.query : ""}
+                                    onClick={() =>
+                                        this.props.tabManager.add(entry.value.identity as string, "fa-solid fa-terminal", EPage.Query, {
+                                            query: entry.value["query"],
+                                        })
+                                    }>
+                                    {entry.value.query.substring(0, 25)} {entry.value.query.length > 25 ? "..." : ""}
+                                </a>
+                            )}
+                            {(entry.value instanceof _Node || entry.value instanceof _Relationship) && db.databases.length > 1 && <span className="ml-1">(db: {entry.database})</span>}
                             <button className="delete ml-auto" onClick={() => this.props.stashManager.remove(entry.id)} />
                         </div>
                     ))}

@@ -48,20 +48,24 @@ export class Textarea extends React.Component<
         color?: string;
         required?: boolean;
         onKeyDown?: (e: React.KeyboardEvent) => void;
+        highlight?: object;
     },
     { height: number }
 > {
     ref = React.createRef<HTMLTextAreaElement>();
+    highlightRef = React.createRef<HTMLDivElement>();
     state = {
         height: 0,
     };
 
     componentDidMount() {
         this.resize();
+        this.highlight();
     }
 
     componentDidUpdate() {
         this.resize();
+        this.highlight();
     }
 
     resize = () => {
@@ -72,19 +76,39 @@ export class Textarea extends React.Component<
         }
     };
 
+    highlight = () => {
+        if (this.props.highlight) {
+            let text = this.ref.current.value;
+            for (let color in this.props.highlight) {
+                for (let keyword of this.props.highlight[color]) {
+                    text = text.replace(new RegExp("(?<!>)\\b" + keyword + "\\b(?!<)", "gi"), `<mark style="${color[0] === "#" ? "color: " + color : ""};">$&</mark>`);
+                }
+            }
+            this.highlightRef.current.innerHTML = text;
+        }
+    };
+
     render() {
         return (
-            <textarea
-                name={this.props.name}
-                className={"textarea " + (this.props.color || "")}
-                value={this.props.value}
-                onChange={this.props.onChange}
-                ref={this.ref}
-                autoFocus={this.props.focus || false}
-                placeholder={this.props.placeholder}
-                required={this.props.required}
-                onKeyDown={this.props.onKeyDown}
-            />
+            <>
+                {this.props.highlight && (
+                    <div className={"highlight-backdrop textarea " + (this.props.color || "")}>
+                        <div className="highlights" ref={this.highlightRef}></div>
+                    </div>
+                )}
+
+                <textarea
+                    name={this.props.name}
+                    className={"textarea " + (this.props.color || "")}
+                    value={this.props.value}
+                    onChange={this.props.onChange}
+                    ref={this.ref}
+                    autoFocus={this.props.focus || false}
+                    placeholder={this.props.placeholder}
+                    required={this.props.required}
+                    onKeyDown={this.props.onKeyDown}
+                />
+            </>
         );
     }
 }

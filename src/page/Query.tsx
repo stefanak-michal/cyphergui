@@ -241,6 +241,16 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                                 onKeyDown={(e: React.KeyboardEvent) => {
                                     if (e.key === "Enter" && e.ctrlKey) this.handleSubmit(null);
                                 }}
+                                highlight={{
+                                    mark: ["CALL", "CREATE", "DELETE", "DETACH", "FOREACH", "LOAD", "MATCH", "MERGE", "OPTIONAL", "REMOVE", "RETURN", "SET", "START", "UNION", "UNWIND", "WITH"],
+                                    "#995800": ["LIMIT", "ORDER", "SKIP", "WHERE", "YIELD"],
+                                    "#c07817": ["ASC", "ASCENDING", "ASSERT", "BY", "CSV", "DESC", "DESCENDING", "ON"],
+                                    "#1732c0": ["ALL", "CASE", "COUNT", "ELSE", "END", "EXISTS", "THEN", "WHEN"],
+                                    "#1683b3": ["AND", "AS", "CONTAINS", "DISTINCT", "ENDS", "IN", "IS", "NOT", "OR", "STARTS", "XOR"],
+                                    "#a00726": ["CONSTRAINT", "CREATE", "DROP", "EXISTS", "INDEX", "NODE", "KEY", "UNIQUE"],
+                                    "#ba1919": ["INDEX", "JOIN", "SCAN", "USING"],
+                                    "#0f00b4": ["false", "null", "true"],
+                                }}
                             />
                             <span className="icon is-left">
                                 <i className="fa-solid fa-terminal" aria-hidden="true" />

@@ -374,3 +374,25 @@ $family-monospace: "Oxygen Mono", monospace
   animation-fill-mode: both
   animation-delay: 2s
   animation-duration: 3s
+
+
+.highlight-backdrop
+  position: absolute
+  z-index: 3
+  background-color: transparent
+  pointer-events: none
+  height: 100%
+  border-color: transparent
+  box-shadow: none
+
+  & + textarea
+    z-index: 2
+
+  .highlights
+    white-space: pre-wrap
+    word-wrap: break-word
+    color: transparent
+
+    mark
+      color: #959900
+      background-color: transparent

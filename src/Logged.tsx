@@ -11,7 +11,7 @@ import History from "./page/History";
 import { EPage } from "./utils/enums";
 import { Button } from "./components/form";
 import { IStashEntry, IStashManager, ITabManager } from "./utils/interfaces";
-import { t_ShowPropertiesModalFn, t_StashValue, t_StorageStashEntry, t_ToastFn } from "./utils/types";
+import { t_ShowPropertiesModalFn, t_StashQuery, t_StashValue, t_StorageStashEntry, t_ToastFn } from "./utils/types";
 import db from "./db";
 import Stash from "./layout/Stash";
 import Settings from "./layout/Settings";
@@ -101,6 +101,13 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
                         .catch(console.error);
                 }
             });
+
+            // load queries into stash
+            parsed
+                .filter(p => p.type === "query")
+                .forEach(p => {
+                    this.stashManager.add(new t_StashQuery(p.identity as string, p.database), "", i++);
+                });
         }
     }
 
@@ -186,9 +193,9 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
             JSON.stringify(
                 this.state.stashed.map<t_StorageStashEntry>(s => {
                     return {
-                        database: s.database,
-                        type: s.value instanceof _Node ? "node" : s.value instanceof _Relationship ? "rel" : "",
-                        identity: db.getId(s.value),
+                        database: s.value instanceof t_StashQuery ? s.value.query : s.database, //stash query uses database field for storing query
+                        type: s.value instanceof _Node ? "node" : s.value instanceof _Relationship ? "rel" : s.value instanceof t_StashQuery ? "query" : "",
+                        identity: s.value instanceof _Node || s.value instanceof _Relationship ? db.getId(s.value) : s.value.identity,
                     };
                 })
             )
@@ -196,7 +203,6 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
     };
 
     stashManager: IStashManager = {
-        //maybe add queries?
         add: (value: t_StashValue, database: string, id: number = new Date().getTime()) => {
             this.setState(state => {
                 return {
@@ -213,14 +219,15 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
         },
         indexOf: (value: t_StashValue, stashed: IStashEntry[] = null): number => {
             return (stashed || this.state.stashed).findIndex(s => {
-                return db.getId(value) === db.getId(s.value);
+                if ((value instanceof _Node && s.value instanceof _Node) || (value instanceof _Relationship && s.value instanceof _Relationship)) return db.getId(value) === db.getId(s.value);
+                else if (value instanceof t_StashQuery && s.value instanceof t_StashQuery) return value.identity === s.value.identity;
             });
         },
         empty: () => {
             if (this.state.stashed.length > 0) this.setState({ stashed: [] });
             localStorage.removeItem("stash");
         },
-        button: (value: t_StashValue, database: string, color: string = ""): JSX.Element => {
+        button: (value: t_StashValue, database: string, color: string = ""): React.ReactElement => {
             const i = this.stashManager.indexOf(value);
             return (
                 <Button

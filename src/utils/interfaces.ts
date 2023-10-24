@@ -21,7 +21,7 @@ export interface IStashManager {
     remove: (id: number) => void;
     indexOf: (value: t_StashValue, stashed?: IStashEntry[]) => number;
     empty: () => void;
-    button: (value: t_StashValue, database: string, color?: string) => JSX.Element;
+    button: (value: t_StashValue, database: string, color?: string) => React.ReactElement;
     get: () => IStashEntry[];
 }
 

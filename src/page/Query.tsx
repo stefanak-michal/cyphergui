@@ -81,7 +81,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
     setShowTableSize = (value: any) => {
         if (Array.isArray(value)) {
             value.forEach(this.setShowTableSize);
-        } else if (typeof value === "object") {
+        } else if (value !== null && typeof value === "object") {
             if (value instanceof _Node || value instanceof _Relationship || value instanceof _Path) this.showTableSize = true;
             else this.setShowTableSize(Object.values(value));
         }
@@ -401,6 +401,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
     printValue = (value: any): React.ReactElement => {
         if (db.isInt(value)) return <>{db.strInt(value)}</>;
         if (Array.isArray(value)) return <>[{value.map<React.ReactNode>(entry => this.printValue(entry)).reduce((prev, curr) => [prev, ", ", curr])}]</>;
+        if (value === null) return <p className="has-text-grey">null</p>;
         if (typeof value === "boolean") return <>{value ? "true" : "false"}</>;
         if (typeof value === "string") return <p className="wspace-pre is-inline-block">{value}</p>;
 

@@ -91,8 +91,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
             {
                 id: id,
             },
-            this.props.database,
-            true
+            this.props.database
         )
             .then(response => {
                 if (response.summary.counters.updates().nodesDeleted > 0) {
@@ -175,7 +174,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                         <span className="icon">
                             <i className="fa-solid fa-terminal" aria-hidden="true" />
                         </span>
-                        <span className="is-family-code">{printQuery}</span>
+                        <span className="is-family-code is-pre-wrap">{printQuery}</span>
                     </span>
                 </div>
 

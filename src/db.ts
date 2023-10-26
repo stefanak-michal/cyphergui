@@ -1,4 +1,5 @@
 import { Driver, Integer, Node as _Node, QueryResult, Relationship as _Relationship } from "neo4j-driver";
+import { t_Log } from "./utils/types";
 
 class Db {
     private _neo4j = require("neo4j-driver");
@@ -9,6 +10,7 @@ class Db {
     private callbacks_2: ((databases: string[]) => void)[] = [];
 
     hasElementId: boolean = false;
+    logs: t_Log[] = [];
 
     get neo4j() {
         return this._neo4j;
@@ -93,8 +95,17 @@ class Db {
         return this._neo4j.int(val);
     };
 
-    query = (stmt: string, params: object = {}, db: string = undefined, write: boolean = false): Promise<QueryResult> => {
-        return this._driver.session({ defaultAccessMode: write ? this._neo4j.session.WRITE : this._neo4j.session.READ, database: db }).run(stmt, params);
+    query = (stmt: string, params: object = {}, db: string = undefined): Promise<QueryResult> => {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const { records, summary } = await this._driver.executeQuery(stmt, params, { database: db });
+                this.logs = this.logs.concat({ query: stmt, params: params, status: true, date: new Date() } as t_Log).slice(-1000);
+                resolve({ records: records, summary: summary } as QueryResult);
+            } catch (err) {
+                this.logs = this.logs.concat({ query: stmt, params: params, status: false, date: new Date() } as t_Log).slice(-1000);
+                reject(err);
+            }
+        });
     };
 
     //singleton

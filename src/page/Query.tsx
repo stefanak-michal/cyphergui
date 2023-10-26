@@ -95,7 +95,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                 loading: true,
             },
             () => {
-                db.query(this.state.query, {}, db.database, true)
+                db.query(this.state.query, {}, db.database)
                     .then(response => {
                         //check create/delete database
                         if (/\s*CREATE\s+(COMPOSITE\s+)?DATABASE/i.test(this.state.query) || /\s*DROP\s+(COMPOSITE\s+)?DATABASE/i.test(this.state.query)) {
@@ -216,7 +216,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                                     this.setState({ query: e.currentTarget.value });
                                     this.props.tabManager.add(this.props.tabName, "fa-solid fa-terminal", EPage.Query, { query: e.currentTarget.value }, this.props.tabId);
                                 }}
-                                color="is-family-code"
+                                color="is-family-code is-pre-wrap"
                                 focus={true}
                                 onKeyDown={(e: React.KeyboardEvent) => {
                                     if (e.key === "Enter" && e.ctrlKey) this.handleSubmit(null);

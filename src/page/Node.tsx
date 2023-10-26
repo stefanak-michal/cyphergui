@@ -174,8 +174,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                 id: this.props.id,
                 p: props,
             },
-            this.props.database,
-            true
+            this.props.database
         )
             .then(response => {
                 if (response.summary.counters.containsUpdates()) {
@@ -225,8 +224,7 @@ class Node extends React.Component<INodeProps, INodeState> {
             {
                 id: id,
             },
-            this.props.database,
-            true
+            this.props.database
         )
             .then(response => {
                 if (response.summary.counters.updates().nodesDeleted > 0) {

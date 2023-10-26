@@ -19,3 +19,5 @@ export type t_StorageStashEntry = { database: string; type: string; identity: st
 export type t_FormProperty = { /* unique */ name: string; key: string; value: any; type: EPropertyType; subtype: EPropertyType | null; temp: any };
 
 export type t_ShowPropertiesModalFn = (properties: object) => void;
+
+export type t_Log = { query: string; params: object; status: boolean; date: Date };

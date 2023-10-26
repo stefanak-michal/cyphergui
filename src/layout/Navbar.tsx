@@ -93,7 +93,7 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
                         <div className="navbar-item">
                             <div className="buttons">
                                 <Button icon="fa-regular fa-plus" text="Query" onClick={() => this.props.tabManager.add({ prefix: "Query" }, "fa-solid fa-terminal", EPage.Query)} color="is-info" />
-                                {/*<Button icon="fa-solid fa-clock-rotate-left" onClick={() => this.props.tabManager.add("History", "fa-solid fa-clock-rotate-left", EPage.History)} />*/}
+                                <Button icon="fa-solid fa-clock-rotate-left" onClick={() => this.props.tabManager.add("History", "fa-solid fa-clock-rotate-left", EPage.History)} />
                                 <Button icon="fa-solid fa-gears" onClick={this.props.handleOpenSettings} />
                                 <Button onClick={this.props.handleLogout} text="Log out" />
                             </div>

@@ -173,8 +173,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                 b: db.hasElementId ? this.state.end.elementId : this.state.end.identity,
                 p: props,
             },
-            this.props.database,
-            true
+            this.props.database
         )
             .then(response => {
                 if (response.summary.counters.containsUpdates()) {
@@ -243,8 +242,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
             {
                 id: id,
             },
-            this.props.database,
-            true
+            this.props.database
         )
             .then(response => {
                 if (response.summary.counters.updates().nodesDeleted > 0) {

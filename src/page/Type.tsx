@@ -94,8 +94,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
             {
                 id: id,
             },
-            this.props.database,
-            true
+            this.props.database
         )
             .then(response => {
                 if (response.summary.counters.updates().nodesDeleted > 0) {
@@ -166,7 +165,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                         <span className="icon">
                             <i className="fa-solid fa-terminal" aria-hidden="true" />
                         </span>
-                        <span className="is-family-code">
+                        <span className="is-family-code is-pre-wrap">
                             {"MATCH (a)-[r:" +
                                 this.props.type +
                                 "]->(b) RETURN r" +

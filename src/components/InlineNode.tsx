@@ -24,11 +24,9 @@ export default class InlineNode extends React.Component<{ node: _Node; tabManage
                     color={!!this.props.small ? "is-small" : ""}
                     text={"#" + db.strInt(this.props.node.identity)}
                 />
-                {Object.keys(this.props.node.properties).length > 0 && (
-                    <PropertiesModalContext.Consumer>
-                        {fn => <Button icon="fa-solid fa-rectangle-list" onClick={() => fn(this.props.node.properties)} color={"ml-1 " + (!!this.props.small ? "is-small" : "")} />}
-                    </PropertiesModalContext.Consumer>
-                )}
+                <PropertiesModalContext.Consumer>
+                    {fn => <Button icon="fa-solid fa-rectangle-list" onClick={() => fn(this.props.node.properties)} color={"ml-1 " + (!!this.props.small ? "is-small" : "")} title="Properties" />}
+                </PropertiesModalContext.Consumer>
             </div>
         );
     }

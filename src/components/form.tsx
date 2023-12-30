@@ -72,7 +72,8 @@ export class Textarea extends React.Component<
         if (this.props.autoresize !== false) {
             this.ref.current.style.height = "0px";
             const computed = window.getComputedStyle(this.ref.current);
-            this.ref.current.style.height = parseInt(computed.getPropertyValue("border-top-width")) + this.ref.current.scrollHeight + parseInt(computed.getPropertyValue("border-bottom-width")) + "px";
+            this.ref.current.style.height =
+                Math.ceil(parseFloat(computed.getPropertyValue("border-top-width"))) + this.ref.current.scrollHeight + Math.ceil(parseFloat(computed.getPropertyValue("border-bottom-width"))) + "px";
         }
     };
 
@@ -145,7 +146,7 @@ export class LabelButton extends React.Component<{ label: string; database: stri
             <Button
                 color={"tag is-link is-rounded px-2 " + (this.props.size || "")}
                 onClick={() => this.props.tabManager.add(this.props.label, "fa-regular fa-circle", EPage.Label, { label: this.props.label, database: this.props.database })}
-                text={":" + this.props.label}
+                text={this.props.label.startsWith("*") ? "*" : ":" + this.props.label}
             />
         );
     }
@@ -157,7 +158,7 @@ export class TypeButton extends React.Component<{ type: string; database: string
             <Button
                 color={"tag is-info is-rounded px-2 " + (this.props.size || "")}
                 onClick={() => this.props.tabManager.add(this.props.type, "fa-solid fa-arrow-right-long", EPage.Type, { type: this.props.type, database: this.props.database })}
-                text={":" + this.props.type}
+                text={this.props.type.startsWith("*") ? "*" : ":" + this.props.type}
             />
         );
     }

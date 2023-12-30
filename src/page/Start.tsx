@@ -70,7 +70,12 @@ class Start extends React.Component<IPageProps, IStartState> {
                     <div className="subtitle mb-2">Node labels</div>
                     <div className="buttons">
                         {this.state.labels.length > 0 ? (
-                            this.state.labels.map(label => <LabelButton key={label} label={label} database={db.database} tabManager={this.props.tabManager} size="is-medium" />)
+                            <span>
+                                <LabelButton key="all-labels" label="* " database={db.database} tabManager={this.props.tabManager} size="is-medium" /> {/* space after space is required */}
+                                {this.state.labels.map(label => (
+                                    <LabelButton key={label} label={label} database={db.database} tabManager={this.props.tabManager} size="is-medium" />
+                                ))}
+                            </span>
                         ) : (
                             <span className="has-text-grey-light">none</span>
                         )}
@@ -89,7 +94,12 @@ class Start extends React.Component<IPageProps, IStartState> {
                     <div className="subtitle mb-2">Relationship types</div>
                     <div className="buttons">
                         {this.state.types.length > 0 ? (
-                            this.state.types.map(type => <TypeButton key={type} type={type} database={db.database} tabManager={this.props.tabManager} size="is-medium" />)
+                            <span>
+                                <TypeButton key="all-types" type="*" database={db.database} tabManager={this.props.tabManager} size="is-medium" />
+                                {this.state.types.map(type => (
+                                    <TypeButton key={type} type={type} database={db.database} tabManager={this.props.tabManager} size="is-medium" />
+                                ))}
+                            </span>
                         ) : (
                             <span className="has-text-grey-light">none</span>
                         )}

@@ -1,13 +1,14 @@
 import * as React from "react";
 import Pagination from "../components/Pagination";
 import { Relationship as Neo4jRelationship } from "neo4j-driver";
-import { Button, Checkbox } from "../components/form";
+import { Button, Checkbox, TypeButton } from "../components/form";
 import { EPage, EQueryView } from "../utils/enums";
 import { IPageProps } from "../utils/interfaces";
 import TableSortIcon from "../components/TableSortIcon";
 import { DeleteModal } from "../components/Modal";
 import db from "../db";
 import { settings } from "../layout/Settings";
+import { ClipboardContext } from "../utils/contexts";
 
 interface ITypeProps extends IPageProps {
     database: string;
@@ -40,13 +41,14 @@ class Type extends React.Component<ITypeProps, ITypeState> {
     };
 
     requestData = () => {
-        db.query("MATCH ()-[r:" + this.props.type + "]->() RETURN COUNT(r) AS cnt", {}, this.props.database)
+        const c = "[" + (this.props.type.startsWith("*") ? "r" : "r:" + this.props.type) + "]";
+        db.query("MATCH ()-" + c + "->() RETURN COUNT(r) AS cnt", {}, this.props.database)
             .then(response1 => {
                 const cnt: number = db.fromInt(response1.records[0].get("cnt"));
                 const page: number = Math.min(this.state.page, Math.ceil(cnt / this.perPage));
 
                 db.query(
-                    "MATCH (a)-[r:" + this.props.type + "]->(b) RETURN r " + (this.state.sort.length ? "ORDER BY " + this.state.sort.join(", ") : "") + " SKIP $s LIMIT $l",
+                    "MATCH (a)-" + c + "->(b) RETURN r " + (this.state.sort.length ? "ORDER BY " + this.state.sort.join(", ") : "") + " SKIP $s LIMIT $l",
                     {
                         s: db.toInt((page - 1) * this.perPage),
                         l: db.toInt(this.perPage),
@@ -165,16 +167,20 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                         <span className="icon">
                             <i className="fa-solid fa-terminal" aria-hidden="true" />
                         </span>
-                        <span className="is-family-code is-pre-wrap">
-                            {"MATCH (a)-[r:" +
-                                this.props.type +
-                                "]->(b) RETURN r" +
-                                (this.state.sort.length ? " ORDER BY " + this.state.sort.join(", ") : "") +
-                                " SKIP " +
-                                (this.state.page - 1) * this.perPage +
-                                " LIMIT " +
-                                this.perPage}
-                        </span>
+                        <ClipboardContext.Consumer>
+                            {copy => (
+                                <span className="is-family-code is-pre-wrap is-copyable" onClick={copy}>
+                                    {"MATCH (a)-[" +
+                                        (this.props.type.startsWith("*") ? "r" : "r:" + this.props.type) +
+                                        "]->(b) RETURN r" +
+                                        (this.state.sort.length ? " ORDER BY " + this.state.sort.join(", ") : "") +
+                                        " SKIP " +
+                                        (this.state.page - 1) * this.perPage +
+                                        " LIMIT " +
+                                        this.perPage}
+                                </span>
+                            )}
+                        </ClipboardContext.Consumer>
                     </span>
                 </div>
 
@@ -187,7 +193,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                             this.props.tabManager.add({ prefix: "New relationship" }, "fa-regular fa-square-plus", EPage.Rel, {
                                 id: null,
                                 database: this.props.database,
-                                type: this.props.type,
+                                type: this.props.type.startsWith("*") ? "" : this.props.type,
                             })
                         }
                     />
@@ -223,6 +229,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                         <thead>
                             <tr>
                                 <th colSpan={settings().tableViewShowElementId && db.hasElementId ? 3 : 2}>Relationship</th>
+                                {this.props.type.startsWith("*") && <th rowSpan={2}>Type</th>}
                                 {keys.length > 0 ? <th colSpan={keys.length}>properties</th> : ""}
                                 <th colSpan={settings().tableViewShowElementId && db.hasElementId ? 2 : 1}>Start node</th>
                                 <th colSpan={settings().tableViewShowElementId && db.hasElementId ? 2 : 1}>End node</th>
@@ -283,6 +290,11 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                             <Button icon="fa-regular fa-trash-can" color="is-danger is-outlined" title="Delete" onClick={() => this.setState({ delete: db.getId(row) })} />
                                         </div>
                                     </td>
+                                    {this.props.type.startsWith("*") && (
+                                        <td>
+                                            <TypeButton type={row.type} database={this.props.database} tabManager={this.props.tabManager} />
+                                        </td>
+                                    )}
                                     {keys.map(key => (
                                         <td key={"td-" + key}>{key in row.properties && this.printProperty(row.properties[key])}</td>
                                     ))}

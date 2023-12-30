@@ -8,6 +8,7 @@ import { IPageProps } from "../utils/interfaces";
 import db from "../db";
 import { DeleteModal } from "../components/Modal";
 import { settings } from "../layout/Settings";
+import { ClipboardContext } from "../utils/contexts";
 
 interface ILabelProps extends IPageProps {
     database: string;
@@ -40,13 +41,14 @@ class Label extends React.Component<ILabelProps, ILabelState> {
     };
 
     requestData = () => {
-        db.query("MATCH (n:" + this.props.label + ") RETURN COUNT(n) AS cnt", {}, this.props.database)
+        const c = "(" + (this.props.label.startsWith("*") ? "n" : "n:" + this.props.label) + ")";
+        db.query("MATCH " + c + " RETURN COUNT(n) AS cnt", {}, this.props.database)
             .then(response1 => {
                 const cnt: number = db.fromInt(response1.records[0].get("cnt"));
                 const page: number = Math.min(this.state.page, Math.ceil(cnt / this.perPage));
 
                 db.query(
-                    "MATCH (n:" + this.props.label + ") RETURN n " + (this.state.sort.length ? "ORDER BY " + this.state.sort.join(", ") : "") + " SKIP $s LIMIT $l",
+                    "MATCH " + c + " RETURN n " + (this.state.sort.length ? "ORDER BY " + this.state.sort.join(", ") : "") + " SKIP $s LIMIT $l",
                     {
                         s: db.toInt((page - 1) * this.perPage),
                         l: db.toInt(this.perPage),
@@ -143,11 +145,20 @@ class Label extends React.Component<ILabelProps, ILabelState> {
         }
         keys.sort();
 
-        const additionalLabels = this.state.rows.filter(row => row.labels.length > 1).length > 0;
+        const additionalLabels = (() => {
+            for (let row of this.state.rows) {
+                for (let label of row.labels) {
+                    if (label !== this.props.label) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        })();
 
         const printQuery =
-            "MATCH (n:" +
-            this.props.label +
+            "MATCH (" +
+            (this.props.label.startsWith("*") ? "n" : "n:" + this.props.label) +
             ") RETURN n" +
             (this.state.sort.length ? " ORDER BY " + this.state.sort.join(", ") : "") +
             " SKIP " +
@@ -174,7 +185,13 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                         <span className="icon">
                             <i className="fa-solid fa-terminal" aria-hidden="true" />
                         </span>
-                        <span className="is-family-code is-pre-wrap">{printQuery}</span>
+                        <ClipboardContext.Consumer>
+                            {copy => (
+                                <span className="is-family-code is-pre-wrap is-copyable" onClick={copy}>
+                                    {printQuery}
+                                </span>
+                            )}
+                        </ClipboardContext.Consumer>
                     </span>
                 </div>
 
@@ -191,7 +208,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                                 {
                                     id: null,
                                     database: this.props.database,
-                                    label: this.props.label,
+                                    label: this.props.label === "*" ? "" : this.props.label,
                                 },
                                 new Date().getTime().toString()
                             )
@@ -217,7 +234,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                         <thead>
                             <tr>
                                 <th colSpan={settings().tableViewShowElementId && db.hasElementId ? 3 : 2}>Node</th>
-                                {additionalLabels && <th rowSpan={2}>additional labels</th>}
+                                {additionalLabels && <th rowSpan={2}>Additional labels</th>}
                                 {keys.length > 0 ? <th colSpan={keys.length}>properties</th> : ""}
                             </tr>
                             <tr>

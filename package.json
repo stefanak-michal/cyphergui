@@ -1,7 +1,7 @@
 {
   "name": "@stefanak-michal/cyphergui",
-  "version": "0.2.1",
-  "private": true,
+  "version": "0.2.2",
+  "private": false,
   "homepage": ".",
   "license": "Apache-2.0",
   "author": {

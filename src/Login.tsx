@@ -56,10 +56,16 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
                 if (err) {
                     onError("[" + err.name + "] " + err.message);
                 } else {
-                    db.hasElementId = response ? "elementId" in response.records[0].get("n") : false;
-                    localStorage.setItem("host", url);
-                    if (this.state.remember) localStorage.setItem("login", JSON.stringify({ username: username, password: password }));
-                    this.props.handleLogin();
+                    driver
+                        .getServerInfo()
+                        .then(r => {
+                            db.hasElementId = r["protocolVersion"] >= 5 && (response ? "elementId" in response.records[0].get("n") : false);
+                        })
+                        .finally(() => {
+                            localStorage.setItem("host", url);
+                            if (this.state.remember) localStorage.setItem("login", JSON.stringify({ username: username, password: password }));
+                            this.props.handleLogin();
+                        });
                 }
             });
         };

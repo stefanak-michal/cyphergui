@@ -1,0 +1,78 @@
+@charset "utf-8"
+
+@use 'sass:color'
+
+\:root.dark
+  @import "../node_modules/bulmaswatch/cyborg/bulmaswatch"
+  background-color: $body-background-color
+
+  $colors: mergeColorMaps(("white": ($white, $black), "black": ($black, $white), "light": ($light, $light-invert), "dark": ($dark, $dark-invert), "primary": ($primary, $primary-invert, $primary-light, $primary-dark), "link": ($link, $link-invert, $link-light, $link-dark), "info": ($info, $info-invert, $info-light, $info-dark), "success": ($success, $success-invert, $success-light, $success-dark), "warning": ($warning, $warning-invert, $warning-light, $warning-dark), "danger": ($danger, $danger-invert, $danger-light, $danger-dark)), $custom-colors) !default
+
+  .navbar
+    border: 0
+
+  .switch
+    .slider
+      background-color: $black
+      border: 1px solid $primary
+      &:before
+        bottom: 3px
+    input:checked + .slider
+      background-color: $primary
+
+    //default disabled as is-light
+    input:disabled
+      & + .slider
+        border: 1px solid $light
+      &:checked + .slider
+        background-color: $light
+        &:before
+          background-color: $light-invert
+
+    @each $name, $pair in $colors
+      $color: nth($pair, 1)
+      $color-invert: nth($pair, 2)
+      &.is-#{$name}
+        .slider
+          border: 1px solid $color
+        input
+          &:checked + .slider
+            background-color: $color
+            &:before
+              background-color: $color-invert
+          &:focus + .slider
+            box-shadow: 0 0 6px 0 color.scale($color, $blackness: 50%)
+
+        @if length($pair) >= 4
+          $color-light: nth($pair, 3)
+          $color-dark: nth($pair, 4)
+          &.is-light
+            input:checked + .slider
+              background-color: $color-light
+
+              &:before
+                background-color: $color-dark
+          &.is-dark
+            input:checked + .slider
+              background-color: $color-dark
+
+              &:before
+                background-color: $color-light
+
+  .tabs
+    background-color: $body-background-color
+
+  .field.is-hoverable:hover
+    background-color: $panel-block-hover-background-color
+
+  .panel.stash
+    background-color: $black
+    .panel-block:not(:last-child)
+      border-bottom-color: $grey-accent
+      &.is-hoverable:hover
+        background-color: $grey-accent
+    .panel-tabs
+      border-bottom-color: $grey-accent
+
+  .tabs, .panel.stash
+    box-shadow: 0 0.5em 1em -0.125em rgb(129 129 129 / 28%), 0 0px 0 1px rgb(125 125 125 / 20%)

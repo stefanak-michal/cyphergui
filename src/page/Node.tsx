@@ -361,7 +361,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                                     </div>
                                 );
                             })}
-                            {!this.state.showAllRels && (
+                            {!this.state.showAllRels && this.rels.length > 3 && (
                                 <Button icon="fa-solid fa-caret-down" text={"Show all (+" + (this.rels.length - 3) + ")"} onClick={() => this.setState({ showAllRels: true })} />
                             )}
                         </fieldset>

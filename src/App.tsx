@@ -3,11 +3,16 @@ import "./main.sass";
 import Login from "./Login";
 import Logged from "./Logged";
 import db from "./db";
+import { settings } from "./layout/Settings";
 
 class App extends React.Component {
     state = {
         logged: false,
     };
+
+    componentDidMount() {
+        if (settings().darkMode) document.documentElement.className = "dark";
+    }
 
     handleLogin = () => {
         this.setState({

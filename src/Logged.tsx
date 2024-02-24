@@ -314,7 +314,7 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
             <>
                 <Navbar handleLogout={this.props.handleLogout} handleOpenSettings={() => this.setState({ settingsModal: true })} tabManager={this.tabManager} />
 
-                <section className="tabs is-boxed sticky has-background-white">
+                <section className="tabs is-boxed sticky">
                     <ul>
                         {this.state.tabs.map(tab => (
                             <Tab key={"tab-" + tab.id} active={tab.id === this.state.activeTab} handleClick={this.tabManager.setActive} handleRemove={this.tabManager.close} {...tab} />

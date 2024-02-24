@@ -17,6 +17,8 @@ class Settings extends React.Component<{ handleClose: () => void }, ISettingsSta
         const target = e.currentTarget;
         const value = target instanceof HTMLInputElement ? target.checked : target.value;
 
+        if (target.name === "darkMode") document.documentElement.className = value ? "dark" : "";
+
         this.setState(state => {
             setSetting(target.name, value);
             return { settings: settings() };
@@ -37,7 +39,7 @@ class Settings extends React.Component<{ handleClose: () => void }, ISettingsSta
                             onChange={this.handleChange}
                             label="Show elementId in table views"
                             checked={this.state.settings.tableViewShowElementId}
-                            color="is-dark"
+                            color="is-info"
                         />
                     </div>
                 )}
@@ -47,7 +49,7 @@ class Settings extends React.Component<{ handleClose: () => void }, ISettingsSta
                         onChange={this.handleChange}
                         label="Close create/edit tab after successful execute"
                         checked={this.state.settings.closeEditAfterExecuteSuccess}
-                        color="is-dark"
+                        color="is-info"
                     />
                 </div>
                 <div className="mb-3">
@@ -56,9 +58,12 @@ class Settings extends React.Component<{ handleClose: () => void }, ISettingsSta
                         onChange={this.handleChange}
                         label="Force naming recommendations"
                         checked={this.state.settings.forceNamingRecommendations}
-                        color="is-dark"
+                        color="is-info"
                         help="Node label PascalCase. Relationship type UPPERCASE."
                     />
+                </div>
+                <div className="mb-3">
+                    <Checkbox name="darkMode" onChange={this.handleChange} label="Dark mode" checked={this.state.settings.darkMode} color="is-info" />
                 </div>
                 <div className="field">
                     <label className="label">Method when printing out temporal values</label>
@@ -88,6 +93,7 @@ export function settings(): ISettings {
         closeEditAfterExecuteSuccess: true,
         forceNamingRecommendations: true,
         temporalValueToStringFunction: "toString",
+        darkMode: window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches,
         ...(localStorage.getItem("settings") ? JSON.parse(localStorage.getItem("settings")) : {}),
     };
 }

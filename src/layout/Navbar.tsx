@@ -4,6 +4,8 @@ import { Button } from "../components/form";
 import { ITabManager } from "../utils/interfaces";
 import { EPage } from "../utils/enums";
 import logo from "../assets/logo_small.png";
+import logo_dark from "../assets/logo_small_dark.png";
+import { settings } from "./Settings";
 
 interface INavbarProps {
     handleLogout: () => void;
@@ -51,7 +53,7 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
             <nav className="navbar" role="navigation" aria-label="main navigation">
                 <div className="navbar-brand">
                     <span className="navbar-item">
-                        <img src={logo} alt="cypherGUI" />
+                        <img src={settings().darkMode ? logo_dark : logo} alt="cypherGUI" />
                     </span>
 
                     <a

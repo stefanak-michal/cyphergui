@@ -25,6 +25,24 @@ class History extends React.Component<IHistoryProps, IHistoryState> {
         }
     }
 
+    printDate = (date: Date): string => {
+        return (
+            date.getFullYear() +
+            "-" +
+            (date.getMonth() + 1).toString().padStart(2, "0") +
+            "-" +
+            date.getDate().toString().padStart(2, "0") +
+            " " +
+            date.getHours().toString().padStart(2, "0") +
+            ":" +
+            date.getMinutes().toString().padStart(2, "0") +
+            ":" +
+            date.getSeconds().toString().padStart(2, "0") +
+            "." +
+            date.getMilliseconds().toString().padStart(3, "0")
+        );
+    };
+
     render() {
         return (
             <div className="table-container">
@@ -47,21 +65,7 @@ class History extends React.Component<IHistoryProps, IHistoryState> {
                                     .map(log => {
                                         return (
                                             <tr>
-                                                <td>
-                                                    {log.date.getFullYear() +
-                                                        "-" +
-                                                        (log.date.getMonth() + 1).toString().padStart(2, "0") +
-                                                        "-" +
-                                                        log.date.getDate().toString().padStart(2, "0") +
-                                                        " " +
-                                                        log.date.getHours().toString().padStart(2, "0") +
-                                                        ":" +
-                                                        log.date.getMinutes().toString().padStart(2, "0") +
-                                                        ":" +
-                                                        log.date.getSeconds().toString().padStart(2, "0") +
-                                                        "." +
-                                                        log.date.getMilliseconds().toString().padStart(3, "0")}
-                                                </td>
+                                                <td>{this.printDate(log.date)}</td>
                                                 <td className={"has-text-weight-bold " + (log.status ? "has-text-success" : "has-text-danger")} title={log.status ? "Success" : "Error"}>
                                                     {log.status ? "S" : "E"}
                                                 </td>

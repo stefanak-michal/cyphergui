@@ -379,3 +379,25 @@ $family-monospace: "Oxygen Mono", monospace
 
 .tabs
   background-color: $body-background-color
+
+@keyframes clippath
+  0%, 100%
+    clip-path: inset(0 0 95% 0)
+  15%
+    clip-path: inset(0 95% 0 0)
+  50%
+    clip-path: inset(95% 0 0 0)
+  65%
+    clip-path: inset(0 0 0 95%)
+
+.border-progress
+  &::after
+    content: ""
+    position: absolute
+    top: 0
+    left: 0
+    right: 0
+    bottom: 0
+    border: 2px solid $info
+    transition: all .5s
+    animation: clippath 3s infinite linear

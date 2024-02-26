@@ -22,6 +22,8 @@ interface ILabelState {
     sort: string[];
     delete: number | string | false;
     error: string | null;
+    search: string;
+    loading: boolean;
 }
 
 /**
@@ -38,20 +40,37 @@ class Label extends React.Component<ILabelProps, ILabelState> {
         sort: [],
         delete: false,
         error: null,
+        search: "",
+        loading: false,
     };
 
     requestData = () => {
-        const c = "(" + (this.props.label.startsWith("*") ? "n" : "n:" + this.props.label) + ")";
-        db.query("MATCH " + c + " RETURN COUNT(n) AS cnt", {}, this.props.database)
+        const checkId = /^\d+$/.test(this.state.search);
+        const query =
+            "MATCH " +
+            "(" +
+            (this.props.label.startsWith("*") ? "n" : "n:" + this.props.label) +
+            ")" +
+            (this.state.search !== "" ? " WHERE any(prop IN keys(n) WHERE toStringOrNull(n[prop]) =~ $search)" + (checkId ? " OR id(n) = $id" : "") : "");
+        db.query(
+            query + " RETURN COUNT(n) AS cnt",
+            {
+                search: "(?i)" + this.state.search + ".*",
+                id: checkId ? db.toInt(this.state.search) : 0,
+            },
+            this.props.database
+        )
             .then(response1 => {
                 const cnt: number = db.fromInt(response1.records[0].get("cnt"));
                 const page: number = Math.min(this.state.page, Math.ceil(cnt / this.perPage));
 
                 db.query(
-                    "MATCH " + c + " RETURN n " + (this.state.sort.length ? "ORDER BY " + this.state.sort.join(", ") : "") + " SKIP $s LIMIT $l",
+                    query + " RETURN n " + (this.state.sort.length ? "ORDER BY " + this.state.sort.join(", ") : "") + " SKIP $skip LIMIT $limit",
                     {
-                        s: db.toInt((page - 1) * this.perPage),
-                        l: db.toInt(this.perPage),
+                        skip: db.toInt(Math.max(page - 1, 0) * this.perPage),
+                        limit: db.toInt(this.perPage),
+                        search: "(?i)" + this.state.search + ".*",
+                        id: checkId ? db.toInt(this.state.search) : 0,
                     },
                     this.props.database
                 )
@@ -60,14 +79,22 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                             rows: response2.records.map(record => record.get("n")),
                             total: cnt,
                             page: page,
+                            loading: false,
                         });
                     })
-                    .catch(err => this.setState({ error: "[" + err.name + "] " + err.message }));
+                    .catch(err =>
+                        this.setState({
+                            error: "[" + err.name + "] " + err.message,
+                            loading: false,
+                        })
+                    );
             })
-            .catch(err => {
-                console.log(err);
-                this.props.tabManager.close(this.props.tabId);
-            });
+            .catch(err =>
+                this.setState({
+                    error: "[" + err.name + "] " + err.message,
+                    loading: false,
+                })
+            );
     };
 
     componentDidMount() {
@@ -129,6 +156,24 @@ class Label extends React.Component<ILabelProps, ILabelState> {
         }, this.requestData);
     };
 
+    timeout: NodeJS.Timeout = null;
+
+    handleSearch = (str: string = ""): void => {
+        this.setState(
+            {
+                search: str,
+                loading: true,
+            },
+            () => {
+                if (this.timeout !== null) clearTimeout(this.timeout);
+                this.timeout = setTimeout(() => {
+                    this.requestData();
+                    this.timeout = null;
+                }, 300);
+            }
+        );
+    };
+
     render() {
         let keys = [];
         for (let row of this.state.rows) {
@@ -159,10 +204,14 @@ class Label extends React.Component<ILabelProps, ILabelState> {
         const printQuery =
             "MATCH (" +
             (this.props.label.startsWith("*") ? "n" : "n:" + this.props.label) +
-            ") RETURN n" +
+            ")" +
+            (this.state.search !== ""
+                ? ' WHERE any(prop IN keys(n) WHERE toStringOrNull(n[prop]) =~ "(?i)' + this.state.search + '.*")' + (/^\d+$/.test(this.state.search) ? " OR id(n) = " + this.state.search : "")
+                : "") +
+            " RETURN n" +
             (this.state.sort.length ? " ORDER BY " + this.state.sort.join(", ") : "") +
             " SKIP " +
-            (this.state.page - 1) * this.perPage +
+            Math.max(this.state.page - 1, 0) * this.perPage +
             " LIMIT " +
             this.perPage;
 
@@ -227,6 +276,21 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                             ))
                         }
                     />
+                    <div className={"control has-icons-left has-icons-right is-align-self-flex-start " + (this.state.loading ? "border-progress" : "")}>
+                        <input
+                            className="input"
+                            type="text"
+                            placeholder="Search"
+                            value={this.state.search}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.handleSearch(e.currentTarget.value)}
+                        />
+                        <span className="icon is-left">
+                            <i className="fas fa-search" aria-hidden="true" />
+                        </span>
+                        <span className="icon is-right is-clickable" onClick={() => this.handleSearch()}>
+                            <i className="fa-solid fa-xmark" />
+                        </span>
+                    </div>
                 </div>
 
                 <div className="table-container">

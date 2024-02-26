@@ -47,8 +47,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
     requestData = () => {
         const checkId = /^\d+$/.test(this.state.search);
         const query =
-            "MATCH " +
-            "(" +
+            "MATCH (" +
             (this.props.label.startsWith("*") ? "n" : "n:" + this.props.label) +
             ")" +
             (this.state.search !== "" ? " WHERE any(prop IN keys(n) WHERE toStringOrNull(n[prop]) =~ $search)" + (checkId ? " OR id(n) = $id" : "") : "");

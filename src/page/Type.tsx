@@ -46,10 +46,13 @@ class Type extends React.Component<ITypeProps, ITypeState> {
 
     requestData = () => {
         const checkId = /^\d+$/.test(this.state.search);
-        const query = "MATCH (a)-[" + (this.props.type.startsWith("*") ? "r" : "r:" + this.props.type) + "]->(b)";
-        const where = this.state.search !== "" ? "WHERE any(prop IN keys(r) WHERE toStringOrNull(r[prop]) =~ $search)" + (checkId ? " OR id(r) = $id OR id(a) = $id OR id(b) = $id" : "") : "";
+        const query =
+            "MATCH (a)-[" +
+            (this.props.type.startsWith("*") ? "r" : "r:" + this.props.type) +
+            "]->(b)" +
+            (this.state.search !== "" ? "WHERE any(prop IN keys(r) WHERE toStringOrNull(r[prop]) =~ $search)" + (checkId ? " OR id(r) = $id OR id(a) = $id OR id(b) = $id" : "") : "");
         db.query(
-            query + where + " RETURN COUNT(r) AS cnt",
+            query + " RETURN COUNT(r) AS cnt",
             {
                 search: "(?i)" + this.state.search + ".*",
                 id: checkId ? db.toInt(this.state.search) : 0,
@@ -61,7 +64,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                 const page: number = Math.min(this.state.page, Math.ceil(cnt / this.perPage));
 
                 db.query(
-                    query + where + " RETURN r " + (this.state.sort.length ? "ORDER BY " + this.state.sort.join(", ") : "") + " SKIP $skip LIMIT $limit",
+                    query + " RETURN r " + (this.state.sort.length ? "ORDER BY " + this.state.sort.join(", ") : "") + " SKIP $skip LIMIT $limit",
                     {
                         skip: db.toInt(Math.max(page - 1, 0) * this.perPage),
                         limit: db.toInt(this.perPage),

@@ -11,6 +11,7 @@ interface INavbarProps {
     handleLogout: () => void;
     handleOpenSettings: () => void;
     tabManager: ITabManager;
+    darkMode: boolean;
 }
 
 interface INavbarState {
@@ -53,7 +54,7 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
             <nav className="navbar" role="navigation" aria-label="main navigation">
                 <div className="navbar-brand">
                     <span className="navbar-item">
-                        <img src={settings().darkMode ? logo_dark : logo} alt="cypherGUI" />
+                        <img src={this.props.darkMode ? logo_dark : logo} alt="cypherGUI" />
                     </span>
 
                     <a

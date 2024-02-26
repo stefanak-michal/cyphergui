@@ -3,6 +3,7 @@ import db from "../db";
 import { Button, Checkbox } from "../components/form";
 import Modal from "../components/Modal";
 import { ISettings } from "../utils/interfaces";
+import { ThemeSwitchContext } from "../utils/contexts";
 
 interface ISettingsState {
     settings: ISettings;
@@ -16,10 +17,7 @@ class Settings extends React.Component<{ handleClose: () => void }, ISettingsSta
     handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const target = e.currentTarget;
         const value = target instanceof HTMLInputElement ? target.checked : target.value;
-
-        if (target.name === "darkMode") document.documentElement.className = value ? "dark" : "";
-
-        this.setState(state => {
+        this.setState(() => {
             setSetting(target.name, value);
             return { settings: settings() };
         });
@@ -63,7 +61,14 @@ class Settings extends React.Component<{ handleClose: () => void }, ISettingsSta
                     />
                 </div>
                 <div className="mb-3">
-                    <Checkbox name="darkMode" onChange={this.handleChange} label="Dark mode" checked={this.state.settings.darkMode} color="is-info" />
+                    <ThemeSwitchContext.Consumer>
+                        {themeSwitch => (
+                            <Checkbox name="darkMode" onChange={e => {
+                                themeSwitch();
+                                this.handleChange(e as React.ChangeEvent<HTMLInputElement>);
+                            }} label="Dark mode" checked={this.state.settings.darkMode} color="is-info" />
+                        )}
+                    </ThemeSwitchContext.Consumer>
                 </div>
                 <div className="field">
                     <label className="label">Method when printing out temporal values</label>

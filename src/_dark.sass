@@ -1,0 +1,37 @@
+@charset "utf-8"
+
+@use 'mixins'
+
+\:root.dark
+  @import "../node_modules/bulmaswatch/cyborg/bulmaswatch"
+  background-color: $body-background-color
+
+  $colors: mergeColorMaps(("white": ($white, $black), "black": ($black, $white), "light": ($light, $light-invert), "dark": ($dark, $dark-invert), "primary": ($primary, $primary-invert, $primary-light, $primary-dark), "link": ($link, $link-invert, $link-light, $link-dark), "info": ($info, $info-invert, $info-light, $info-dark), "success": ($success, $success-invert, $success-light, $success-dark), "warning": ($warning, $warning-invert, $warning-light, $warning-dark), "danger": ($danger, $danger-invert, $danger-light, $danger-dark)), $custom-colors) !default
+
+  .navbar
+    border: 0
+
+  .switch
+    .slider
+      background-color: $grey-light
+    input:checked + .slider
+      background-color: $primary
+    @include mixins.switch-variants($colors)
+
+  .tabs
+    background-color: $body-background-color
+
+  .field.is-hoverable:hover
+    background-color: $panel-block-hover-background-color
+
+  .panel.stash
+    background-color: $black
+    .panel-block:not(:last-child)
+      border-bottom-color: $grey-accent
+      &.is-hoverable:hover
+        background-color: $grey-accent
+    .panel-tabs
+      border-bottom-color: $grey-accent
+
+  .tabs, .panel.stash
+    box-shadow: 0 0.5em 1em -0.125em rgb(8 8 8 / 35%), 0 0px 0 1px rgb(197 197 197 / 19%)

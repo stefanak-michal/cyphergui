@@ -3,6 +3,8 @@ import { Button, Checkbox, Input } from "./components/form";
 import db from "./db";
 import { Driver, QueryResult } from "neo4j-driver";
 import logo from "./assets/logo.png";
+import logo_dark from "./assets/logo_dark.png";
+import { ThemeSwitchContext } from "./utils/contexts";
 
 interface ILoginState {
     url: string;
@@ -14,10 +16,15 @@ interface ILoginState {
     mixedContentInfo: boolean;
 }
 
+interface ILoginProps { 
+    handleLogin: () => void; 
+    darkMode: boolean; 
+}
+
 /**
  * Login page
  */
-class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
+class Login extends React.Component<ILoginProps, ILoginState> {
     state: ILoginState = {
         url: localStorage.getItem("host") || "bolt://localhost:7687",
         username: "",
@@ -113,7 +120,7 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
                 this.tryConnect(this.state.url, parsed.username, parsed.password, () => {
                     localStorage.removeItem("login");
                 });
-            } catch (Error) {}
+            } catch (Error) { }
         }
 
         if (this.isMixedContent(this.state.url)) this.setState({ mixedContentInfo: true });
@@ -123,7 +130,7 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
         try {
             const parser = new URL(url);
             if (location.protocol === "https:" && (parser.protocol === "bolt:" || parser.protocol === "neo4j:")) return true;
-        } catch (Error) {}
+        } catch (Error) { }
         return false;
     };
 
@@ -134,7 +141,7 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
                 <div className="columns">
                     <div className="column is-6-desktop is-offset-3-desktop">
                         <h1 className="has-text-centered">
-                            <img src={logo} alt="cypherGUI" />
+                            <img src={this.props.darkMode ? logo_dark : logo} alt="cypherGUI" />
                         </h1>
 
                         <form id="login" className="mt-6 box" onSubmit={this.handleSubmit}>
@@ -166,7 +173,18 @@ class Login extends React.Component<{ handleLogin: () => void }, ILoginState> {
                                 }
                             />
                             {this.state.error && <div className="notification is-danger mt-3 mb-0">{this.state.error}</div>}
-                            <Button text="Login" icon="fa-solid fa-check" color={"mt-3 is-primary " + (this.state.submitted ? "is-loading" : "")} type="submit" />
+                            <div className="buttons mt-3 is-justify-content-space-between">
+                                <Button text="Login" icon="fa-solid fa-check" color={"is-primary " + (this.state.submitted ? "is-loading" : "")} type="submit" />
+                                <ThemeSwitchContext.Consumer>
+                                    {themeSwitch => (
+                                        <Button
+                                            icon="fa-solid fa-circle-half-stroke"
+                                            title="Dark mode switch"
+                                            onClick={themeSwitch}
+                                        />
+                                    )}
+                                </ThemeSwitchContext.Consumer>
+                            </div>
                         </form>
                     </div>
                 </div>

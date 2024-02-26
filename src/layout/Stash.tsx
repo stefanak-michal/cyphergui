@@ -63,7 +63,7 @@ class Stash extends React.Component<IStashProps, IStashState> {
         }
 
         return (
-            <section className={"stash panel is-dark " + (this.state.active ? "is-active" : "")}>
+            <section className={"stash panel is-link " + (this.state.active ? "is-active" : "")}>
                 <div
                     className="panel-heading is-clickable wspace-nowrap"
                     onClick={() =>

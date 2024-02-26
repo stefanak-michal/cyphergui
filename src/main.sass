@@ -1,10 +1,14 @@
 @charset "utf-8"
 
+@use "mixins"
+@use "dark"
+
+@import "../node_modules/bulma/bulma"
+
 @import url('https://fonts.googleapis.com/css?family=Inter:400,700')
 $family-sans-serif: Inter, Helvetica, Arial, sans-serif
 @import url('https://fonts.googleapis.com/css?family=Oxygen+Mono:400,700')
 $family-monospace: "Oxygen Mono", monospace
-@import "../node_modules/bulma/bulma"
 
 @import "../node_modules/animate.css/animate.css"
 
@@ -66,7 +70,7 @@ $family-monospace: "Oxygen Mono", monospace
     position: relative
     cursor: pointer
     display: inline-block
-    background-color: #ccc
+    background-color: $grey-lighter
     transition: .4s
     border-radius: 4px
     width: 44px
@@ -81,7 +85,7 @@ $family-monospace: "Oxygen Mono", monospace
       width: 16px
       left: 4px
       bottom: 4px
-      background-color: white
+      background-color: $white
       transition: .3s
       border-radius: 2px
 
@@ -102,33 +106,9 @@ $family-monospace: "Oxygen Mono", monospace
     &:disabled + .slider
       cursor: not-allowed
       opacity: 0.5
-
-  @each $name, $pair in $colors
-    $color: nth($pair, 1)
-    $color-invert: nth($pair, 2)
-    &.is-#{$name}
-      input:checked + .slider
-        background-color: $color
-
-        &:before
-          background-color: $color-invert
-
-      @if length($pair) >= 4
-        $color-light: nth($pair, 3)
-        $color-dark: nth($pair, 4)
-        &.is-light
-          input:checked + .slider
-            background-color: $color-light
-
-            &:before
-              background-color: $color-dark
-        &.is-dark
-          input:checked + .slider
-            background-color: $color-dark
-
-            &:before
-              background-color: $color-light
-
+  
+  @include mixins.switch-variants($colors)
+  
 // color variations for modal card
 .modal .modal-card-head
   @each $name, $pair in $colors
@@ -165,7 +145,7 @@ $family-monospace: "Oxygen Mono", monospace
   position: fixed
   bottom: 0
   right: 10px
-  background-color: white
+  background-color: $white
   transform: translateY(calc(100% - $panel-heading-size - nth($panel-heading-padding, 1) + 1px))
   max-width: calc(100vw - 200px)
   transition: .3s ease-in-out
@@ -260,12 +240,12 @@ $family-monospace: "Oxygen Mono", monospace
   white-space: pre-wrap
 
 .textarea
-  padding-bottom: $control-padding-vertical
-  padding-top: $control-padding-vertical
+  padding-bottom: $control-padding-vertical !important
+  padding-top: $control-padding-vertical !important
 
   &:not([rows])
-    max-height: inherit
-    min-height: inherit
+    max-height: inherit !important
+    min-height: inherit !important
 
 .control
   &.has-icons-left .textarea
@@ -377,13 +357,13 @@ $family-monospace: "Oxygen Mono", monospace
 
 
 .highlight-backdrop
-  position: absolute
+  position: absolute !important
   z-index: 3
-  background-color: transparent
+  background-color: transparent !important
   pointer-events: none
-  height: 100%
-  border-color: transparent
-  box-shadow: none
+  height: 100% !important
+  border-color: transparent !important
+  box-shadow: none !important
 
   & + textarea
     z-index: 2
@@ -396,3 +376,6 @@ $family-monospace: "Oxygen Mono", monospace
     mark
       color: #959900
       background-color: transparent
+
+.tabs
+  background-color: $body-background-color

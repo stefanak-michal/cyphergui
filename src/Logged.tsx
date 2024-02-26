@@ -29,10 +29,15 @@ interface ILoggedState {
     propertiesModal: object | null;
 }
 
+interface ILoggedProps {
+    handleLogout: () => void;
+    darkMode: boolean;
+}
+
 /**
  * Logged page with tab management
  */
-class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState> {
+class Logged extends React.Component<ILoggedProps, ILoggedState> {
     state: ILoggedState = {
         activeTab: null,
         tabs: [],
@@ -312,9 +317,13 @@ class Logged extends React.Component<{ handleLogout: () => void }, ILoggedState>
 
         return (
             <>
-                <Navbar handleLogout={this.props.handleLogout} handleOpenSettings={() => this.setState({ settingsModal: true })} tabManager={this.tabManager} />
+                <Navbar 
+                    handleLogout={this.props.handleLogout} 
+                    handleOpenSettings={() => this.setState({ settingsModal: true })} 
+                    tabManager={this.tabManager} 
+                    darkMode={this.props.darkMode} />
 
-                <section className="tabs is-boxed sticky has-background-white">
+                <section className="tabs is-boxed sticky">
                     <ul>
                         {this.state.tabs.map(tab => (
                             <Tab key={"tab-" + tab.id} active={tab.id === this.state.activeTab} handleClick={this.tabManager.setActive} handleRemove={this.tabManager.close} {...tab} />

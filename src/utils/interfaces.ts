@@ -14,6 +14,7 @@ export interface ISettings {
     closeEditAfterExecuteSuccess: boolean;
     forceNamingRecommendations: boolean;
     temporalValueToStringFunction: string;
+    darkMode: boolean;
 }
 
 export interface IStashManager {

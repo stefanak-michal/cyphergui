@@ -3,11 +3,23 @@ import "./main.sass";
 import Login from "./Login";
 import Logged from "./Logged";
 import db from "./db";
+import { setSetting, settings } from "./layout/Settings";
+import { ThemeSwitchContext } from "./utils/contexts";
 
-class App extends React.Component {
+interface IAppState {
+    logged: boolean;
+    darkMode: boolean;
+}
+
+class App extends React.Component<{}, IAppState> {
     state = {
         logged: false,
+        darkMode: settings().darkMode
     };
+
+    componentDidMount() {
+        if (this.state.darkMode) document.documentElement.className = "dark";
+    }
 
     handleLogin = () => {
         this.setState({
@@ -23,10 +35,23 @@ class App extends React.Component {
         });
     };
 
+    themeSwitch = () => {
+        this.setState(state => {
+            return { darkMode: !state.darkMode };
+        }, () => {
+            setSetting('darkMode', this.state.darkMode);
+            document.documentElement.className = this.state.darkMode ? "dark" : "";
+        });
+    };
+
     render() {
         return (
             <>
-                {this.state.logged ? <Logged handleLogout={this.handleLogout} /> : <Login handleLogin={this.handleLogin} />}
+                <ThemeSwitchContext.Provider value={this.themeSwitch} >
+                    {this.state.logged
+                        ? <Logged handleLogout={this.handleLogout} darkMode={this.state.darkMode} />
+                        : <Login handleLogin={this.handleLogin} darkMode={this.state.darkMode} />}
+                </ThemeSwitchContext.Provider>
 
                 <footer className="footer page-footer">
                     <div className="content has-text-centered">

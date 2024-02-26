@@ -1,6 +1,6 @@
 @charset "utf-8"
 
-@use 'sass:color'
+@use 'mixins'
 
 \:root.dark
   @import "../node_modules/bulmaswatch/cyborg/bulmaswatch"
@@ -13,51 +13,10 @@
 
   .switch
     .slider
-      background-color: $black
-      border: 1px solid $primary
-      &:before
-        bottom: 3px
+      background-color: $grey-light
     input:checked + .slider
       background-color: $primary
-
-    //default disabled as is-light
-    input:disabled
-      & + .slider
-        border: 1px solid $light
-      &:checked + .slider
-        background-color: $light
-        &:before
-          background-color: $light-invert
-
-    @each $name, $pair in $colors
-      $color: nth($pair, 1)
-      $color-invert: nth($pair, 2)
-      &.is-#{$name}
-        .slider
-          border: 1px solid $color
-        input
-          &:checked + .slider
-            background-color: $color
-            &:before
-              background-color: $color-invert
-          &:focus + .slider
-            box-shadow: 0 0 6px 0 color.scale($color, $blackness: 50%)
-
-        @if length($pair) >= 4
-          $color-light: nth($pair, 3)
-          $color-dark: nth($pair, 4)
-          &.is-light
-            input:checked + .slider
-              background-color: $color-light
-
-              &:before
-                background-color: $color-dark
-          &.is-dark
-            input:checked + .slider
-              background-color: $color-dark
-
-              &:before
-                background-color: $color-light
+    @include mixins.switch-variants($colors)
 
   .tabs
     background-color: $body-background-color

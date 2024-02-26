@@ -1,7 +1,8 @@
 @charset "utf-8"
 
-@use 'sass:color'
+@use "mixins"
 @use "dark"
+
 @import "../node_modules/bulma/bulma"
 
 @import url('https://fonts.googleapis.com/css?family=Inter:400,700')
@@ -105,35 +106,9 @@ $family-monospace: "Oxygen Mono", monospace
     &:disabled + .slider
       cursor: not-allowed
       opacity: 0.5
-
-  @each $name, $pair in $colors
-    $color: nth($pair, 1)
-    $color-invert: nth($pair, 2)
-    &.is-#{$name}
-      input
-        &:checked + .slider
-          background-color: $color
-          &:before
-            background-color: $color-invert
-        &:focus + .slider
-          box-shadow: 0 0 6px 0 color.scale($color, $lightness: 50%)
-
-      @if length($pair) >= 4
-        $color-light: nth($pair, 3)
-        $color-dark: nth($pair, 4)
-        &.is-light
-          input:checked + .slider
-            background-color: $color-light
-
-            &:before
-              background-color: $color-dark
-        &.is-dark
-          input:checked + .slider
-            background-color: $color-dark
-
-            &:before
-              background-color: $color-light
-
+  
+  @include mixins.switch-variants($colors)
+  
 // color variations for modal card
 .modal .modal-card-head
   @each $name, $pair in $colors

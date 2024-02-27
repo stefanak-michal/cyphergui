@@ -45,17 +45,17 @@ class Type extends React.Component<ITypeProps, ITypeState> {
     };
 
     requestData = () => {
-        const checkId = /^\d+$/.test(this.state.search);
+        const checkId = this.state.search.length ? /^\d+$/.test(this.state.search) : false;
         const query =
             "MATCH (a)-[" +
             (this.props.type.startsWith("*") ? "r" : "r:" + this.props.type) +
             "]->(b)" +
-            (this.state.search !== "" ? "WHERE any(prop IN keys(r) WHERE toStringOrNull(r[prop]) =~ $search)" + (checkId ? " OR id(r) = $id OR id(a) = $id OR id(b) = $id" : "") : "");
+            (this.state.search.length ? "WHERE any(prop IN keys(r) WHERE toStringOrNull(r[prop]) =~ $search)" + (checkId ? " OR id(r) = $id OR id(a) = $id OR id(b) = $id" : "") : "");
         db.query(
             query + " RETURN COUNT(r) AS cnt",
             {
                 search: "(?i)" + this.state.search + ".*",
-                id: checkId ? db.toInt(this.state.search) : 0,
+                id: checkId ? db.toInt(this.state.search) : null,
             },
             this.props.database
         )
@@ -69,7 +69,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                         skip: db.toInt(Math.max(page - 1, 0) * this.perPage),
                         limit: db.toInt(this.perPage),
                         search: "(?i)" + this.state.search + ".*",
-                        id: checkId ? db.toInt(this.state.search) : 0,
+                        id: checkId ? db.toInt(this.state.search) : null,
                     },
                     this.props.database
                 )
@@ -199,7 +199,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
             "MATCH (a)-[" +
             (this.props.type.startsWith("*") ? "r" : "r:" + this.props.type) +
             "]->(b)" +
-            (this.state.search !== ""
+            (this.state.search.length
                 ? ' WHERE any(prop IN keys(r) WHERE toStringOrNull(r[prop]) =~ "(?i)' +
                   this.state.search +
                   '.*")' +

@@ -45,17 +45,17 @@ class Label extends React.Component<ILabelProps, ILabelState> {
     };
 
     requestData = () => {
-        const checkId = /^\d+$/.test(this.state.search);
+        const checkId = this.state.search.length ? /^\d+$/.test(this.state.search) : false;
         const query =
             "MATCH (" +
             (this.props.label.startsWith("*") ? "n" : "n:" + this.props.label) +
             ")" +
-            (this.state.search !== "" ? " WHERE any(prop IN keys(n) WHERE toStringOrNull(n[prop]) =~ $search)" + (checkId ? " OR id(n) = $id" : "") : "");
+            (this.state.search.length ? " WHERE any(prop IN keys(n) WHERE toStringOrNull(n[prop]) =~ $search)" + (checkId ? " OR id(n) = $id" : "") : "");
         db.query(
             query + " RETURN COUNT(n) AS cnt",
             {
                 search: "(?i)" + this.state.search + ".*",
-                id: checkId ? db.toInt(this.state.search) : 0,
+                id: checkId ? db.toInt(this.state.search) : null,
             },
             this.props.database
         )
@@ -69,7 +69,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                         skip: db.toInt(Math.max(page - 1, 0) * this.perPage),
                         limit: db.toInt(this.perPage),
                         search: "(?i)" + this.state.search + ".*",
-                        id: checkId ? db.toInt(this.state.search) : 0,
+                        id: checkId ? db.toInt(this.state.search) : null,
                     },
                     this.props.database
                 )
@@ -204,7 +204,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
             "MATCH (" +
             (this.props.label.startsWith("*") ? "n" : "n:" + this.props.label) +
             ")" +
-            (this.state.search !== ""
+            (this.state.search.length
                 ? ' WHERE any(prop IN keys(n) WHERE toStringOrNull(n[prop]) =~ "(?i)' + this.state.search + '.*")' + (/^\d+$/.test(this.state.search) ? " OR id(n) = " + this.state.search : "")
                 : "") +
             " RETURN n" +

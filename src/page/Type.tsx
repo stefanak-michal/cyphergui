@@ -22,6 +22,8 @@ interface ITypeState {
     sort: string[];
     delete: number | string | false;
     error: string | null;
+    search: string;
+    loading: boolean;
 }
 
 /**
@@ -38,20 +40,36 @@ class Type extends React.Component<ITypeProps, ITypeState> {
         sort: [],
         delete: false,
         error: null,
+        search: "",
+        loading: false,
     };
 
     requestData = () => {
-        const c = "[" + (this.props.type.startsWith("*") ? "r" : "r:" + this.props.type) + "]";
-        db.query("MATCH ()-" + c + "->() RETURN COUNT(r) AS cnt", {}, this.props.database)
+        const checkId = this.state.search.length ? /^\d+$/.test(this.state.search) : false;
+        const query =
+            "MATCH (a)-[" +
+            (this.props.type.startsWith("*") ? "r" : "r:" + this.props.type) +
+            "]->(b)" +
+            (this.state.search.length ? "WHERE any(prop IN keys(r) WHERE toStringOrNull(r[prop]) =~ $search)" + (checkId ? " OR id(r) = $id OR id(a) = $id OR id(b) = $id" : "") : "");
+        db.query(
+            query + " RETURN COUNT(r) AS cnt",
+            {
+                search: "(?i)" + this.state.search + ".*",
+                id: checkId ? db.toInt(this.state.search) : null,
+            },
+            this.props.database
+        )
             .then(response1 => {
                 const cnt: number = db.fromInt(response1.records[0].get("cnt"));
                 const page: number = Math.min(this.state.page, Math.ceil(cnt / this.perPage));
 
                 db.query(
-                    "MATCH (a)-" + c + "->(b) RETURN r " + (this.state.sort.length ? "ORDER BY " + this.state.sort.join(", ") : "") + " SKIP $s LIMIT $l",
+                    query + " RETURN r " + (this.state.sort.length ? "ORDER BY " + this.state.sort.join(", ") : "") + " SKIP $skip LIMIT $limit",
                     {
-                        s: db.toInt((page - 1) * this.perPage),
-                        l: db.toInt(this.perPage),
+                        skip: db.toInt(Math.max(page - 1, 0) * this.perPage),
+                        limit: db.toInt(this.perPage),
+                        search: "(?i)" + this.state.search + ".*",
+                        id: checkId ? db.toInt(this.state.search) : null,
                     },
                     this.props.database
                 )
@@ -60,11 +78,22 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                             rows: response2.records.map(record => record.get("r")),
                             total: cnt,
                             page: page,
+                            loading: false,
                         });
                     })
-                    .catch(err => this.setState({ error: "[" + err.name + "] " + err.message }));
+                    .catch(err =>
+                        this.setState({
+                            error: "[" + err.name + "] " + err.message,
+                            loading: false,
+                        })
+                    );
             })
-            .catch(() => this.props.tabManager.close(this.props.tabId));
+            .catch(err =>
+                this.setState({
+                    error: "[" + err.name + "] " + err.message,
+                    loading: false,
+                })
+            );
     };
 
     componentDidMount() {
@@ -132,6 +161,24 @@ class Type extends React.Component<ITypeProps, ITypeState> {
         }, this.requestData);
     };
 
+    timeout: NodeJS.Timeout = null;
+
+    handleSearch = (str: string = ""): void => {
+        this.setState(
+            {
+                search: str,
+                loading: true,
+            },
+            () => {
+                if (this.timeout !== null) clearTimeout(this.timeout);
+                this.timeout = setTimeout(() => {
+                    this.requestData();
+                    this.timeout = null;
+                }, 300);
+            }
+        );
+    };
+
     render() {
         let keys = [];
         for (let row of this.state.rows) {
@@ -147,6 +194,23 @@ class Type extends React.Component<ITypeProps, ITypeState> {
             if (!keys.includes(s)) keys.push(s);
         }
         keys.sort();
+
+        const printQuery =
+            "MATCH (a)-[" +
+            (this.props.type.startsWith("*") ? "r" : "r:" + this.props.type) +
+            "]->(b)" +
+            (this.state.search.length
+                ? ' WHERE any(prop IN keys(r) WHERE toStringOrNull(r[prop]) =~ "(?i)' +
+                  this.state.search +
+                  '.*")' +
+                  (/^\d+$/.test(this.state.search) ? " OR id(r) = " + this.state.search + " OR id(a) = " + this.state.search + " OR id(b) = " + this.state.search : "")
+                : "") +
+            " RETURN r" +
+            (this.state.sort.length ? " ORDER BY " + this.state.sort.join(", ") : "") +
+            " SKIP " +
+            Math.max(this.state.page - 1, 0) * this.perPage +
+            " LIMIT " +
+            this.perPage;
 
         return (
             <>
@@ -170,14 +234,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                         <ClipboardContext.Consumer>
                             {copy => (
                                 <span className="is-family-code is-pre-wrap is-copyable" onClick={copy}>
-                                    {"MATCH (a)-[" +
-                                        (this.props.type.startsWith("*") ? "r" : "r:" + this.props.type) +
-                                        "]->(b) RETURN r" +
-                                        (this.state.sort.length ? " ORDER BY " + this.state.sort.join(", ") : "") +
-                                        " SKIP " +
-                                        (this.state.page - 1) * this.perPage +
-                                        " LIMIT " +
-                                        this.perPage}
+                                    {printQuery}
                                 </span>
                             )}
                         </ClipboardContext.Consumer>
@@ -205,23 +262,26 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                 { prefix: "Query" },
                                 "fa-solid fa-terminal",
                                 EPage.Query,
-                                {
-                                    query:
-                                        "MATCH (a)-[r:" +
-                                        this.props.type +
-                                        "]->(b) RETURN a, r, b" +
-                                        (this.state.sort.length ? " ORDER BY " + this.state.sort.join(", ") : "") +
-                                        " SKIP " +
-                                        (this.state.page - 1) * this.perPage +
-                                        " LIMIT " +
-                                        this.perPage,
-                                    execute: true,
-                                    view: EQueryView.Graph,
-                                },
+                                { query: printQuery, execute: true, view: EQueryView.Graph },
                                 this.queryTabId
                             ))
                         }
                     />
+                    <div className={"control has-icons-left has-icons-right is-align-self-flex-start " + (this.state.loading ? "border-progress" : "")}>
+                        <input
+                            className="input"
+                            type="text"
+                            placeholder="Search"
+                            value={this.state.search}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.handleSearch(e.currentTarget.value)}
+                        />
+                        <span className="icon is-left">
+                            <i className="fas fa-search" aria-hidden="true" />
+                        </span>
+                        <span className="icon is-right is-clickable" onClick={() => this.handleSearch()}>
+                            <i className="fa-solid fa-xmark" />
+                        </span>
+                    </div>
                 </div>
 
                 <div className="table-container">

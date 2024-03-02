@@ -16,9 +16,9 @@ interface ILoginState {
     mixedContentInfo: boolean;
 }
 
-interface ILoginProps { 
-    handleLogin: () => void; 
-    darkMode: boolean; 
+interface ILoginProps {
+    handleLogin: () => void;
+    darkMode: boolean;
 }
 
 /**
@@ -66,7 +66,9 @@ class Login extends React.Component<ILoginProps, ILoginState> {
                     driver
                         .getServerInfo()
                         .then(r => {
-                            db.hasElementId = r["protocolVersion"] >= 5 && (response ? "elementId" in response.records[0].get("n") : false);
+                            db.hasElementId =
+                                r["protocolVersion"] >= 5 &&
+                                (response ? "elementId" in response.records[0].get("n") && response.records[0].get("n").elementId !== db.getId(response.records[0].get("n")).toString() : false);
                         })
                         .finally(() => {
                             localStorage.setItem("host", url);
@@ -120,7 +122,7 @@ class Login extends React.Component<ILoginProps, ILoginState> {
                 this.tryConnect(this.state.url, parsed.username, parsed.password, () => {
                     localStorage.removeItem("login");
                 });
-            } catch (Error) { }
+            } catch (Error) {}
         }
 
         if (this.isMixedContent(this.state.url)) this.setState({ mixedContentInfo: true });
@@ -130,7 +132,7 @@ class Login extends React.Component<ILoginProps, ILoginState> {
         try {
             const parser = new URL(url);
             if (location.protocol === "https:" && (parser.protocol === "bolt:" || parser.protocol === "neo4j:")) return true;
-        } catch (Error) { }
+        } catch (Error) {}
         return false;
     };
 
@@ -176,13 +178,7 @@ class Login extends React.Component<ILoginProps, ILoginState> {
                             <div className="buttons mt-3 is-justify-content-space-between">
                                 <Button text="Login" icon="fa-solid fa-check" color={"is-primary " + (this.state.submitted ? "is-loading" : "")} type="submit" />
                                 <ThemeSwitchContext.Consumer>
-                                    {themeSwitch => (
-                                        <Button
-                                            icon="fa-solid fa-circle-half-stroke"
-                                            title="Dark mode switch"
-                                            onClick={themeSwitch}
-                                        />
-                                    )}
+                                    {themeSwitch => <Button icon="fa-solid fa-circle-half-stroke" title="Dark mode switch" onClick={themeSwitch} />}
                                 </ThemeSwitchContext.Consumer>
                             </div>
                         </form>

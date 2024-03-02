@@ -3,7 +3,7 @@ import Pagination from "../components/Pagination";
 import TableSortIcon from "../components/TableSortIcon";
 import { Button, Checkbox, LabelButton } from "../components/form";
 import { Node as _Node } from "neo4j-driver";
-import { EPage, EQueryView } from "../utils/enums";
+import { Ecosystem, EPage, EQueryView } from "../utils/enums";
 import { IPageProps } from "../utils/interfaces";
 import db from "../db";
 import { DeleteModal } from "../components/Modal";
@@ -46,15 +46,26 @@ class Label extends React.Component<ILabelProps, ILabelState> {
 
     requestData = () => {
         const checkId = this.state.search.length ? /^\d+$/.test(this.state.search) : false;
-        const query =
-            "MATCH (" +
-            (this.props.label.startsWith("*") ? "n" : "n:" + this.props.label) +
-            ")" +
-            (this.state.search.length ? " WHERE any(prop IN keys(n) WHERE toStringOrNull(n[prop]) =~ $search)" + (checkId ? " OR id(n) = $id" : "") : "");
+
+        let query: string = "MATCH (" + (this.props.label.startsWith("*") ? "n" : "n:" + this.props.label) + ")";
+        if (this.state.search.length) {
+            switch (db.ecosystem) {
+                case Ecosystem.Neo4j:
+                    query += " WHERE any(prop IN keys(n) WHERE toStringOrNull(n[prop]) STARTS WITH $search)";
+                    break;
+                case Ecosystem.Memgraph:
+                    query += ' WHERE any(prop IN keys(n) WHERE NOT valueType(n[prop]) IN ["LIST", "MAP"] AND toString(n[prop]) STARTS WITH $search)';
+                    break;
+                default:
+                    return;
+            }
+            if (checkId) query += " OR id(n) = $id";
+        }
+
         db.query(
             query + " RETURN COUNT(n) AS cnt",
             {
-                search: "(?i)" + this.state.search + ".*",
+                search: this.state.search,
                 id: checkId ? db.toInt(this.state.search) : null,
             },
             this.props.database
@@ -68,7 +79,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                     {
                         skip: db.toInt(Math.max(page - 1, 0) * this.perPage),
                         limit: db.toInt(this.perPage),
-                        search: "(?i)" + this.state.search + ".*",
+                        search: this.state.search,
                         id: checkId ? db.toInt(this.state.search) : null,
                     },
                     this.props.database
@@ -200,19 +211,21 @@ class Label extends React.Component<ILabelProps, ILabelState> {
             return false;
         })();
 
-        const printQuery =
-            "MATCH (" +
-            (this.props.label.startsWith("*") ? "n" : "n:" + this.props.label) +
-            ")" +
-            (this.state.search.length
-                ? ' WHERE any(prop IN keys(n) WHERE toStringOrNull(n[prop]) =~ "(?i)' + this.state.search + '.*")' + (/^\d+$/.test(this.state.search) ? " OR id(n) = " + this.state.search : "")
-                : "") +
-            " RETURN n" +
-            (this.state.sort.length ? " ORDER BY " + this.state.sort.join(", ") : "") +
-            " SKIP " +
-            Math.max(this.state.page - 1, 0) * this.perPage +
-            " LIMIT " +
-            this.perPage;
+        let printQuery: string = "MATCH (" + (this.props.label.startsWith("*") ? "n" : "n:" + this.props.label) + ")";
+        if (this.state.search.length) {
+            switch (db.ecosystem) {
+                case Ecosystem.Neo4j:
+                    printQuery += ' WHERE any(prop IN keys(n) WHERE toStringOrNull(n[prop]) STARTS WITH "' + this.state.search + '")';
+                    break;
+                case Ecosystem.Memgraph:
+                    printQuery += ' WHERE any(prop IN keys(n) WHERE NOT valueType(n[prop]) IN ["LIST", "MAP"] AND toString(n[prop]) STARTS WITH "' + this.state.search + '")';
+                    break;
+                default:
+                    return;
+            }
+            if (/^\d+$/.test(this.state.search)) printQuery += " OR id(n) = " + this.state.search;
+        }
+        printQuery += " RETURN n" + (this.state.sort.length ? " ORDER BY " + this.state.sort.join(", ") : "") + " SKIP " + Math.max(this.state.page - 1, 0) * this.perPage + " LIMIT " + this.perPage;
 
         return (
             <>

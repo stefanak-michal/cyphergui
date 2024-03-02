@@ -5,6 +5,7 @@ import { Driver, QueryResult } from "neo4j-driver";
 import logo from "./assets/logo.png";
 import logo_dark from "./assets/logo_dark.png";
 import { ThemeSwitchContext } from "./utils/contexts";
+import { Ecosystem } from "./utils/enums";
 
 interface ILoginState {
     url: string;
@@ -66,6 +67,7 @@ class Login extends React.Component<ILoginProps, ILoginState> {
                     driver
                         .getServerInfo()
                         .then(r => {
+                            if (/memgraph/i.test(r.agent)) db.ecosystem = Ecosystem.Memgraph;
                             db.hasElementId =
                                 r["protocolVersion"] >= 5 &&
                                 (response ? "elementId" in response.records[0].get("n") && response.records[0].get("n").elementId !== db.getId(response.records[0].get("n")).toString() : false);

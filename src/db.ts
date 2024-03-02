@@ -1,5 +1,6 @@
 import { Driver, Integer, Node as _Node, QueryResult, Relationship as _Relationship } from "neo4j-driver";
 import { t_Log } from "./utils/types";
+import { Ecosystem } from "./utils/enums";
 
 class Db {
     private _neo4j = require("neo4j-driver");
@@ -11,6 +12,7 @@ class Db {
 
     hasElementId: boolean = false;
     logs: t_Log[] = [];
+    ecosystem: Ecosystem = Ecosystem.Neo4j;
 
     get neo4j() {
         return this._neo4j;

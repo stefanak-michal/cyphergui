@@ -29,3 +29,9 @@ export enum EQueryView {
     Summary = 3,
     JSON = 4,
 }
+
+export enum Ecosystem {
+    Neo4j,
+    Memgraph,
+    Neptune,
+}

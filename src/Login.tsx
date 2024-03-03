@@ -68,9 +68,7 @@ class Login extends React.Component<ILoginProps, ILoginState> {
                         .getServerInfo()
                         .then(r => {
                             if (/memgraph/i.test(r.agent)) db.ecosystem = Ecosystem.Memgraph;
-                            db.hasElementId =
-                                r["protocolVersion"] >= 5 &&
-                                (response ? "elementId" in response.records[0].get("n") && response.records[0].get("n").elementId !== db.getId(response.records[0].get("n")).toString() : false);
+                            db.hasElementId = db.ecosystem === Ecosystem.Neo4j && r["protocolVersion"] >= 5;
                         })
                         .finally(() => {
                             localStorage.setItem("host", url);

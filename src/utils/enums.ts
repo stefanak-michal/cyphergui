@@ -14,6 +14,7 @@ export enum EPropertyType {
     Float = "Float",
     Boolean = "Boolean",
     List = "List",
+    Map = "Map",
     Point = "Point",
     Date = "Date",
     Time = "Time",

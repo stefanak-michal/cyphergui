@@ -41,7 +41,7 @@ export function resolvePropertyType(value: any): EPropertyType {
     return EPropertyType.String;
 }
 
-export function getPropertyAsTemp(type: EPropertyType, value: any, subtype: EPropertyType = null): any {
+export function getPropertyAsTemp(type: EPropertyType, value: any): any {
     switch (type) {
         case EPropertyType.Integer:
             return db.strInt(value);
@@ -69,8 +69,10 @@ export function getPropertyAsTemp(type: EPropertyType, value: any, subtype: EPro
             return ["4979", "9157"].includes(srid) ? [srid, (value as _Point).x, (value as _Point).y, (value as _Point).z] : [srid, (value as _Point).x, (value as _Point).y];
         case EPropertyType.Time:
             return [(value as _Time).toString().substring(0, 8), db.strInt((value as _Time).nanosecond), db.fromInt((value as _Time).timeZoneOffsetSeconds) / 60 / 60];
+
         case EPropertyType.List:
-            return value.map(v => getPropertyAsTemp(subtype, v));
+        case EPropertyType.Map:
+            return null;
 
         case EPropertyType.String:
         case EPropertyType.Boolean:
@@ -97,7 +99,9 @@ function printProperty(property: t_FormProperty): string {
         case EPropertyType.Boolean:
             return property.value ? "true" : "false";
         case EPropertyType.List:
-            return "[" + property.value.map((entry, i) => printProperty({ ...property, value: entry, temp: property.temp[i], type: property.subtype })).join(", ") + "]";
+            return "[" + property.value.map((entry: t_FormProperty) => printProperty(entry)).join(", ") + "]";
+        case EPropertyType.Map:
+            return "{" + property.value.map((entry: t_FormProperty) => entry.key + ": " + printProperty(entry)).join(", ") + "}";
         case EPropertyType.Point:
             return "point({srid: " + property.temp[0] + ", x: " + property.temp[1] + ", y: " + property.temp[2] + (property.temp.length === 4 ? ", z: " + property.temp[3] : "") + "})";
         case EPropertyType.Date:

@@ -71,8 +71,22 @@ class Node extends React.Component<INodeProps, INodeState> {
                 const t = new Date().getTime();
                 for (let key in node.properties) {
                     const type = resolvePropertyType(node.properties[key]);
-                    const subtype = type === EPropertyType.List ? resolvePropertyType(node.properties[key][0]) : null;
-                    props.push({ name: key + t, key: key, value: node.properties[key], type: type, subtype: subtype, temp: getPropertyAsTemp(type, node.properties[key], subtype) });
+                    // const subtype = type === EPropertyType.List ? resolvePropertyType(node.properties[key][0]) : null;
+
+                    if (type === EPropertyType.List) {
+                        const subtype = resolvePropertyType(node.properties[key][0]);
+                        node.properties[key].map(p => {
+                            return { name: 'list.' + key + t, key: null, value: p, type: subtype, temp: getPropertyAsTemp(subtype, p) } as t_FormProperty;
+                        });
+                    }
+                    if (type === EPropertyType.Map) {
+                        node.properties[key].map((p, k) => {
+                            const subtype = resolvePropertyType(p);
+                            return { name: 'map.' + key + t, key: k, value: p, type: subtype, temp: getPropertyAsTemp(subtype, p) } as t_FormProperty;
+                        });
+                    }
+
+                    props.push({ name: key + t, key: key, value: node.properties[key], type: type, temp: getPropertyAsTemp(type, node.properties[key]) });
                 }
                 props.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
 

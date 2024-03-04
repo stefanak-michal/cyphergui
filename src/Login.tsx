@@ -51,7 +51,7 @@ class Login extends React.Component<ILoginProps, ILoginState> {
     tryConnect = (url: string, username: string, password: string, onError: (error: string) => void) => {
         let driver: Driver;
         try {
-            driver = db.neo4j.driver(url, username.length > 0 && password.length > 0 ? db.neo4j.auth.basic(username, password) : { scheme: "none", principal: null, credentials: null }, {
+            driver = db.neo4j.driver(url, username.length > 0 && password.length > 0 ? db.neo4j.auth.basic(username, password) : undefined, {
                 userAgent: "stefanak-michal/cypherGUI",
             });
         } catch (err) {
@@ -59,47 +59,23 @@ class Login extends React.Component<ILoginProps, ILoginState> {
             return;
         }
 
-        const handleResponse = (response: QueryResult = null) => {
-            db.setDriver(driver, err => {
-                if (err) {
-                    onError("[" + err.name + "] " + err.message);
-                } else {
-                    driver
-                        .getServerInfo()
-                        .then(r => {
-                            if (/memgraph/i.test(r.agent)) db.ecosystem = Ecosystem.Memgraph;
-                            db.hasElementId = db.ecosystem === Ecosystem.Neo4j && r["protocolVersion"] >= 5;
-                        })
-                        .finally(() => {
-                            localStorage.setItem("host", url);
-                            if (this.state.remember) localStorage.setItem("login", JSON.stringify({ username: username, password: password }));
-                            this.props.handleLogin();
-                        });
-                }
-            });
-        };
-
-        driver
-            .session({ defaultAccessMode: db.neo4j.session.READ })
-            .run("MATCH (n) RETURN n LIMIT 1")
-            .then(response => {
-                if (response.records.length) {
-                    handleResponse(response);
-                } else {
-                    const tx = driver.session({ defaultAccessMode: db.neo4j.session.WRITE }).beginTransaction();
-                    tx.run("CREATE (n) RETURN n")
-                        .then(response => {
-                            handleResponse(response.records.length ? response : null);
-                            tx.rollback();
-                        })
-                        .catch(() => {
-                            handleResponse();
-                        });
-                }
-            })
-            .catch(err => {
+        db.setDriver(driver, err => {
+            if (err) {
                 onError("[" + err.name + "] " + err.message);
-            });
+            } else {
+                driver
+                    .getServerInfo()
+                    .then(r => {
+                        if (/memgraph/i.test(r.agent)) db.ecosystem = Ecosystem.Memgraph;
+                        db.hasElementId = db.ecosystem === Ecosystem.Neo4j && r["protocolVersion"] >= 5;
+                    })
+                    .finally(() => {
+                        localStorage.setItem("host", url);
+                        if (this.state.remember) localStorage.setItem("login", JSON.stringify({ username: username, password: password }));
+                        this.props.handleLogin();
+                    });
+            }
+        });
     };
 
     handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {

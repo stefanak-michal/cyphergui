@@ -1,6 +1,6 @@
 import * as React from "react";
 import { t_FormProperty } from "../utils/types";
-import { EPropertyType } from "../utils/enums";
+import { Ecosystem, EPropertyType } from "../utils/enums";
 import db from "../db";
 import { Button, Textarea } from "./form";
 import { ClipboardContext } from "../utils/contexts";
@@ -283,6 +283,13 @@ class Property extends React.Component<{
 }
 
 class PropertyType extends React.Component<{ name: string; selected: EPropertyType; onTypeChange: (e: React.ChangeEvent) => void; subtype: boolean }> {
+    getPropertyTypes = () => {
+        return Object.keys(EPropertyType).filter(k => {
+            if (this.props.subtype && k === EPropertyType.List) return false;
+            if (db.ecosystem === Ecosystem.Memgraph && (k === EPropertyType.Point || k === EPropertyType.Time || k === EPropertyType.DateTime)) return false;
+            return true;
+        });
+    }
     render() {
         return (
             <div className="select">
@@ -291,7 +298,7 @@ class PropertyType extends React.Component<{ name: string; selected: EPropertyTy
                     value={this.props.selected}
                     onChange={this.props.onTypeChange}
                     title={this.props.subtype ? "Type of array entries" : "Property type"}>
-                    {(this.props.subtype ? Object.keys(EPropertyType).filter(k => k !== EPropertyType.List) : Object.keys(EPropertyType)).map(type => (
+                    {this.getPropertyTypes().map(type => (
                         <option key={type} value={type}>
                             {type}
                         </option>

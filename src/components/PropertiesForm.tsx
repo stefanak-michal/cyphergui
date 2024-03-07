@@ -266,7 +266,7 @@ class Property extends React.Component<{
                                         onValueChange={this.props.onValueChange}
                                         focus={focus}
                                     />
-                                    <Button icon="fa-solid fa-circle-minus" onClick={() => this.props.onDelete(this.props.property.name + "." + i)} title="Remove array entry" />
+                                    <Button icon="fa-solid fa-circle-minus" onClick={() => this.props.onDelete(this.props.property.name + "." + i)} title="Remove list entry" />
                                 </div>
                             );
                         })}
@@ -320,7 +320,7 @@ class Property extends React.Component<{
                                         focus={focus}
                                     />
                                     <div className="control">
-                                        <Button icon="fa-solid fa-circle-minus" onClick={() => this.props.onDelete(this.props.property.name + "." + i)} title="Remove array entry" />
+                                        <Button icon="fa-solid fa-circle-minus" onClick={() => this.props.onDelete(this.props.property.name + "." + i)} title="Remove map entry" />
                                     </div>
                                     <PropertyType name={this.props.property.name + "." + i} selected={v.type} onTypeChange={this.props.onTypeChange} subtype={true} />
                                 </div>

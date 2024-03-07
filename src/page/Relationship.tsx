@@ -10,7 +10,7 @@ import { settings } from "../layout/Settings";
 import InlineNode from "../components/InlineNode";
 import PropertiesForm from "../components/PropertiesForm";
 import { t_FormProperty, t_FormValue } from "../utils/types";
-import { getPropertyAsTemp, printProperties, resolvePropertyType } from "../utils/fn";
+import { getPropertyAsTemp, printProperties, resolvePropertyType, sanitizeFormValues } from "../utils/fn";
 
 interface IRelationshipProps extends IPageProps {
     database: string;
@@ -135,7 +135,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
         db.query("MATCH ()-[r]->() RETURN collect(DISTINCT type(r)) AS c", {}, this.props.database)
             .then(response => {
                 this.setState({
-                    typeModal: response.records[0].get("c").filter(t => this.state.type !== t),
+                    typeModal: (response.records[0].get("c") as string[]).filter(t => this.state.type !== t),
                 });
             })
             .catch(err => this.setState({ error: "[" + err.name + "] " + err.message }));
@@ -217,19 +217,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
     };
 
     generateQuery = (printable: boolean = false): { query: string; props: object } => {
-        let props = {};
-        for (let p of this.state.properties) {
-            if (p.type === EPropertyType.List) {
-                props[p.key] = [];
-                (p.value as t_FormValue[]).forEach(entry => { props[p.key].push(entry.value); });
-            } else if (p.type === EPropertyType.Map) {
-                props[p.key] = {};
-                (p.value as t_FormValue[]).forEach(entry => { props[p.key][entry.key] = entry.value; });
-            } else {
-                props[p.key] = p.value;
-            }
-        }
-
+        const props = sanitizeFormValues(this.state.properties);
         let query: string = "";
         const quoteId = (id: number | string): string => {
             if (typeof id === "number") return id.toString();

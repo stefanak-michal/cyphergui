@@ -1,7 +1,7 @@
 import db from "../db";
 import { EPropertyType } from "./enums";
 import { DateTime as _DateTime, Duration as _Duration, LocalDateTime as _LocalDateTime, LocalTime as _LocalTime, Point as _Point, Time as _Time } from "neo4j-driver";
-import { t_FormProperty } from "./types";
+import { t_FormProperty, t_FormValue } from "./types";
 
 export function toJSON(data: any[] | object): string {
     let obj;
@@ -196,4 +196,20 @@ export function durationToString(duration: _Duration): string {
     if (time.length > 0) r += (t ? "T" : "") + time + "S";
 
     return r;
+}
+
+export function sanitizeFormValues(properties: t_FormProperty[]): {} {
+    const props = {};
+    for (let p of properties) {
+        if (p.type === EPropertyType.List) {
+            props[p.key] = [];
+            (p.value as t_FormValue[]).forEach(entry => { props[p.key].push(entry.value); });
+        } else if (p.type === EPropertyType.Map) {
+            props[p.key] = {};
+            (p.value as t_FormValue[]).forEach(entry => { props[p.key][entry.key] = entry.value; });
+        } else {
+            props[p.key] = p.value;
+        }
+    }
+    return props;
 }

@@ -11,7 +11,7 @@ import InlineRelationship from "../components/InlineRelationship";
 import InlineNode from "../components/InlineNode";
 import { t_FormProperty, t_FormValue } from "../utils/types";
 import PropertiesForm from "../components/PropertiesForm";
-import { getPropertyAsTemp, printProperties, resolvePropertyType } from "../utils/fn";
+import { getPropertyAsTemp, printProperties, resolvePropertyType, sanitizeFormValues } from "../utils/fn";
 
 interface INodeProps extends IPageProps {
     database: string;
@@ -218,19 +218,7 @@ class Node extends React.Component<INodeProps, INodeState> {
         let removeLabels = !this.create ? this.state.node.labels.filter(l => !this.state.labels.includes(l)).join(":") : "";
         if (removeLabels.length > 0) removeLabels = " REMOVE n:" + removeLabels;
 
-        let props = {};
-        for (let p of this.state.properties) {
-            if (p.type === EPropertyType.List) {
-                props[p.key] = [];
-                (p.value as t_FormValue[]).forEach(entry => { props[p.key].push(entry.value); });
-            } else if (p.type === EPropertyType.Map) {
-                props[p.key] = {};
-                (p.value as t_FormValue[]).forEach(entry => { props[p.key][entry.key] = entry.value; });
-            } else {
-                props[p.key] = p.value;
-            }
-        }
-
+        const props = sanitizeFormValues(this.state.properties);
         let query: string = "";
         if (printable) {
             if (!this.create) query += "MATCH (n) WHERE " + db.fnId() + " = " + (typeof this.props.id === "string" ? "'" + this.props.id + "'" : this.props.id);

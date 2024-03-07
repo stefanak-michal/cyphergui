@@ -90,7 +90,7 @@ export function printProperties(properties: t_FormProperty[]): string {
     return "{" + properties.map(p => p.key + ": " + printProperty(p)).join(", ") + "}";
 }
 
-function printProperty(property: t_FormProperty): string {
+function printProperty(property: t_FormProperty | t_FormValue): string {
     if (property.value === null) return "null";
     switch (property.type) {
         case EPropertyType.String:
@@ -100,9 +100,9 @@ function printProperty(property: t_FormProperty): string {
         case EPropertyType.Boolean:
             return property.value ? "true" : "false";
         case EPropertyType.List:
-            return "[" + property.value.map((entry: t_FormProperty) => printProperty(entry)).join(", ") + "]";
+            return "[" + (property.value as t_FormValue[]).map(entry => printProperty(entry)).join(", ") + "]";
         case EPropertyType.Map:
-            return "{" + property.value.map((entry: t_FormProperty) => entry.key + ": " + printProperty(entry)).join(", ") + "}";
+            return "{" + (property.value as t_FormValue[]).map(entry => entry.key + ": " + printProperty(entry)).join(", ") + "}";
         case EPropertyType.Point:
             return "point({srid: " + property.temp[0] + ", x: " + property.temp[1] + ", y: " + property.temp[2] + (property.temp.length === 4 ? ", z: " + property.temp[3] : "") + "})";
         case EPropertyType.Date:

@@ -381,6 +381,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
         if (db.isInt(property)) return db.strInt(property);
         if (Array.isArray(property)) return "[" + property.join(", ") + "]";
         if (typeof property === "boolean") return <Checkbox name="" label="" checked={property} disabled />;
+        if (property.constructor.name === "Object") return "{" + Object.keys(property).map(key => key + ": " + this.printProperty(property[key])).join(", ") + "}";
         return property.toString();
     };
 }

@@ -1,7 +1,7 @@
 import db from "../db";
 import { EPropertyType } from "./enums";
 import { DateTime as _DateTime, Duration as _Duration, LocalDateTime as _LocalDateTime, LocalTime as _LocalTime, Point as _Point, Time as _Time } from "neo4j-driver";
-import { t_FormProperty } from "./types";
+import { t_FormProperty, t_FormValue } from "./types";
 
 export function toJSON(data: any[] | object): string {
     let obj;
@@ -38,10 +38,11 @@ export function resolvePropertyType(value: any): EPropertyType {
     if (db.neo4j.isLocalDateTime(value)) return EPropertyType.LocalDateTime;
     if (db.neo4j.isDuration(value)) return EPropertyType.Duration;
     if (db.neo4j.isPoint(value)) return EPropertyType.Point;
+    if (typeof value === "object") return EPropertyType.Map; // has to be last to check
     return EPropertyType.String;
 }
 
-export function getPropertyAsTemp(type: EPropertyType, value: any, subtype: EPropertyType = null): any {
+export function getPropertyAsTemp(type: EPropertyType, value: any): any {
     switch (type) {
         case EPropertyType.Integer:
             return db.strInt(value);
@@ -69,8 +70,10 @@ export function getPropertyAsTemp(type: EPropertyType, value: any, subtype: EPro
             return ["4979", "9157"].includes(srid) ? [srid, (value as _Point).x, (value as _Point).y, (value as _Point).z] : [srid, (value as _Point).x, (value as _Point).y];
         case EPropertyType.Time:
             return [(value as _Time).toString().substring(0, 8), db.strInt((value as _Time).nanosecond), db.fromInt((value as _Time).timeZoneOffsetSeconds) / 60 / 60];
+
         case EPropertyType.List:
-            return value.map(v => getPropertyAsTemp(subtype, v));
+        case EPropertyType.Map:
+            return null;
 
         case EPropertyType.String:
         case EPropertyType.Boolean:
@@ -87,17 +90,19 @@ export function printProperties(properties: t_FormProperty[]): string {
     return "{" + properties.map(p => p.key + ": " + printProperty(p)).join(", ") + "}";
 }
 
-function printProperty(property: t_FormProperty): string {
+function printProperty(property: t_FormProperty | t_FormValue): string {
     if (property.value === null) return "null";
     switch (property.type) {
         case EPropertyType.String:
-            return "'" + property.value.replaceAll("'", "\\'").replaceAll("\n", "\\n") + "'";
+            return "'" + (property.value as string).replaceAll("'", "\\'").replaceAll("\n", "\\n") + "'";
         case EPropertyType.Integer:
             return property.temp;
         case EPropertyType.Boolean:
             return property.value ? "true" : "false";
         case EPropertyType.List:
-            return "[" + property.value.map((entry, i) => printProperty({ ...property, value: entry, temp: property.temp[i], type: property.subtype })).join(", ") + "]";
+            return "[" + (property.value as t_FormValue[]).map(entry => printProperty(entry)).join(", ") + "]";
+        case EPropertyType.Map:
+            return "{" + (property.value as t_FormValue[]).map(entry => entry.key + ": " + printProperty(entry)).join(", ") + "}";
         case EPropertyType.Point:
             return "point({srid: " + property.temp[0] + ", x: " + property.temp[1] + ", y: " + property.temp[2] + (property.temp.length === 4 ? ", z: " + property.temp[3] : "") + "})";
         case EPropertyType.Date:
@@ -191,4 +196,20 @@ export function durationToString(duration: _Duration): string {
     if (time.length > 0) r += (t ? "T" : "") + time + "S";
 
     return r;
+}
+
+export function sanitizeFormValues(properties: t_FormProperty[]): {} {
+    const props = {};
+    for (let p of properties) {
+        if (p.type === EPropertyType.List) {
+            props[p.key] = [];
+            (p.value as t_FormValue[]).forEach(entry => { props[p.key].push(entry.value); });
+        } else if (p.type === EPropertyType.Map) {
+            props[p.key] = {};
+            (p.value as t_FormValue[]).forEach(entry => { props[p.key][entry.key] = entry.value; });
+        } else {
+            props[p.key] = p.value;
+        }
+    }
+    return props;
 }

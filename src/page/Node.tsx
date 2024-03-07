@@ -9,9 +9,9 @@ import Modal, { DeleteModal } from "../components/Modal";
 import { settings } from "../layout/Settings";
 import InlineRelationship from "../components/InlineRelationship";
 import InlineNode from "../components/InlineNode";
-import { t_FormProperty } from "../utils/types";
+import { t_FormProperty, t_FormValue } from "../utils/types";
 import PropertiesForm from "../components/PropertiesForm";
-import { getPropertyAsTemp, printProperties, resolvePropertyType } from "../utils/fn";
+import { getPropertyAsTemp, printProperties, resolvePropertyType, sanitizeFormValues } from "../utils/fn";
 
 interface INodeProps extends IPageProps {
     database: string;
@@ -71,8 +71,26 @@ class Node extends React.Component<INodeProps, INodeState> {
                 const t = new Date().getTime();
                 for (let key in node.properties) {
                     const type = resolvePropertyType(node.properties[key]);
-                    const subtype = type === EPropertyType.List ? resolvePropertyType(node.properties[key][0]) : null;
-                    props.push({ name: key + t, key: key, value: node.properties[key], type: type, subtype: subtype, temp: getPropertyAsTemp(type, node.properties[key], subtype) });
+                    if (type === EPropertyType.List) {
+                        const subtype = resolvePropertyType(node.properties[key][0]);
+                        node.properties[key] = (node.properties[key] as []).map(p => {
+                            return { value: p, type: subtype, temp: getPropertyAsTemp(subtype, p) } as t_FormValue;
+                        });
+                    }
+                    if (type === EPropertyType.Map) {
+                        const mapAsFormValue: t_FormValue[] = [];
+                        for (let k in (node.properties[key] as object)) {
+                            const subtype = resolvePropertyType(node.properties[key][k]);
+                            mapAsFormValue.push({
+                                key: k,
+                                value: node.properties[key][k],
+                                type: subtype,
+                                temp: getPropertyAsTemp(subtype, node.properties[key][k])
+                            } as t_FormValue);
+                        }
+                        node.properties[key] = mapAsFormValue;
+                    }
+                    props.push({ name: key + t, key: key, value: node.properties[key], type: type, temp: getPropertyAsTemp(type, node.properties[key]) });
                 }
                 props.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
 
@@ -200,9 +218,7 @@ class Node extends React.Component<INodeProps, INodeState> {
         let removeLabels = !this.create ? this.state.node.labels.filter(l => !this.state.labels.includes(l)).join(":") : "";
         if (removeLabels.length > 0) removeLabels = " REMOVE n:" + removeLabels;
 
-        let props = {};
-        for (let p of this.state.properties) props[p.key] = p.value;
-
+        const props = sanitizeFormValues(this.state.properties);
         let query: string = "";
         if (printable) {
             if (!this.create) query += "MATCH (n) WHERE " + db.fnId() + " = " + (typeof this.props.id === "string" ? "'" + this.props.id + "'" : this.props.id);

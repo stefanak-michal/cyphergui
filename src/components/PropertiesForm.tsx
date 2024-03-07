@@ -1,10 +1,18 @@
 import * as React from "react";
-import { t_FormProperty } from "../utils/types";
+import { t_FormProperty, t_FormValue } from "../utils/types";
 import { Ecosystem, EPropertyType } from "../utils/enums";
 import db from "../db";
 import { Button, Textarea } from "./form";
 import { ClipboardContext } from "../utils/contexts";
-import { Date as _Date, DateTime as _DateTime, Duration as _Duration, LocalDateTime as _LocalDateTime, LocalTime as _LocalTime, Point as _Point, Time as _Time } from "neo4j-driver";
+import {
+    Date as _Date,
+    DateTime as _DateTime,
+    Duration as _Duration,
+    LocalDateTime as _LocalDateTime,
+    LocalTime as _LocalTime,
+    Point as _Point,
+    Time as _Time
+} from "neo4j-driver";
 import { getPropertyAsTemp, stringToDuration } from "../utils/fn";
 
 interface IPropertiesFormProps {
@@ -24,9 +32,15 @@ class PropertiesForm extends React.Component<IPropertiesFormProps, IPropertiesFo
     handleKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const target = e.currentTarget;
         let props = [...this.props.properties];
-        const i = props.findIndex(p => "key." + p.name === target.name);
+        const i = props.findIndex(p => target.name.startsWith("key." + p.name));
         if (i > -1) {
-            props[i].key = target.value;
+            const parts = target.name.split('.');
+            if (parts.length === 3) {
+                (props[i].value[parseInt(parts[2])] as t_FormValue).key = target.value;
+            } else {
+                props[i].key = target.value;
+            }
+
             this.props.updateProperties(props);
             this.setState({ focus: target.name });
         }
@@ -42,8 +56,8 @@ class PropertiesForm extends React.Component<IPropertiesFormProps, IPropertiesFo
             i = props.findIndex(p => name.startsWith(p.name));
             if (i > -1) {
                 const index = parseInt(name.split(".", 2)[1]);
-                props[i].temp[index] = temp;
-                props[i].value[index] = value;
+                (props[i].value as t_FormValue[])[index].value = value;
+                (props[i].value as t_FormValue[])[index].temp = temp;
             }
         }
 
@@ -55,21 +69,30 @@ class PropertiesForm extends React.Component<IPropertiesFormProps, IPropertiesFo
 
     handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const target = e.currentTarget;
+        const value = this.getDefaultValue(EPropertyType[target.value]);
+        const temp = getPropertyAsTemp(EPropertyType[target.value], value);
         let props = [...this.props.properties];
         let i = props.findIndex(p => "type." + p.name === target.name);
         if (i > -1) {
+            if (Array.isArray(value)) value.push({ type: EPropertyType.String, value: "" } as t_FormValue);
             props[i].type = EPropertyType[target.value];
-            if (EPropertyType[target.value] === EPropertyType.List) props[i].subtype = EPropertyType.String;
-            props[i].value = this.getDefaultValue(EPropertyType[target.value]);
-            props[i].temp = getPropertyAsTemp(EPropertyType[target.value], props[i].value);
+            props[i].value = value;
+            props[i].temp = temp;
         } else {
-            i = props.findIndex(p => "subtype." + p.name === target.name);
+            i = props.findIndex(p => target.name.startsWith("subtype." + p.name));
             if (i > -1) {
-                const value = this.getDefaultValue(EPropertyType[target.value]);
-                const temp = getPropertyAsTemp(EPropertyType[target.value], value);
-                props[i].subtype = EPropertyType[target.value];
-                props[i].value = [value];
-                props[i].temp = [temp];
+                const arr: string[] = target.name.split('.');
+                if (arr.length === 2) { //List
+                    (props[i].value as t_FormValue[]).forEach((entry: t_FormValue) => {
+                        entry.type = EPropertyType[target.value];
+                        entry.value = value;
+                        entry.temp = temp;
+                    });
+                } else if (arr.length === 3) { //Map
+                    (props[i].value as t_FormValue[])[parseInt(arr[2])].type = EPropertyType[target.value];
+                    (props[i].value as t_FormValue[])[parseInt(arr[2])].value = value;
+                    (props[i].value as t_FormValue[])[parseInt(arr[2])].temp = temp;
+                }
             }
         }
 
@@ -91,7 +114,8 @@ class PropertiesForm extends React.Component<IPropertiesFormProps, IPropertiesFo
             case EPropertyType.Float:
                 return 0;
             case EPropertyType.List:
-                return [];
+            case EPropertyType.Map:
+                return [] as t_FormValue[];
             case EPropertyType.Time:
                 return _Time.fromStandardDate(new Date());
             case EPropertyType.Date:
@@ -118,7 +142,7 @@ class PropertiesForm extends React.Component<IPropertiesFormProps, IPropertiesFo
             i = props.findIndex(p => name.startsWith(p.name));
             if (i > -1) {
                 const index = parseInt(name.split(".", 2)[1]);
-                props[i].value.splice(index, 1);
+                (props[i].value as t_FormValue[]).splice(index, 1);
             }
         }
 
@@ -132,15 +156,15 @@ class PropertiesForm extends React.Component<IPropertiesFormProps, IPropertiesFo
         if (target.value) {
             const i = props.findIndex(p => p.name === target.value);
             if (i > -1) {
-                const value = this.getDefaultValue(props[i].subtype);
-                props[i].value.push(value);
-                props[i].temp.push(getPropertyAsTemp(props[i].subtype, value));
+                const valueType = (props[i].value as t_FormValue[])[props[i].value.length - 1].type;
+                const value = this.getDefaultValue(valueType);
+                (props[i].value as t_FormValue[]).push({ type: valueType, value: value, temp: getPropertyAsTemp(valueType, value) } as t_FormValue);
                 this.props.updateProperties(props);
                 this.setState({ focus: props[i].name + "." + (props[i].value.length - 1) });
             }
         } else {
             const i = new Date().getTime().toString();
-            props.push({ name: i, key: "", value: "", type: EPropertyType.String, subtype: null, temp: null });
+            props.push({ name: i, key: "", value: "", type: EPropertyType.String });
 
             this.props.updateProperties(props);
             this.setState({ focus: "key." + i });
@@ -221,38 +245,90 @@ class Property extends React.Component<{
                     {nameInput}
 
                     <div className="control is-expanded">
-                        {(this.props.property.value as any[]).map((v, i) => {
-                            const PropertyInputComponent: typeof APropertyInput = this.components["Property" + this.props.property.subtype + "Input"];
+                        <div className="field is-grouped">
+                            <div className="control">
+                                <PropertyType name={this.props.property.name} selected={this.props.property.type} onTypeChange={this.props.onTypeChange} subtype={false} />
+                            </div>
+                            <div className="control">
+                                <PropertyType name={this.props.property.name} selected={(this.props.property.value as t_FormValue[])[0]?.type ?? EPropertyType.String} onTypeChange={this.props.onTypeChange} subtype={true} />
+                            </div>
+                        </div>
+
+                        {(this.props.property.value as t_FormValue[]).map((v, i) => {
+                            const PropertyInputComponent: typeof APropertyInput = this.components["Property" + v.type + "Input"];
                             const focus = this.props.focus === this.props.property.name + "." + i;
                             return (
                                 <div className="field is-grouped" key={i}>
                                     <PropertyInputComponent
                                         name={this.props.property.name + "." + i}
-                                        value={v}
-                                        temp={this.props.property.temp[i]}
+                                        value={v.value}
+                                        temp={v.temp}
                                         onValueChange={this.props.onValueChange}
                                         focus={focus}
                                     />
-                                    <Button icon="fa-solid fa-circle-minus" onClick={() => this.props.onDelete(this.props.property.name + "." + i)} title="Remove array entry" />
+                                    <Button icon="fa-solid fa-circle-minus" onClick={() => this.props.onDelete(this.props.property.name + "." + i)} title="Remove list entry" />
                                 </div>
                             );
                         })}
                         <div className="field">
                             <div className="control">
-                                <Button icon="fa-solid fa-circle-plus" onClick={this.props.onAdd} title="Add array entry" value={this.props.property.name} />
+                                <Button icon="fa-solid fa-circle-plus" onClick={this.props.onAdd} title="Add list entry" value={this.props.property.name} />
                             </div>
                         </div>
                     </div>
 
-                    <div className="control">
+                    {deleteButton}
+                </div>
+            );
+        }
+
+        if (this.props.property.type === EPropertyType.Map) {
+            return (
+                <div className="field is-grouped is-hoverable p-1 mb-1">
+                    {nameInput}
+
+                    <div className="control is-expanded">
                         <div className="field">
                             <div className="control">
                                 <PropertyType name={this.props.property.name} selected={this.props.property.type} onTypeChange={this.props.onTypeChange} subtype={false} />
                             </div>
                         </div>
+
+                        {(this.props.property.value as t_FormValue[]).map((v, i) => {
+                            const PropertyInputComponent: typeof APropertyInput = this.components["Property" + v.type + "Input"];
+                            const focus = this.props.focus === this.props.property.name + "." + i;
+                            return (
+                                <div className="field is-grouped" key={i}>
+                                    <div className="control">
+                                        <input
+                                            name={"key." + this.props.property.name + "." + i}
+                                            autoFocus={this.props.focus === "key." + this.props.property.name + "." + i}
+                                            className="input"
+                                            type="text"
+                                            value={v.key}
+                                            onChange={this.props.onKeyChange}
+                                            placeholder="Key"
+                                            pattern="^[A-Za-z][A-Za-z_0-9]*$"
+                                            required
+                                        />
+                                    </div>
+                                    <PropertyInputComponent
+                                        name={this.props.property.name + "." + i}
+                                        value={v.value}
+                                        temp={v.temp}
+                                        onValueChange={this.props.onValueChange}
+                                        focus={focus}
+                                    />
+                                    <div className="control">
+                                        <Button icon="fa-solid fa-circle-minus" onClick={() => this.props.onDelete(this.props.property.name + "." + i)} title="Remove map entry" />
+                                    </div>
+                                    <PropertyType name={this.props.property.name + "." + i} selected={v.type} onTypeChange={this.props.onTypeChange} subtype={true} />
+                                </div>
+                            );
+                        })}
                         <div className="field">
                             <div className="control">
-                                <PropertyType name={this.props.property.name} selected={this.props.property.subtype} onTypeChange={this.props.onTypeChange} subtype={true} />
+                                <Button icon="fa-solid fa-circle-plus" onClick={this.props.onAdd} title="Add map entry" value={this.props.property.name} />
                             </div>
                         </div>
                     </div>
@@ -260,36 +336,38 @@ class Property extends React.Component<{
                     {deleteButton}
                 </div>
             );
-        } else {
-            const PropertyInputComponent: typeof APropertyInput = this.components["Property" + this.props.property.type + "Input"];
-            return (
-                <div className="field is-grouped is-hoverable p-1 mb-1">
-                    {nameInput}
-                    <PropertyInputComponent
-                        name={this.props.property.name}
-                        value={this.props.property.value}
-                        temp={this.props.property.temp}
-                        onValueChange={this.props.onValueChange}
-                        focus={this.props.focus === this.props.property.name}
-                    />
-                    <div className="control">
-                        <PropertyType name={this.props.property.name} selected={this.props.property.type} onTypeChange={this.props.onTypeChange} subtype={false} />
-                    </div>
-                    {deleteButton}
-                </div>
-            );
         }
+
+        const PropertyInputComponent: typeof APropertyInput = this.components["Property" + this.props.property.type + "Input"];
+        return (
+            <div className="field is-grouped is-hoverable p-1 mb-1">
+                {nameInput}
+                <PropertyInputComponent
+                    name={this.props.property.name}
+                    value={this.props.property.value}
+                    temp={this.props.property.temp}
+                    onValueChange={this.props.onValueChange}
+                    focus={this.props.focus === this.props.property.name}
+                />
+                <div className="control">
+                    <PropertyType name={this.props.property.name} selected={this.props.property.type} onTypeChange={this.props.onTypeChange} subtype={false} />
+                </div>
+                {deleteButton}
+            </div>
+        );
     }
 }
 
 class PropertyType extends React.Component<{ name: string; selected: EPropertyType; onTypeChange: (e: React.ChangeEvent) => void; subtype: boolean }> {
     getPropertyTypes = () => {
         return Object.keys(EPropertyType).filter(k => {
-            if (this.props.subtype && k === EPropertyType.List) return false;
+            if (this.props.subtype && (k === EPropertyType.List || k === EPropertyType.Map)) return false;
             if (db.ecosystem === Ecosystem.Memgraph && (k === EPropertyType.Point || k === EPropertyType.Time || k === EPropertyType.DateTime)) return false;
+            if (db.ecosystem === Ecosystem.Neo4j && k === EPropertyType.Map) return false;
             return true;
         });
     }
+
     render() {
         return (
             <div className="select">
@@ -297,7 +375,7 @@ class PropertyType extends React.Component<{ name: string; selected: EPropertyTy
                     name={(this.props.subtype ? "subtype." : "type.") + this.props.name}
                     value={this.props.selected}
                     onChange={this.props.onTypeChange}
-                    title={this.props.subtype ? "Type of array entries" : "Property type"}>
+                    title={this.props.subtype ? "Type of list/map entries" : "Property type"}>
                     {this.getPropertyTypes().map(type => (
                         <option key={type} value={type}>
                             {type}
@@ -309,7 +387,13 @@ class PropertyType extends React.Component<{ name: string; selected: EPropertyTy
     }
 }
 
-abstract class APropertyInput extends React.Component<{ name: string; value: any; temp: any; onValueChange: (name: string, value: any, temp?: any) => void; focus: boolean }> {}
+abstract class APropertyInput extends React.Component<{
+    name: string;
+    value: any;
+    temp: any;
+    onValueChange: (name: string, value: any, temp?: any) => void;
+    focus: boolean
+}> {}
 
 class PropertyStringInput extends APropertyInput {
     render() {
@@ -365,7 +449,7 @@ class PropertyIntegerInput extends APropertyInput {
                     value={this.props.temp}
                     step="1"
                     autoFocus={this.props.focus}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.props.onValueChange(this.props.name, db.toInt(e.currentTarget.value), e.currentTarget.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.props.onValueChange(this.props.name, e.currentTarget.value.length ? db.toInt(e.currentTarget.value) : null, e.currentTarget.value)}
                     placeholder="Value"
                 />
                 <ClipboardContext.Consumer>

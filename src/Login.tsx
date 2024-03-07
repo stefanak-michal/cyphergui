@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Button, Checkbox, Input } from "./components/form";
 import db from "./db";
-import { Driver, QueryResult } from "neo4j-driver";
+import { Driver } from "neo4j-driver";
 import logo from "./assets/logo.png";
 import logo_dark from "./assets/logo_dark.png";
 import { ThemeSwitchContext } from "./utils/contexts";
@@ -66,7 +66,7 @@ class Login extends React.Component<ILoginProps, ILoginState> {
                 driver
                     .getServerInfo()
                     .then(r => {
-                        if (/memgraph/i.test(r.agent)) db.ecosystem = Ecosystem.Memgraph;
+                        db.ecosystem = /memgraph/i.test(r.agent) ? Ecosystem.Memgraph : Ecosystem.Neo4j;
                         db.hasElementId = db.ecosystem === Ecosystem.Neo4j && r["protocolVersion"] >= 5;
                     })
                     .finally(() => {

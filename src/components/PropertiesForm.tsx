@@ -861,8 +861,8 @@ class PropertyPointInput extends APropertyInput {
         this.props.onValueChange(
             this.props.name,
             hasZ
-                ? new _Point(db.toInt(this.sridRef.current.value || 0), this.xRef.current.valueAsNumber, this.yRef.current.valueAsNumber, this.zRef.current.valueAsNumber)
-                : new _Point(db.toInt(this.sridRef.current.value || 0), this.xRef.current.valueAsNumber, this.yRef.current.valueAsNumber),
+                ? new _Point(db.toInt(this.sridRef.current.value), this.xRef.current.valueAsNumber, this.yRef.current.valueAsNumber, this.zRef.current.valueAsNumber)
+                : new _Point(db.toInt(this.sridRef.current.value), this.xRef.current.valueAsNumber, this.yRef.current.valueAsNumber),
             hasZ
                 ? [this.sridRef.current.value, this.xRef.current.value, this.yRef.current.value, this.zRef.current.value]
                 : [this.sridRef.current.value, this.xRef.current.value, this.yRef.current.value]

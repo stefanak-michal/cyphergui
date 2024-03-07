@@ -9,7 +9,7 @@ import Modal, { DeleteModal } from "../components/Modal";
 import { settings } from "../layout/Settings";
 import InlineNode from "../components/InlineNode";
 import PropertiesForm from "../components/PropertiesForm";
-import { t_FormProperty } from "../utils/types";
+import { t_FormProperty, t_FormValue } from "../utils/types";
 import { getPropertyAsTemp, printProperties, resolvePropertyType } from "../utils/fn";
 
 interface IRelationshipProps extends IPageProps {
@@ -72,8 +72,26 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                 const t = new Date().getTime();
                 for (let key in rel.properties) {
                     const type = resolvePropertyType(rel.properties[key]);
-                    const subtype = type === EPropertyType.List ? resolvePropertyType(rel.properties[key][0]) : null;
-                    props.push({ name: key + t, key: key, value: rel.properties[key], type: type, subtype: subtype, temp: getPropertyAsTemp(type, rel.properties[key], subtype) });
+                    if (type === EPropertyType.List) {
+                        const subtype = resolvePropertyType(rel.properties[key][0]);
+                        rel.properties[key] = (rel.properties[key] as []).map(p => {
+                            return { value: p, type: subtype, temp: getPropertyAsTemp(subtype, p) } as t_FormValue;
+                        });
+                    }
+                    if (type === EPropertyType.Map) {
+                        const mapAsFormValue: t_FormValue[] = [];
+                        for (let k in (rel.properties[key] as object)) {
+                            const subtype = resolvePropertyType(rel.properties[key][k]);
+                            mapAsFormValue.push({
+                                key: k,
+                                value: rel.properties[key][k],
+                                type: subtype,
+                                temp: getPropertyAsTemp(subtype, rel.properties[key][k])
+                            } as t_FormValue);
+                        }
+                        rel.properties[key] = mapAsFormValue;
+                    }
+                    props.push({ name: key + t, key: key, value: rel.properties[key], type: type, temp: getPropertyAsTemp(type, rel.properties[key]) });
                 }
                 props.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
                 this.setState({
@@ -200,7 +218,17 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
 
     generateQuery = (printable: boolean = false): { query: string; props: object } => {
         let props = {};
-        for (let p of this.state.properties) props[p.key] = p.value;
+        for (let p of this.state.properties) {
+            if (p.type === EPropertyType.List) {
+                props[p.key] = [];
+                (p.value as t_FormValue[]).forEach(entry => { props[p.key].push(entry.value); });
+            } else if (p.type === EPropertyType.Map) {
+                props[p.key] = {};
+                (p.value as t_FormValue[]).forEach(entry => { props[p.key][entry.key] = entry.value; });
+            } else {
+                props[p.key] = p.value;
+            }
+        }
 
         let query: string = "";
         const quoteId = (id: number | string): string => {

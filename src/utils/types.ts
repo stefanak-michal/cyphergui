@@ -16,7 +16,8 @@ export type t_ToastFn = (message: string, color?: string, delay?: number) => voi
 
 export type t_StorageStashEntry = { database: string; type: string; identity: string | number | null };
 
-export type t_FormProperty = { /* unique */ name: string; key: string; value: any; type: EPropertyType; temp: any };
+export type t_FormValue = { key?: string; value: any; type: EPropertyType; temp?: any };
+export type t_FormProperty = t_FormValue & { /* unique */ name: string; key: string };
 
 export type t_ShowPropertiesModalFn = (properties: object) => void;
 

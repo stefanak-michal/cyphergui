@@ -38,6 +38,7 @@ export function resolvePropertyType(value: any): EPropertyType {
     if (db.neo4j.isLocalDateTime(value)) return EPropertyType.LocalDateTime;
     if (db.neo4j.isDuration(value)) return EPropertyType.Duration;
     if (db.neo4j.isPoint(value)) return EPropertyType.Point;
+    if (typeof value === "object") return EPropertyType.Map; // has to be last to check
     return EPropertyType.String;
 }
 
@@ -93,7 +94,7 @@ function printProperty(property: t_FormProperty): string {
     if (property.value === null) return "null";
     switch (property.type) {
         case EPropertyType.String:
-            return "'" + property.value.replaceAll("'", "\\'").replaceAll("\n", "\\n") + "'";
+            return "'" + (property.value as string).replaceAll("'", "\\'").replaceAll("\n", "\\n") + "'";
         case EPropertyType.Integer:
             return property.temp;
         case EPropertyType.Boolean:

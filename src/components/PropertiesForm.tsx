@@ -363,6 +363,7 @@ class PropertyType extends React.Component<{ name: string; selected: EPropertyTy
         return Object.keys(EPropertyType).filter(k => {
             if (this.props.subtype && (k === EPropertyType.List || k === EPropertyType.Map)) return false;
             if (db.ecosystem === Ecosystem.Memgraph && (k === EPropertyType.Point || k === EPropertyType.Time || k === EPropertyType.DateTime)) return false;
+            if (db.ecosystem === Ecosystem.Neo4j && k === EPropertyType.Map) return false;
             return true;
         });
     }

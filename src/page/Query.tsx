@@ -16,7 +16,7 @@ import {
     ResultSummary,
     Time as _Time,
 } from "neo4j-driver";
-import { EPage, EQueryView } from "../utils/enums";
+import { Ecosystem, EPage, EQueryView } from "../utils/enums";
 import { settings } from "../layout/Settings";
 import { Orb, OrbEventType } from "@memgraph/orb";
 import InlineNode from "../components/InlineNode";
@@ -247,6 +247,11 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                     <div className="field">
                         <div className="buttons is-justify-content-flex-end">
                             <Button color={"is-success " + (this.state.loading ? "is-loading" : "")} type="submit" icon="fa-solid fa-check" text="Execute" />
+                            <a href={db.ecosystem === Ecosystem.Memgraph ? 'https://memgraph.com/docs/cypher-manual/' : 'https://neo4j.com/docs/cypher-manual/' } target="_blank" className="button" title="Cypher documentation">
+                                <span className="icon">
+                                    <i className="fa-solid fa-book" />
+                                </span>
+                            </a>
                             {this.props.stashManager.button(new t_StashQuery(this.props.tabId, this.state.query), "")}
                             <Button icon="fa-solid fa-xmark" text="Close" onClick={e => this.props.tabManager.close(this.props.tabId, e)} />
                         </div>

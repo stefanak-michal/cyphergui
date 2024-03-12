@@ -2,21 +2,28 @@
 
 # Introduction
 
-User friendly GUI administration tool for graph databases with bolt protocol support ([Neo4j](https://neo4j.com/), [Memgraph](https://memgraph.com/), [Amazon Neptune](https://aws.amazon.com/neptune/)). Usable without knowledge of cypher query language.
+User friendly GUI administration tool for graph databases with bolt protocol support. Usable without knowledge of cypher query language.
 
 <a href='https://ko-fi.com/Z8Z5ABMLW' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://cdn.ko-fi.com/cdn/kofi1.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 
-# Features
+## :heavy_check_mark: Supported databases
 
-- List nodes by label as sortable table
-- List relationships by type as sortable table
+- [Neo4j](https://neo4j.com/) 
+- [Memgraph](https://memgraph.com/) 
+- [Amazon Neptune](https://aws.amazon.com/neptune/) - Not tested. :raising_hand: Looking for somebody who can offer me access to it.
+
+# :label: Features
+
+- List nodes by Label as sortable table
+- List relationships by Type as sortable table
+- Search across all properties in Label or Type table view
 - Create/edit/delete nodes and relationships
 - Modify nodes/relationships properties
 - Write cypher queries and view the result as table/json/graph
 - Multi database support ([docs](https://neo4j.com/docs/cypher-manual/current/databases/))
-- Stash to keep nodes/relationships for fast access
+- Stash to keep nodes, relationships and queries for fast access
 
-# Usage
+# :computer: Usage
 
 ## GitHub pages
 

@@ -247,7 +247,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                     <div className="field">
                         <div className="buttons is-justify-content-flex-end">
                             <Button color={"is-success " + (this.state.loading ? "is-loading" : "")} type="submit" icon="fa-solid fa-check" text="Execute" />
-                            <a href={db.ecosystem === Ecosystem.Memgraph ? 'https://memgraph.com/docs/cypher-manual/' : 'https://neo4j.com/docs/cypher-manual/' } target="_blank" className="button" title="Cypher documentation">
+                            <a href={db.ecosystem === Ecosystem.Memgraph ? 'https://memgraph.com/docs/querying' : 'https://neo4j.com/docs/cypher-manual/' } target="_blank" className="button" title="Cypher documentation">
                                 <span className="icon">
                                     <i className="fa-solid fa-book" />
                                 </span>

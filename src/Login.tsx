@@ -63,17 +63,9 @@ class Login extends React.Component<ILoginProps, ILoginState> {
             if (err) {
                 onError("[" + err.name + "] " + err.message);
             } else {
-                driver
-                    .getServerInfo()
-                    .then(r => {
-                        db.ecosystem = /memgraph/i.test(r.agent) ? Ecosystem.Memgraph : Ecosystem.Neo4j;
-                        db.hasElementId = db.ecosystem === Ecosystem.Neo4j && r["protocolVersion"] >= 5;
-                    })
-                    .finally(() => {
-                        localStorage.setItem("host", url);
-                        if (this.state.remember) localStorage.setItem("login", JSON.stringify({ username: username, password: password }));
-                        this.props.handleLogin();
-                    });
+                localStorage.setItem("host", url);
+                if (this.state.remember) localStorage.setItem("login", JSON.stringify({ username: username, password: password }));
+                this.props.handleLogin();
             }
         });
     };

@@ -19,7 +19,7 @@ class Db {
     }
 
     set database(name: string) {
-        if (this.databases.length > 0 && !this.databases.includes(name)) return;
+        if (this.databases.length === 0 || !this.databases.includes(name)) return;
         this.activedb = name;
         localStorage.setItem("activedb", name);
         for (let fn of this.callbacks_1) fn(name);
@@ -41,17 +41,31 @@ class Db {
     setDriver = (driver: Driver, callback: (error?: Error) => void) => {
         this._driver = driver;
 
-        this.query("SHOW DATABASES")
-            .then(response => {
-                this.activedb = response.records.find(row => row.get("default")).get("name");
-                this.availableDatabases = response.records.filter(row => row.get("type") !== "system").map(row => row.get("name"));
-                const active = localStorage.getItem("activedb");
-                if (active && this.activedb !== active && this.availableDatabases.includes(active)) this.activedb = active;
-                callback();
+        driver
+            .getServerInfo()
+            .then(r => {
+                this.ecosystem = /memgraph/i.test(r.agent) ? Ecosystem.Memgraph : Ecosystem.Neo4j;
+                this.hasElementId = this.ecosystem === Ecosystem.Neo4j && r["protocolVersion"] >= 5;
+
+                this
+                    .query("SHOW DATABASES")
+                    .then(response => {
+                        if (this.ecosystem === Ecosystem.Memgraph) {
+                            this.activedb = response.records[0].get('Name');
+                            this.availableDatabases = response.records.map(row => row.get("Name"));
+                        } else {
+                            this.activedb = response.records.find(row => row.get("default")).get("name");
+                            this.availableDatabases = response.records.filter(row => row.get("type") !== "system").map(row => row.get("name"));
+                        }
+                        const active = localStorage.getItem("activedb");
+                        if (active && this.activedb !== active && this.availableDatabases.includes(active)) this.activedb = active;
+                        callback();
+                    })
+                    .catch(() => {
+                        callback();
+                    });
             })
-            .catch(() => {
-                callback();
-            });
+            .catch(callback);
     };
 
     get driver(): Driver {
@@ -100,9 +114,11 @@ class Db {
     query = (stmt: string, params: object = {}, db: string = undefined): Promise<QueryResult> => {
         return new Promise(async (resolve, reject) => {
             try {
-                const { records, summary } = await this._driver.executeQuery(stmt, params, { database: db });
+                const session = this._driver.session({ database: db });
+                const result = await session.run(stmt, params);
+                await session.close();
                 this.logs = this.logs.concat({ query: stmt, params: params, status: true, date: new Date() } as t_Log).slice(-1000);
-                resolve({ records: records, summary: summary } as QueryResult);
+                resolve({ records: result.records, summary: result.summary } as QueryResult);
             } catch (err) {
                 this.logs = this.logs.concat({ query: stmt, params: params, status: false, date: new Date() } as t_Log).slice(-1000);
                 reject(err);

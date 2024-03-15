@@ -98,10 +98,12 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                 db.query(this.state.query, {}, db.database)
                     .then(response => {
                         //check create/delete database
-                        if (/\s*CREATE\s+(COMPOSITE\s+)?DATABASE/i.test(this.state.query) || /\s*DROP\s+(COMPOSITE\s+)?DATABASE/i.test(this.state.query)) {
+                        if (/\s*(CREATE|DROP)\s+(COMPOSITE\s+)?DATABASE/i.test(this.state.query)) {
                             db.query("SHOW DATABASES")
                                 .then(response => {
-                                    db.databases = response.records.filter(row => row.get("type") !== "system").map(row => row.get("name"));
+                                    db.databases = response.records
+                                        .filter(row => !row.has("type") || row.get("type") !== "system")
+                                        .map(row => db.ecosystem === Ecosystem.Memgraph ? row.get("Name") : row.get("name"));
                                 })
                                 .catch(() => {});
                         }

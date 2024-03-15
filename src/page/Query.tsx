@@ -39,6 +39,7 @@ interface IQueryState {
     summary: ResultSummary;
     error: string | null;
     loading: boolean;
+    keys: string[];
 }
 
 interface MyNode {
@@ -68,6 +69,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
         summary: null,
         error: null,
         loading: false,
+        keys: []
     };
 
     showTableSize = false;
@@ -108,6 +110,9 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                                 .catch(() => {});
                         }
 
+                        const keys: Set<string> = new Set();
+                        response.records.forEach(r => r.keys.forEach(keys.add, keys));
+
                         this.setShowTableSize(response.records);
                         this.setState(
                             state => {
@@ -117,6 +122,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                                     error: null,
                                     loading: false,
                                     view: response.records.length === 0 ? EQueryView.Summary : state.view,
+                                    keys: Array.from(keys)
                                 };
                             },
                             () => {
@@ -200,11 +206,6 @@ class Query extends React.Component<IQueryProps, IQueryState> {
     };
 
     render() {
-        let keys = [];
-        this.state.rows.forEach(row => {
-            for (let key of row.keys) if (!keys.includes(key)) keys.push(key);
-        });
-
         return (
             <>
                 <form onSubmit={this.handleSubmit} className="block">
@@ -322,7 +323,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                         <table className="table is-bordered is-striped is-narrow is-hoverable">
                             <thead>
                                 <tr>
-                                    {keys.map(key => (
+                                    {this.state.keys.map(key => (
                                         <th key={key}>{key}</th>
                                     ))}
                                 </tr>
@@ -330,7 +331,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                             <tbody>
                                 {this.state.rows.map((row, i) => (
                                     <tr key={i}>
-                                        {keys.map(key => (
+                                        {this.state.keys.map(key => (
                                             <td key={key}>{row.has(key) ? this.printValue(row.get(key)) : ""}</td>
                                         ))}
                                     </tr>
@@ -406,8 +407,13 @@ class Query extends React.Component<IQueryProps, IQueryState> {
     }
 
     printValue = (value: any): React.ReactElement => {
+        if (Array.isArray(value)) console.log(value);
         if (db.isInt(value)) return <>{db.strInt(value)}</>;
-        if (Array.isArray(value)) return <>[{value.map<React.ReactNode>(entry => this.printValue(entry)).reduce((prev, curr) => [prev, ", ", curr])}]</>;
+        if (Array.isArray(value)) return <>[
+                {value.length ? value
+                .map<React.ReactNode>(entry => this.printValue(entry))
+                .reduce((prev, curr) => [prev, ", ", curr]) : ""}
+            ]</>;
         if (value === null) return <p className="has-text-grey">null</p>;
         if (typeof value === "boolean") return <>{value ? "true" : "false"}</>;
         if (typeof value === "string") return <p className="wspace-pre is-inline-block">{value}</p>;

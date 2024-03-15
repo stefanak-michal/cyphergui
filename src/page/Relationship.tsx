@@ -146,6 +146,9 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
             type: type,
             typeModal: false,
             typeModalInput: "",
+        }, () => {
+            if (this.state.rel.type !== this.state.type)
+                this.props.tabManager.setChanged(this.props.tabId, true);
         });
     };
 
@@ -262,7 +265,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
         )
             .then(response => {
                 if (response.summary.counters.updates().nodesDeleted > 0) {
-                    this.props.tabManager.close(id + this.props.database);
+                    this.props.tabManager.setChanged(this.props.tabId, false, () => this.props.tabManager.close(this.props.tabId));
                     this.props.toast("Relationship deleted");
                 }
             })
@@ -385,6 +388,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                             properties={this.state.properties}
                             updateProperties={properties => {
                                 this.setState({ properties: properties });
+                                this.props.tabManager.setChanged(this.props.tabId, true);
                             }}
                         />
                     </fieldset>

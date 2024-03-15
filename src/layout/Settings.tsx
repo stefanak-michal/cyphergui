@@ -61,6 +61,15 @@ class Settings extends React.Component<{ handleClose: () => void }, ISettingsSta
                     />
                 </div>
                 <div className="mb-3">
+                    <Checkbox
+                        name="confirmCloseUnsavedChanges"
+                        onChange={this.handleChange}
+                        label="Confirm when closing tab with unsaved changes."
+                        checked={this.state.settings.confirmCloseUnsavedChanges}
+                        color="is-info"
+                    />
+                </div>
+                <div className="mb-3">
                     <ThemeSwitchContext.Consumer>
                         {themeSwitch => (
                             <Checkbox name="darkMode" onChange={e => {
@@ -99,6 +108,7 @@ export function settings(): ISettings {
         forceNamingRecommendations: true,
         temporalValueToStringFunction: "toString",
         darkMode: window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches,
+        confirmCloseUnsavedChanges: true,
         ...(localStorage.getItem("settings") ? JSON.parse(localStorage.getItem("settings")) : {}),
     };
 }

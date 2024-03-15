@@ -36,6 +36,28 @@ export default class Modal extends React.Component<{
     }
 }
 
+export class ConfirmModal extends React.Component<{
+    title?: string;
+    message?: string;
+    color?: string;
+    handleConfirm: () => void;
+    handleClose: () => void;
+}, {}> {
+    render() {
+        return <Modal
+            title={this.props.title || "Are you sure?"}
+            color={this.props.color || "is-warning"}
+            handleClose={this.props.handleClose}
+            icon="fa-solid fa-triangle-exclamation"
+            buttons={
+                <>
+                    <Button text="Confirm" icon="fa-solid fa-check" onClick={this.props.handleConfirm} color={this.props.color || "is-warning"} />
+                    <Button text="Cancel" icon="fa-solid fa-xmark" onClick={this.props.handleClose} color="is-secondary" />
+                </>
+            }>{this.props.message}</Modal>;
+    }
+}
+
 export class DeleteModal extends React.Component<
     { delete: number | string; detach?: boolean; handleConfirm: (id: number | string, detach: boolean) => void; handleClose: () => void },
     { detach: boolean }

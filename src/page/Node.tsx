@@ -148,7 +148,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                 labelModal: false,
                 labelModalInput: "",
             };
-        });
+        }, this.markLabelChange);
     };
 
     handleLabelInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -172,13 +172,18 @@ class Node extends React.Component<INodeProps, INodeState> {
             return {
                 labels: labels,
             };
-        });
+        }, this.markLabelChange);
     };
 
     handleLabelModalClose = () => {
         this.setState({
             labelModal: false,
         });
+    };
+
+    markLabelChange = () => {
+        if (this.state.node.labels.sort().toString() !== this.state.labels.sort().toString())
+            this.props.tabManager.setChanged(this.props.tabId, true);
     };
 
     handleSubmit = (e: React.FormEvent) => {
@@ -244,7 +249,7 @@ class Node extends React.Component<INodeProps, INodeState> {
         )
             .then(response => {
                 if (response.summary.counters.updates().nodesDeleted > 0) {
-                    this.props.tabManager.close(this.props.tabId);
+                    this.props.tabManager.setChanged(this.props.tabId, false, () => this.props.tabManager.close(this.props.tabId));
                     this.props.toast("Node deleted");
                 }
             })
@@ -348,6 +353,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                             properties={this.state.properties}
                             updateProperties={properties => {
                                 this.setState({ properties: properties });
+                                this.props.tabManager.setChanged(this.props.tabId, true);
                             }}
                         />
                     </fieldset>

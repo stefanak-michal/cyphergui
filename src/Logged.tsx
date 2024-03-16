@@ -27,7 +27,7 @@ interface ILoggedState {
     settingsModal: boolean;
     stashed: IStashEntry[];
     propertiesModal: object | null;
-    confirmModal: string | boolean; //If it holds string it will show ConfirmModal for closing tab. String value is id of tab.
+    confirmModal: string | null; //If it holds string it will show ConfirmModal for closing tab. String value is id of tab.
 }
 
 interface ILoggedProps {
@@ -47,7 +47,7 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
         settingsModal: false,
         stashed: [],
         propertiesModal: null,
-        confirmModal: false,
+        confirmModal: null,
     };
 
     components = {
@@ -161,8 +161,8 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
             if (e !== null) e.stopPropagation();
 
             if (settings().confirmCloseUnsavedChanges
-                && this.state.confirmModal === false
-                && this.state.contents.filter(content => content.changed).length) {
+                && !this.state.confirmModal
+                && this.state.contents.some(content => content.changed)) {
                 this.setState({ confirmModal: id });
                 return;
             }
@@ -183,7 +183,7 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
                 return obj;
             });
         },
-        setChanged: (id: string, changed: boolean, callback?: () => void) => {
+        setChanged: (id: string, changed: boolean, callback?) => {
             this.setState({
                 contents: this.state.contents.map(content => content.id === id ? { ...content, changed: changed } : content)
             }, callback);

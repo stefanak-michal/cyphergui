@@ -66,9 +66,13 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
         const tabs = localStorage.getItem("tabs");
         if (tabs) {
             const parsed = JSON.parse(tabs);
-            this.state.tabs = parsed.tabs;
-            this.state.contents = parsed.contents;
-            this.state.activeTab = parsed.activeTab;
+            if (Array.isArray(parsed.tabs) && (parsed.tabs as []).every(t => 'id' in t && 'title' in t && 'icon' in t)
+                && Array.isArray(parsed.contents) && (parsed.contents as []).every(c => 'id' in c && 'page' in c && 'props' in c)
+                && parsed.tabs.length === parsed.contents.length) {
+                this.state.tabs = parsed.tabs as ITab[];
+                this.state.contents = parsed.contents as ITabContent[];
+                this.state.activeTab = parsed.activeTab;
+            }
         }
     }
 

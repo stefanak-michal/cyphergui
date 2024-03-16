@@ -4,24 +4,26 @@
 
 User friendly GUI administration tool for graph databases with bolt protocol support. Usable without knowledge of cypher query language.
 
-<a href='https://ko-fi.com/Z8Z5ABMLW' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://cdn.ko-fi.com/cdn/kofi1.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Z8Z5ABMLW)
+
+### :camera: [Screenshosts](https://github.com/stefanak-michal/cyphergui/wiki/Screenshots)
 
 ## :heavy_check_mark: Supported databases
 
 - [Neo4j](https://neo4j.com/) 
 - [Memgraph](https://memgraph.com/) 
-- [Amazon Neptune](https://aws.amazon.com/neptune/) - Not tested. :raising_hand: Looking for somebody who can offer me access to it.
+- [Amazon Neptune](https://aws.amazon.com/neptune/) - Not tested. :raising_hand: Looking for somebody who can offer access to it.
+- [ONgDB](https://graphfoundation.org/projects/ongdb/) - Not tested.
 
-# :label: Features
+## :label: Features
 
-- List nodes by Label as sortable table
-- List relationships by Type as sortable table
+- View Nodes by Label and Relationships by Type as sortable table
 - Search across all properties in Label or Type table view
-- Create/edit/delete nodes and relationships
-- Modify nodes/relationships properties
-- Write cypher queries and view the result as table/json/graph
-- Multi database support ([docs](https://neo4j.com/docs/cypher-manual/current/databases/))
-- Stash to keep nodes, relationships and queries for fast access
+- Create, edit or delete Nodes and Relationships and their properties
+- Check before closing Node or Relationship tab with unsaved changes
+- Write cypher queries and view the result as table, json or graph
+- Multi database support ([Neo4j](https://neo4j.com/docs/cypher-manual/current/databases/), [Memgraph](https://memgraph.com/docs/configuration/multi-tenancy))
+- Stash to keep Nodes, Relationships and queries for fast access
 
 # :computer: Usage
 

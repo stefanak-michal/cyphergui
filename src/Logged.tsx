@@ -17,7 +17,7 @@ import Stash from "./layout/Stash";
 import Settings, { settings } from "./layout/Settings";
 import { ClipboardContext, PropertiesModalContext, ToastContext } from "./utils/contexts";
 import { Node as _Node, Relationship as _Relationship } from "neo4j-driver";
-import { ConfirmModal, PropertiesModal } from "./components/Modal";
+import { CloseConfirmModal, PropertiesModal } from "./components/Modal";
 
 interface ILoggedState {
     activeTab: string | null;
@@ -331,10 +331,10 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
 
         return (
             <>
-                <Navbar 
-                    handleLogout={this.props.handleLogout} 
-                    handleOpenSettings={() => this.setState({ settingsModal: true })} 
-                    tabManager={this.tabManager} 
+                <Navbar
+                    handleLogout={this.props.handleLogout}
+                    handleOpenSettings={() => this.setState({ settingsModal: true })}
+                    tabManager={this.tabManager}
                     darkMode={this.props.darkMode} />
 
                 <section className="tabs is-boxed sticky">
@@ -391,12 +391,10 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
 
                 {this.state.propertiesModal && <PropertiesModal properties={this.state.propertiesModal} handleClose={() => this.setState({ propertiesModal: null })} />}
 
-                {this.state.confirmModal && <ConfirmModal message={"You have unsaved changes. By closing tab you will lose them."}
-                                              handleConfirm={() => {
-                                                  this.tabManager.close(this.state.confirmModal as string);
-                                                  this.setState({ confirmModal: false });
-                                              }}
-                                              handleClose={() => this.setState({ confirmModal: false })} />}
+                {this.state.confirmModal && <CloseConfirmModal handleConfirm={() => {
+                    this.tabManager.close(this.state.confirmModal as string);
+                    this.setState({confirmModal: null});
+                }} handleClose={() => this.setState({confirmModal: null})}/>}
             </>
         );
     }

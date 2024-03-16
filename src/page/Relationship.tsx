@@ -146,10 +146,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
             type: type,
             typeModal: false,
             typeModalInput: "",
-        }, () => {
-            if (this.state.rel.type !== this.state.type)
-                this.props.tabManager.setChanged(this.props.tabId, true);
-        });
+        }, this.markChanged);
     };
 
     handleTypeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -276,6 +273,14 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
             });
     };
 
+    markChanged = () => {
+        this.props.tabManager.setChanged(this.props.tabId,
+            this.state.rel.type !== this.state.type
+            || Object.keys(this.state.rel.properties).sort().toString() !== this.state.properties.map(p => p.key).sort().toString()
+            || this.state.properties.some(p => p.value.toString() !== this.state.rel.properties[p.key].toString())
+        );
+    };
+
     render() {
         if (!this.create && this.state.rel === null) {
             return <span className="has-text-grey-light">Loading...</span>;
@@ -387,8 +392,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                         <PropertiesForm
                             properties={this.state.properties}
                             updateProperties={properties => {
-                                this.setState({ properties: properties });
-                                this.props.tabManager.setChanged(this.props.tabId, true);
+                                this.setState({ properties: properties }, this.markChanged);
                             }}
                         />
                     </fieldset>

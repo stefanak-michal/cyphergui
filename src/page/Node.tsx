@@ -148,7 +148,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                 labelModal: false,
                 labelModalInput: "",
             };
-        }, this.markLabelChange);
+        }, this.markChanged);
     };
 
     handleLabelInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -172,18 +172,13 @@ class Node extends React.Component<INodeProps, INodeState> {
             return {
                 labels: labels,
             };
-        }, this.markLabelChange);
+        }, this.markChanged);
     };
 
     handleLabelModalClose = () => {
         this.setState({
             labelModal: false,
         });
-    };
-
-    markLabelChange = () => {
-        if (this.state.node.labels.sort().toString() !== this.state.labels.sort().toString())
-            this.props.tabManager.setChanged(this.props.tabId, true);
     };
 
     handleSubmit = (e: React.FormEvent) => {
@@ -258,6 +253,14 @@ class Node extends React.Component<INodeProps, INodeState> {
                     error: error.message,
                 });
             });
+    };
+
+    markChanged = () => {
+        this.props.tabManager.setChanged(this.props.tabId,
+            this.state.node.labels.sort().toString() !== this.state.labels.sort().toString()
+            || Object.keys(this.state.node.properties).sort().toString() !== this.state.properties.map(p => p.key).sort().toString()
+            || this.state.properties.some(p => p.value.toString() !== this.state.node.properties[p.key].toString())
+        );
     };
 
     render() {
@@ -352,8 +355,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                         <PropertiesForm
                             properties={this.state.properties}
                             updateProperties={properties => {
-                                this.setState({ properties: properties });
-                                this.props.tabManager.setChanged(this.props.tabId, true);
+                                this.setState({ properties: properties }, this.markChanged);
                             }}
                         />
                     </fieldset>

@@ -36,6 +36,31 @@ export default class Modal extends React.Component<{
     }
 }
 
+export class CloseConfirmModal extends React.Component<{
+    handleConfirm: () => void;
+    handleClose: () => void;
+}, {}> {
+    render() {
+        return <Modal
+            title="Are you sure?"
+            color="is-warning"
+            handleClose={this.props.handleClose}
+            icon="fa-solid fa-circle-exclamation"
+            buttons={
+                <>
+                    <Button text="Close anyway" icon="fa-solid fa-check" onClick={this.props.handleConfirm} color="is-warning" />
+                    <Button text="Don't close" icon="fa-solid fa-xmark" onClick={this.props.handleClose} color="is-secondary" />
+                </>
+            }>
+            <p>You have unsaved changes. By closing this tab you will lose them.</p>
+            <p className="mt-5">
+                <i className="fa-solid fa-info"></i>
+                <i className="ml-2">You can disable this confirmation dialog in settings.</i>
+            </p>
+        </Modal>;
+    }
+}
+
 export class DeleteModal extends React.Component<
     { delete: number | string; detach?: boolean; handleConfirm: (id: number | string, detach: boolean) => void; handleClose: () => void },
     { detach: boolean }
@@ -55,7 +80,7 @@ export class DeleteModal extends React.Component<
                 title="Are you sure?"
                 color="is-danger"
                 handleClose={this.props.handleClose}
-                icon="fa-solid fa-triangle-exclamation"
+                icon="fa-solid fa-circle-exclamation"
                 buttons={
                     <>
                         <Button text="Confirm" icon="fa-solid fa-check" onClick={this.handleConfirm} color="is-danger" />

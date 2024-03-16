@@ -7,6 +7,7 @@ export interface ITabManager {
     close: (id: string, e?: React.PointerEvent) => void;
     setActive: (id: string) => void;
     generateName: (prefix: string, i?: any) => string;
+    setChanged: (id: string, changed: boolean, callback?: () => void) => void;
 }
 
 export interface ISettings {
@@ -15,6 +16,7 @@ export interface ISettings {
     forceNamingRecommendations: boolean;
     temporalValueToStringFunction: string;
     darkMode: boolean;
+    confirmCloseUnsavedChanges: boolean;
 }
 
 export interface IStashManager {
@@ -41,8 +43,15 @@ export interface IPageProps {
     stashManager: IStashManager;
 }
 
-export interface ILoginData {
-    url: string;
-    username?: string;
-    password?: string;
+export interface ITab {
+    id: string;
+    title: string;
+    icon: string
+}
+
+export interface ITabContent {
+    id: string;
+    page: EPage;
+    props: object,
+    changed?: boolean;
 }

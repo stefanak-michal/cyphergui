@@ -10,23 +10,24 @@ import Relationship from "./page/Relationship";
 import History from "./page/History";
 import { EPage } from "./utils/enums";
 import { Button } from "./components/form";
-import { IStashEntry, IStashManager, ITabManager } from "./utils/interfaces";
+import { IStashEntry, IStashManager, ITab, ITabContent, ITabManager } from "./utils/interfaces";
 import { t_ShowPropertiesModalFn, t_StashQuery, t_StashValue, t_StorageStashEntry, t_ToastFn } from "./utils/types";
 import db from "./db";
 import Stash from "./layout/Stash";
-import Settings from "./layout/Settings";
+import Settings, { settings } from "./layout/Settings";
 import { ClipboardContext, PropertiesModalContext, ToastContext } from "./utils/contexts";
 import { Node as _Node, Relationship as _Relationship } from "neo4j-driver";
-import { PropertiesModal } from "./components/Modal";
+import { CloseConfirmModal, PropertiesModal } from "./components/Modal";
 
 interface ILoggedState {
     activeTab: string | null;
-    tabs: { id: string; title: string; icon: string }[];
-    contents: { id: string; page: EPage; props: object }[];
+    tabs: ITab[];
+    contents: ITabContent[];
     toasts: { key: number; message: string; color: string; delay: number; timeout: NodeJS.Timeout }[];
     settingsModal: boolean;
     stashed: IStashEntry[];
     propertiesModal: object | null;
+    confirmModal: string | null; //If it holds string it will show ConfirmModal for closing tab. String value is id of tab.
 }
 
 interface ILoggedProps {
@@ -46,6 +47,7 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
         settingsModal: false,
         stashed: [],
         propertiesModal: null,
+        confirmModal: null,
     };
 
     components = {
@@ -64,9 +66,13 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
         const tabs = localStorage.getItem("tabs");
         if (tabs) {
             const parsed = JSON.parse(tabs);
-            this.state.tabs = parsed.tabs;
-            this.state.contents = parsed.contents;
-            this.state.activeTab = parsed.activeTab;
+            if (Array.isArray(parsed.tabs) && (parsed.tabs as []).every(t => 'id' in t && 'title' in t && 'icon' in t)
+                && Array.isArray(parsed.contents) && (parsed.contents as []).every(c => 'id' in c && 'page' in c && 'props' in c)
+                && parsed.tabs.length === parsed.contents.length) {
+                this.state.tabs = parsed.tabs as ITab[];
+                this.state.contents = parsed.contents as ITabContent[];
+                this.state.activeTab = parsed.activeTab;
+            }
         }
     }
 
@@ -136,8 +142,8 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
                     //open new tab next to current active tab
                     const i: number = state.tabs.findIndex(t => t.id === state.activeTab);
                     if (i !== -1) state.tabs.splice(i + 1, 0, { id: id, title: title as string, icon: icon });
-                    else state.tabs.push({ id: id, title: title as string, icon: icon });
-                    state.contents.push({ id: id, page: page, props: props });
+                    else state.tabs.push({ id: id, title: title as string, icon: icon } as ITab);
+                    state.contents.push({ id: id, page: page, props: props } as ITabContent);
                 } else {
                     //update props of existing tab
                     let content = state.contents.find(c => c.id === id);
@@ -158,6 +164,13 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
         close: (id: string, e: React.PointerEvent = null) => {
             if (e !== null) e.stopPropagation();
 
+            if (settings().confirmCloseUnsavedChanges
+                && !this.state.confirmModal
+                && this.state.contents.some(content => content.changed)) {
+                this.setState({ confirmModal: id });
+                return;
+            }
+
             this.setState(state => {
                 let active = state.activeTab;
                 if (active === id) {
@@ -173,6 +186,11 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
                 localStorage.setItem("tabs", JSON.stringify(obj));
                 return obj;
             });
+        },
+        setChanged: (id: string, changed: boolean, callback?) => {
+            this.setState({
+                contents: this.state.contents.map(content => content.id === id ? { ...content, changed: changed } : content)
+            }, callback);
         },
         setActive: (id: string) => {
             this.setState(state => {
@@ -317,10 +335,10 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
 
         return (
             <>
-                <Navbar 
-                    handleLogout={this.props.handleLogout} 
-                    handleOpenSettings={() => this.setState({ settingsModal: true })} 
-                    tabManager={this.tabManager} 
+                <Navbar
+                    handleLogout={this.props.handleLogout}
+                    handleOpenSettings={() => this.setState({ settingsModal: true })}
+                    tabManager={this.tabManager}
                     darkMode={this.props.darkMode} />
 
                 <section className="tabs is-boxed sticky">
@@ -376,6 +394,11 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
                 )}
 
                 {this.state.propertiesModal && <PropertiesModal properties={this.state.propertiesModal} handleClose={() => this.setState({ propertiesModal: null })} />}
+
+                {this.state.confirmModal && <CloseConfirmModal handleConfirm={() => {
+                    this.tabManager.close(this.state.confirmModal as string);
+                    this.setState({confirmModal: null});
+                }} handleClose={() => this.setState({confirmModal: null})}/>}
             </>
         );
     }

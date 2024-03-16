@@ -166,7 +166,7 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
 
             if (settings().confirmCloseUnsavedChanges
                 && !this.state.confirmModal
-                && this.state.contents.some(content => content.changed)) {
+                && this.state.contents.find(c => c.id === id).changed) {
                 this.setState({ confirmModal: id });
                 return;
             }

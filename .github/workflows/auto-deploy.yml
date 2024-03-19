@@ -32,5 +32,5 @@ jobs:
           git config --global user.name "github-actions-bot"
           git remote set-url origin https://git:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
           npm version ${{ github.ref_name }} --no-git-tag-version --allow-same-version
-          git push
+          git push origin HEAD:master
           npm run deploy

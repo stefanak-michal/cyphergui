@@ -9,7 +9,7 @@ on:
         type: string
       branch:
         description: 'Branch'
-        required: false
+        required: true
         type: string
         default: 'master'
 
@@ -42,10 +42,9 @@ jobs:
 
       - name: create version
         run: |
-          # git checkout --track origin/${{ inputs.branch }}
           git checkout -b release-${{ inputs.version }}
-          npm version ${{ inputs.version }}
-          git push origin release-${{ inputs.version }}
+          npm version ${{ inputs.version }} --allow-same-version
+          git push origin release-${{ inputs.version }} --tags
 
       - name: create PR and GH release
         run: |

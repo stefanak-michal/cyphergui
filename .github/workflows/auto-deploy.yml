@@ -7,6 +7,11 @@ on:
         description: 'Version'
         required: true
         type: string
+      branch:
+        description: 'Branch'
+        required: false
+        type: string
+        default: 'master'
 
 jobs:
   deploy:
@@ -38,13 +43,13 @@ jobs:
       - name: create version
         run: |
           git fetch --all
-          git checkout --track origin/master
+          git checkout --track origin/${{ inputs.branch }}
           git checkout -b release-${{ inputs.version }}
           npm version ${{ inputs.version }}
 
       - name: create PR and GH release
         run: |
-          gh pr create --title "Release ${{ inputs.version }}" -B master -H release-${{ inputs.version }}
+          gh pr create --title "Release ${{ inputs.version }}" -B ${{ inputs.branch }} -H release-${{ inputs.version }} --fill
           gh pr merge release-${{ inputs.version }} --delete-branch
           gh release create ${{ inputs.version }} --generate-notes
 

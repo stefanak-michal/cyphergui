@@ -52,22 +52,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "release-it": "^17.1.1"
-  },
-  "release-it": {
-    "git": {
-      "requireBranch": "master"
-    },
-    "npm": {
-      "publish": false,
-      "allowSameVersion": true
-    },
-    "github": {
-      "release": true,
-      "releaseName": "v${version}",
-      "autoGenerate": true
-    }
   }
 }

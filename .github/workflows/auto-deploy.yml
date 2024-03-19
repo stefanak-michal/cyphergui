@@ -1,6 +1,12 @@
 name: Create new release and deploy onto github pages
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version'
+        required: true
+        type: string
 
 jobs:
   deploy:
@@ -23,16 +29,24 @@ jobs:
       - name: install dependencies
         run: npm ci
 
-      - name: setup git user
+      - name: git config
         run: |
           git config --global user.email "github-actions-bot@github.com"
           git config --global user.name "github-actions-bot"
           git remote set-url origin https://git:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
+
+      - name: create version
+        run: |
           git fetch --all
           git checkout --track origin/master
+          git checkout -b release-${{ inputs.version }}
+          npm version ${{ inputs.version }}
 
-      - name: Run release
-        run: npm run release --ci
+      - name: create PR and GH release
+        run: |
+          gh pr create --title "Release ${{ inputs.version }}" -B master -H release-${{ inputs.version }}
+          gh pr merge release-${{ inputs.version }} --delete-branch
+          gh release create ${{ inputs.version }} --generate-notes
 
       - name: deploy with gh-pages
         run: npm run deploy

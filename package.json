@@ -61,6 +61,7 @@
       "requireBranch": "master"
     },
     "npm": {
+      "publish": false,
       "allowSameVersion": true
     },
     "github": {

@@ -28,6 +28,7 @@ jobs:
           git config --global user.email "github-actions-bot@github.com"
           git config --global user.name "github-actions-bot"
           git remote set-url origin https://git:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
+          git checkout --track origin/master
 
       - name: Run release
         run: npm run release --ci

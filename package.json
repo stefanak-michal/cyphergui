@@ -38,7 +38,8 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d build",
+    "release": "release-it"
   },
   "browserslist": {
     "production": [
@@ -51,5 +52,21 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "release-it": "^17.1.1"
+  },
+  "release-it": {
+    "git": {
+      "requireBranch": "master"
+    },
+    "npm": {
+      "allowSameVersion": true
+    },
+    "github": {
+      "release": true,
+      "releaseName": "v${version}",
+      "autoGenerate": true
+    }
   }
 }

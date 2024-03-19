@@ -30,8 +30,6 @@ jobs:
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
-        env:
-          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
 
       - name: checkout
         uses: actions/checkout@v3
@@ -46,12 +44,16 @@ jobs:
         run: npm ci
 
       - name: git config
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: |
           git config --global user.email "github-actions-bot@github.com"
           git config --global user.name "github-actions-bot"
           git remote set-url origin https://git:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
 
       - name: create version
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: |
           git checkout -b release-${{ inputs.version }}
           npm version ${{ inputs.version }} --allow-same-version
@@ -59,13 +61,21 @@ jobs:
           git tag -d $(git tag -l)
 
       - name: create PR
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: gh pr create --title "Release ${{ inputs.version }}" -B ${{ inputs.branch }} -H release-${{ inputs.version }} --fill
 
       - name: merge PR
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: gh pr merge release-${{ inputs.version }} --delete-branch --merge
 
       - name: create release
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: gh release create ${{ inputs.version }} --generate-notes
 
       - name: deploy with gh-pages
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: npm run deploy

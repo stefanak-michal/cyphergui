@@ -45,12 +45,16 @@ jobs:
           git checkout -b release-${{ inputs.version }}
           npm version ${{ inputs.version }} --allow-same-version
           git push origin release-${{ inputs.version }}
+          git tag -d $(git tag -l)
 
-      - name: create PR and GH release
-        run: |
-          gh pr create --title "Release ${{ inputs.version }}" -B ${{ inputs.branch }} -H release-${{ inputs.version }} --fill
-          gh pr merge release-${{ inputs.version }} --delete-branch --merge
-          gh release create ${{ inputs.version }} --generate-notes
+      - name: create PR
+        run: gh pr create --title "Release ${{ inputs.version }}" -B ${{ inputs.branch }} -H release-${{ inputs.version }} --fill
+
+      - name: merge PR
+        run: gh pr merge release-${{ inputs.version }} --delete-branch --merge
+
+      - name: create release
+        run: gh release create ${{ inputs.version }} --generate-notes
 
       - name: deploy with gh-pages
         run: npm run deploy

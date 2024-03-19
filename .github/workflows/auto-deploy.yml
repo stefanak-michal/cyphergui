@@ -43,7 +43,7 @@ jobs:
       - name: create version
         run: |
           git fetch --all
-          git checkout --track origin/${{ inputs.branch }}
+          # git checkout --track origin/${{ inputs.branch }}
           git checkout -b release-${{ inputs.version }}
           npm version ${{ inputs.version }}
           git push origin release-${{ inputs.version }}

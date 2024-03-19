@@ -21,6 +21,7 @@ jobs:
       CI: ''
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GITHUB_REPOSITORY: ${{ github.repository }}
+    permissions: write-all
     steps:
       - name: checkout
         uses: actions/checkout@v3
@@ -38,7 +39,7 @@ jobs:
         run: |
           git config --global user.email "github-actions-bot@github.com"
           git config --global user.name "github-actions-bot"
-          git remote set-url origin https://git:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
+          git remote set-url origin https://git:${{ secrets.APP_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git
 
       - name: create version
         run: |

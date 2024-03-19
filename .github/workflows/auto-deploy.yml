@@ -44,7 +44,7 @@ jobs:
         run: |
           git checkout -b release-${{ inputs.version }}
           npm version ${{ inputs.version }} --allow-same-version
-          git push origin release-${{ inputs.version }} --tags
+          git push origin release-${{ inputs.version }}
 
       - name: create PR and GH release
         run: |

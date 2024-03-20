@@ -1,6 +1,6 @@
 {
   "name": "@stefanak-michal/cyphergui",
-  "version": "0.4.1",
+  "version": "0.4.0",
   "private": false,
   "homepage": ".",
   "license": "Apache-2.0",
@@ -38,8 +38,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build",
-    "release": "release-it"
+    "deploy": "gh-pages -d build"
   },
   "browserslist": {
     "production": [

@@ -6,7 +6,13 @@ User friendly GUI administration tool for graph databases with bolt protocol sup
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Z8Z5ABMLW)
 
-### :camera: [Screenshosts](https://github.com/stefanak-michal/cyphergui/wiki/Screenshots)
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/stefanak-michal/cyphergui/auto-deploy.yml)](https://github.com/stefanak-michal/cyphergui/actions/workflows/auto-deploy.yml)
+[![GitHub package.json version](https://img.shields.io/github/package-json/v/stefanak-michal/cyphergui)](https://github.com/stefanak-michal/cyphergui/releases)
+[![GitHub commits since latest release](https://img.shields.io/github/commits-since/stefanak-michal/cyphergui/latest)](https://github.com/stefanak-michal/cyphergui/compare/v0.4.0...master)
+
+### :camera: Screenshosts
+
+Available in [wiki](https://github.com/stefanak-michal/cyphergui/wiki/Screenshots).
 
 ## :heavy_check_mark: Supported databases
 
@@ -24,6 +30,7 @@ User friendly GUI administration tool for graph databases with bolt protocol sup
 - Write cypher queries and view the result as table, json or graph
 - Multi database support ([Neo4j](https://neo4j.com/docs/cypher-manual/current/databases/), [Memgraph](https://memgraph.com/docs/configuration/multi-tenancy))
 - Stash to keep Nodes, Relationships and queries for fast access
+- Can be run locally (file:///)
 
 # :computer: Usage
 

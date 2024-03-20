@@ -75,7 +75,7 @@ jobs:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: gh release create ${{ inputs.version }} --generate-notes
 
-      - name: deploy with gh-pages
-        env:
-          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
-        run: npm run deploy
+#      - name: deploy with gh-pages
+#        env:
+#          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+#        run: npm run deploy

@@ -298,7 +298,7 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
         } else if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLButtonElement) {
             if (target.value.length > 0) text = target.value;
         } else if (target instanceof HTMLElement) {
-            if ((target.firstChild instanceof HTMLInputElement && target.firstChild.disabled) || (target.firstChild instanceof HTMLTextAreaElement && target.firstChild.disabled)) {
+            if (target.firstChild instanceof HTMLInputElement || target.firstChild instanceof HTMLTextAreaElement) {
                 if (target.firstChild.value.length > 0) text = target.firstChild.value;
             } else if (target.className.includes("icon") && target.className.includes("is-right")) {
                 let element;
@@ -378,7 +378,7 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
 
                 <section className="notifications">
                     {this.state.toasts.map(toast => (
-                        <div key={toast.key} className={"notification box fadeOut " + toast.color} style={{ animationDelay: toast.delay - 1 + "s" }}>
+                        <div key={toast.key} className={"notification fadeOut pr-6 " + toast.color} style={{ animationDelay: toast.delay - 1 + "s" }}>
                             <button className="delete" onClick={() => this.discardToast(toast.key)} />
                             {toast.message}
                         </div>
@@ -393,7 +393,13 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
                     />
                 )}
 
-                {this.state.propertiesModal && <PropertiesModal properties={this.state.propertiesModal} handleClose={() => this.setState({ propertiesModal: null })} />}
+
+                {this.state.propertiesModal &&
+                    <ClipboardContext.Provider value={this.handleCopyToClipboard}>
+                        <PropertiesModal properties={this.state.propertiesModal} handleClose={() => this.setState({propertiesModal: null})}/>
+                    </ClipboardContext.Provider>
+                }
+
 
                 {this.state.confirmModal && <CloseConfirmModal handleConfirm={() => {
                     this.tabManager.close(this.state.confirmModal as string);

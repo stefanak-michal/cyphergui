@@ -18,7 +18,7 @@ class App extends React.Component<{}, IAppState> {
     };
 
     componentDidMount() {
-        if (this.state.darkMode) document.documentElement.className = "dark";
+        if (this.state.darkMode) document.documentElement.className = "theme-dark";
     }
 
     handleLogin = () => {
@@ -40,7 +40,7 @@ class App extends React.Component<{}, IAppState> {
             return { darkMode: !state.darkMode };
         }, () => {
             setSetting('darkMode', this.state.darkMode);
-            document.documentElement.className = this.state.darkMode ? "dark" : "";
+            document.documentElement.className = this.state.darkMode ? "theme-dark" : "";
         });
     };
 

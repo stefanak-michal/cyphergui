@@ -196,21 +196,18 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
             .then(response => {
                 if (response.summary.counters.containsUpdates()) {
                     this.props.toast(this.create ? "Relationship created" : "Relationship updated");
-
-                    if (!settings().closeEditAfterExecuteSuccess) {
-                        const rel = response.records[0].get("r");
-                        if (this.create || db.getId(this.state.rel) !== db.getId(rel)) {
-                            this.props.tabManager.add({ prefix: "Rel", i: rel.identity }, "fa-solid fa-pen-to-square", EPage.Rel, {
-                                id: db.getId(rel),
-                                database: this.props.database,
-                            });
-                            this.props.tabManager.close(this.props.tabId);
-                        }
-                    }
                 }
-
                 if (settings().closeEditAfterExecuteSuccess) {
                     this.props.tabManager.close(this.props.tabId);
+                } else if (this.create) {
+                    const rel = response.records[0].get("r");
+                    this.props.tabManager.setChanged(this.props.tabId, false, () => {
+                        this.props.tabManager.add({ prefix: "Rel", i: rel.identity }, "fa-solid fa-pen-to-square", EPage.Rel, {
+                            id: db.getId(rel),
+                            database: this.props.database,
+                        });
+                        this.props.tabManager.close(this.props.tabId);
+                    });
                 }
             })
             .catch(err => this.setState({ error: "[" + err.name + "] " + err.message }));
@@ -275,9 +272,13 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
 
     markChanged = () => {
         this.props.tabManager.setChanged(this.props.tabId,
-            this.state.rel.type !== this.state.type
-            || Object.keys(this.state.rel.properties).sort().toString() !== this.state.properties.map(p => p.key).sort().toString()
-            || this.state.properties.some(p => p.value.toString() !== this.state.rel.properties[p.key].toString())
+            this.create || (
+                this.state.rel.type !== this.state.type
+                || this.state.rel.start !== this.state.start.identity
+                || this.state.rel.end !== this.state.end.identity
+                || Object.keys(this.state.rel.properties).sort().toString() !== this.state.properties.map(p => p.key).sort().toString()
+                || this.state.properties.some(p => p.value.toString() !== this.state.rel.properties[p.key].toString())
+            )
         );
     };
 
@@ -294,7 +295,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                     <Modal title="Set type" icon="fa-solid fa-tag" handleClose={this.handleTypeModalClose}>
                         <div className="buttons">
                             {this.state.typeModal.map(label => (
-                                <Button text={label} color="is-info is-rounded" key={label} onClick={() => this.handleTypeSelect(label)} />
+                                <Button text={label} color="is-info is-rounded tag is-medium has-text-white" key={label} onClick={() => this.handleTypeSelect(label)} />
                             ))}
                         </div>
                         <form
@@ -324,12 +325,12 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                                 this.setState({
                                     start: node,
                                     selectNodeModal: null,
-                                });
+                                }, this.markChanged);
                             } else {
                                 this.setState({
                                     end: node,
                                     selectNodeModal: null,
-                                });
+                                }, this.markChanged);
                             }
                         }}
                         handleClose={() => this.setState({ selectNodeModal: null })}
@@ -346,7 +347,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                                         <div className="field">
                                             <label className="label">identity</label>
                                             <div className="control" onClick={copy}>
-                                                <input className="input is-copyable" disabled type="text" value={db.strInt(this.state.rel.identity)} />
+                                                <input className="input is-copyable" readOnly type="text" value={db.strInt(this.state.rel.identity)} />
                                             </div>
                                         </div>
                                     </div>
@@ -355,7 +356,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                                             <div className="field">
                                                 <label className="label">elementId</label>
                                                 <div className="control" onClick={copy}>
-                                                    <input className="input is-copyable" disabled type="text" value={this.state.rel.elementId} />
+                                                    <input className="input is-copyable" readOnly type="text" value={this.state.rel.elementId} />
                                                 </div>
                                             </div>
                                         </div>
@@ -372,7 +373,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                         </legend>
                         <div className="buttons tags">
                             {this.state.type && (
-                                <span className="tag is-info is-medium mr-3 is-rounded">
+                                <span className="tag is-info is-medium is-rounded">
                                     <a
                                         className="has-text-white mr-1"
                                         onClick={() => this.props.tabManager.add(this.state.type, "fa-regular fa-circle", EPage.Type, { type: this.state.type, database: this.props.database })}>

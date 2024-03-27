@@ -37,7 +37,7 @@ class Settings extends React.Component<{ handleClose: () => void }, ISettingsSta
                             onChange={this.handleChange}
                             label="Show elementId in table views"
                             checked={this.state.settings.tableViewShowElementId}
-                            color="is-info"
+                            color="is-link"
                         />
                     </div>
                 )}
@@ -47,7 +47,7 @@ class Settings extends React.Component<{ handleClose: () => void }, ISettingsSta
                         onChange={this.handleChange}
                         label="Close create/edit tab after successful execute"
                         checked={this.state.settings.closeEditAfterExecuteSuccess}
-                        color="is-info"
+                        color="is-link"
                     />
                 </div>
                 <div className="mb-3">
@@ -56,7 +56,7 @@ class Settings extends React.Component<{ handleClose: () => void }, ISettingsSta
                         onChange={this.handleChange}
                         label="Force naming recommendations"
                         checked={this.state.settings.forceNamingRecommendations}
-                        color="is-info"
+                        color="is-link"
                         help="Node label PascalCase. Relationship type UPPERCASE."
                     />
                 </div>
@@ -66,7 +66,7 @@ class Settings extends React.Component<{ handleClose: () => void }, ISettingsSta
                         onChange={this.handleChange}
                         label="Confirm dialog when closing tab with unsaved changes."
                         checked={this.state.settings.confirmCloseUnsavedChanges}
-                        color="is-info"
+                        color="is-link"
                     />
                 </div>
                 <div className="mb-3">
@@ -75,7 +75,7 @@ class Settings extends React.Component<{ handleClose: () => void }, ISettingsSta
                             <Checkbox name="darkMode" onChange={e => {
                                 themeSwitch();
                                 this.handleChange(e as React.ChangeEvent<HTMLInputElement>);
-                            }} label="Dark mode" checked={this.state.settings.darkMode} color="is-info" />
+                            }} label="Dark mode" checked={this.state.settings.darkMode} color="is-link" />
                         )}
                     </ThemeSwitchContext.Consumer>
                 </div>

@@ -407,7 +407,6 @@ class Query extends React.Component<IQueryProps, IQueryState> {
     }
 
     printValue = (value: any): React.ReactElement => {
-        if (Array.isArray(value)) console.log(value);
         if (db.isInt(value)) return <>{db.strInt(value)}</>;
         if (Array.isArray(value)) return <>[
                 {value.length ? value

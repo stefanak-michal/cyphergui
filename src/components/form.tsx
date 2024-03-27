@@ -156,7 +156,7 @@ export class TypeButton extends React.Component<{ type: string; database: string
     render() {
         return (
             <Button
-                color={"tag is-info is-rounded px-2 " + (this.props.size || "")}
+                color={"tag is-info is-rounded px-2 has-text-white " + (this.props.size || "")}
                 onClick={() => this.props.tabManager.add(this.props.type, "fa-solid fa-arrow-right-long", EPage.Type, { type: this.props.type, database: this.props.database })}
                 text={this.props.type.startsWith("*") ? "*" : ":" + this.props.type}
             />

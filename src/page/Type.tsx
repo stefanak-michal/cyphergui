@@ -251,7 +251,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                     </span>
                 </div>
 
-                <div className="buttons mb-1">
+                <div className="buttons mb-3">
                     <Button
                         icon="fa-solid fa-plus"
                         text="Create relationship"
@@ -265,7 +265,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                         }
                     />
                     <Button
-                        icon=""
+                        icon="fa-solid fa-circle-nodes"
                         text="View as graph"
                         onClick={() =>
                             (this.queryTabId = this.props.tabManager.add(

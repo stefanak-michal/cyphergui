@@ -11,7 +11,7 @@ export default class InlineNode extends React.Component<{ node: _Node; tabManage
         return (
             <div className="is-flex is-align-items-center">
                 {this.props.node.labels.map(label => (
-                    <LabelButton key={label} label={label} database={this.props.database || db.database} tabManager={this.props.tabManager} size={"mr-1 " + (!!this.props.small ? "" : "is-medium")} />
+                    <LabelButton key={label} label={label} database={this.props.database || db.database} tabManager={this.props.tabManager} size={"mr-1 " + (!!this.props.small ? "is-small" : "is-medium")} />
                 ))}
                 <Button
                     onClick={() =>

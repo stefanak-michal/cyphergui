@@ -10,7 +10,7 @@ export default class InlineRelationship extends React.Component<{ rel: _Relation
     render() {
         return (
             <div className="is-flex is-align-items-center">
-                <TypeButton type={this.props.rel.type} database={this.props.database || db.database} tabManager={this.props.tabManager} size={"mr-1 " + (!!this.props.small ? "" : "is-medium")} />
+                <TypeButton type={this.props.rel.type} database={this.props.database || db.database} tabManager={this.props.tabManager} size={"mr-1 " + (!!this.props.small ? "is-small" : "is-medium")} />
                 <Button
                     onClick={() =>
                         this.props.tabManager.add({ prefix: "Rel", i: this.props.rel.identity }, "fa-regular fa-pen-to-square", EPage.Rel, {

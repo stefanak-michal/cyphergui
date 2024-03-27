@@ -5,7 +5,6 @@ import { ITabManager } from "../utils/interfaces";
 import { EPage } from "../utils/enums";
 import logo from "../assets/logo_small.png";
 import logo_dark from "../assets/logo_small_dark.png";
-import { settings } from "./Settings";
 
 interface INavbarProps {
     handleLogout: () => void;
@@ -95,7 +94,7 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
                     <div className="navbar-end">
                         <div className="navbar-item">
                             <div className="buttons">
-                                <Button icon="fa-regular fa-plus" text="Query" onClick={() => this.props.tabManager.add({ prefix: "Query" }, "fa-solid fa-terminal", EPage.Query)} color="is-info" />
+                                <Button icon="fa-regular fa-plus" text="Query" onClick={() => this.props.tabManager.add({ prefix: "Query" }, "fa-solid fa-terminal", EPage.Query)} color="is-primary" />
                                 <Button icon="fa-solid fa-clock-rotate-left" onClick={() => this.props.tabManager.add("History", "fa-solid fa-clock-rotate-left", EPage.History)} />
                                 <Button icon="fa-solid fa-gears" onClick={this.props.handleOpenSettings} />
                                 <Button onClick={this.props.handleLogout} text="Log out" />

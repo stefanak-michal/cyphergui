@@ -202,11 +202,13 @@ class Node extends React.Component<INodeProps, INodeState> {
                     this.props.tabManager.close(this.props.tabId);
                 } else if (this.create) {
                     const node = response.records[0].get("n");
-                    this.props.tabManager.add({ prefix: "Node", i: node.identity }, "fa-solid fa-pen-to-square", EPage.Node, {
-                        id: db.getId(node),
-                        database: this.props.database,
+                    this.props.tabManager.setChanged(this.props.tabId, false, () => {
+                        this.props.tabManager.add({ prefix: "Node", i: node.identity }, "fa-solid fa-pen-to-square", EPage.Node, {
+                            id: db.getId(node),
+                            database: this.props.database,
+                        });
+                        this.props.tabManager.close(this.props.tabId);
                     });
-                    this.props.tabManager.close(this.props.tabId);
                 }
             })
             .catch(err => this.setState({ error: "[" + err.name + "] " + err.message }));
@@ -257,9 +259,11 @@ class Node extends React.Component<INodeProps, INodeState> {
 
     markChanged = () => {
         this.props.tabManager.setChanged(this.props.tabId,
-            this.state.node.labels.sort().toString() !== this.state.labels.sort().toString()
-            || Object.keys(this.state.node.properties).sort().toString() !== this.state.properties.map(p => p.key).sort().toString()
-            || this.state.properties.some(p => p.value.toString() !== this.state.node.properties[p.key].toString())
+            this.create || (
+                this.state.node.labels.sort().toString() !== this.state.labels.sort().toString()
+                || Object.keys(this.state.node.properties).sort().toString() !== this.state.properties.map(p => p.key).sort().toString()
+                || this.state.properties.some(p => p.value.toString() !== this.state.node.properties[p.key].toString())
+            )
         );
     };
 
@@ -276,7 +280,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                     <Modal title="Add label" icon="fa-solid fa-tag" handleClose={this.handleLabelModalClose}>
                         <div className="buttons">
                             {this.state.labelModal.map(label => (
-                                <Button text={label} color="is-link is-rounded" key={label} onClick={() => this.handleLabelSelect(label)} />
+                                <Button text={label} color="is-link is-rounded tag is-medium" key={label} onClick={() => this.handleLabelSelect(label)} />
                             ))}
                         </div>
                         <form
@@ -306,9 +310,8 @@ class Node extends React.Component<INodeProps, INodeState> {
                                     <div className={"column " + (db.hasElementId ? "is-half-desktop" : "")}>
                                         <div className="field">
                                             <label className="label">identity</label>
-
                                             <div className="control" onClick={copy}>
-                                                <input className="input is-copyable" disabled type="text" value={db.strInt(this.state.node.identity)} />
+                                                <input className="input is-copyable" readOnly type="text" value={db.strInt(this.state.node.identity)} />
                                             </div>
                                         </div>
                                     </div>
@@ -317,7 +320,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                                             <div className="field">
                                                 <label className="label">elementId</label>
                                                 <div className="control" onClick={copy}>
-                                                    <input className="input is-copyable" disabled type="text" value={this.state.node.elementId} />
+                                                    <input className="input is-copyable" readOnly type="text" value={this.state.node.elementId} />
                                                 </div>
                                             </div>
                                         </div>
@@ -334,7 +337,7 @@ class Node extends React.Component<INodeProps, INodeState> {
                         </legend>
                         <div className="buttons tags">
                             {this.state.labels.map(label => (
-                                <span key={"label-" + label} className="tag is-link is-medium mr-3 is-rounded">
+                                <span key={"label-" + label} className="tag is-link is-medium is-rounded">
                                     <a
                                         className="has-text-white mr-1"
                                         onClick={() => this.props.tabManager.add(label, "fa-regular fa-circle", EPage.Label, { label: label, database: this.props.database })}>

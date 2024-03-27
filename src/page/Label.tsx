@@ -256,7 +256,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                     </span>
                 </div>
 
-                <div className="buttons mb-1">
+                <div className="buttons mb-3">
                     <Button
                         icon="fa-solid fa-plus"
                         text="Create node"
@@ -276,7 +276,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                         }
                     />
                     <Button
-                        icon=""
+                        icon="fa-solid fa-circle-nodes"
                         text="View as graph"
                         onClick={() =>
                             (this.queryTabId = this.props.tabManager.add(

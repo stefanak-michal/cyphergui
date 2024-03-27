@@ -70,12 +70,12 @@ class Start extends React.Component<IPageProps, IStartState> {
                     <div className="subtitle mb-2">Node labels</div>
                     <div className="buttons">
                         {this.state.labels.length > 0 ? (
-                            <span>
+                            <>
                                 <LabelButton key="all-labels" label="* " database={db.database} tabManager={this.props.tabManager} size="is-medium" /> {/* space after space is required */}
                                 {this.state.labels.map(label => (
                                     <LabelButton key={label} label={label} database={db.database} tabManager={this.props.tabManager} size="is-medium" />
                                 ))}
-                            </span>
+                            </>
                         ) : (
                             <span className="has-text-grey-light">none</span>
                         )}
@@ -84,7 +84,7 @@ class Start extends React.Component<IPageProps, IStartState> {
                         <Button
                             icon="fa-solid fa-plus"
                             text="Create node"
-                            color=""
+                            color="is-primary"
                             onClick={() =>
                                 this.props.tabManager.add({ prefix: "New node" }, "fa-solid fa-square-plus", EPage.Node, { id: null, database: db.database }, new Date().getTime().toString())
                             }
@@ -94,12 +94,12 @@ class Start extends React.Component<IPageProps, IStartState> {
                     <div className="subtitle mb-2">Relationship types</div>
                     <div className="buttons">
                         {this.state.types.length > 0 ? (
-                            <span>
+                            <>
                                 <TypeButton key="all-types" type="*" database={db.database} tabManager={this.props.tabManager} size="is-medium" />
                                 {this.state.types.map(type => (
                                     <TypeButton key={type} type={type} database={db.database} tabManager={this.props.tabManager} size="is-medium" />
                                 ))}
-                            </span>
+                            </>
                         ) : (
                             <span className="has-text-grey-light">none</span>
                         )}
@@ -108,7 +108,7 @@ class Start extends React.Component<IPageProps, IStartState> {
                         <Button
                             icon="fa-solid fa-plus"
                             text="Create relationship"
-                            color=""
+                            color="is-primary"
                             onClick={() =>
                                 this.props.tabManager.add({ prefix: "New relationship" }, "fa-regular fa-square-plus", EPage.Rel, { id: null, database: db.database }, new Date().getTime().toString())
                             }

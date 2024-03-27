@@ -29,7 +29,7 @@ export default class Modal extends React.Component<{
                         <button className="delete" aria-label="close" onClick={this.props.handleClose} />
                     </header>
                     {this.props.children && <section className="modal-card-body">{this.props.children}</section>}
-                    {this.props.buttons && <footer className="modal-card-foot is-justify-content-flex-end">{this.props.buttons}</footer>}
+                    {this.props.buttons && <footer className="modal-card-foot is-justify-content-flex-end buttons">{this.props.buttons}</footer>}
                 </div>
             </div>
         );

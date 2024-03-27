@@ -252,6 +252,13 @@ class Property extends React.Component<{
                             <div className="control">
                                 <PropertyType name={this.props.property.name} selected={(this.props.property.value as t_FormValue[])[0]?.type ?? EPropertyType.String} onTypeChange={this.props.onTypeChange} subtype={true} />
                             </div>
+                            <div className="control">
+                                <ClipboardContext.Consumer>
+                                    {copy =>
+                                        <Button icon="fa-regular fa-copy" onClick={copy} value={JSON.stringify((this.props.property.value as t_FormValue[]).map(v => db.isInt(v.value) ? db.fromInt(v.value) : v.value))}/>
+                                    }
+                                </ClipboardContext.Consumer>
+                            </div>
                         </div>
 
                         {(this.props.property.value as t_FormValue[]).map((v, i) => {
@@ -288,9 +295,23 @@ class Property extends React.Component<{
                     {nameInput}
 
                     <div className="control is-expanded">
-                        <div className="field">
+                        <div className="field is-grouped">
                             <div className="control">
                                 <PropertyType name={this.props.property.name} selected={this.props.property.type} onTypeChange={this.props.onTypeChange} subtype={false} />
+                            </div>
+                            <div className="control">
+                                <ClipboardContext.Consumer>
+                                    {copy =>
+                                        <Button icon="fa-regular fa-copy" onClick={(e) => {
+                                            const obj = {};
+                                            (this.props.property.value as t_FormValue[]).forEach(v => {
+                                                obj[v.key] = db.isInt(v.value) ? db.fromInt(v.value) : v.value;
+                                            });
+                                            e.currentTarget.value = JSON.stringify(obj);
+                                            copy(e);
+                                        }}/>
+                                    }
+                                </ClipboardContext.Consumer>
                             </div>
                         </div>
 

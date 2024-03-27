@@ -5,7 +5,6 @@ import { Driver } from "neo4j-driver";
 import logo from "./assets/logo.png";
 import logo_dark from "./assets/logo_dark.png";
 import { ThemeSwitchContext } from "./utils/contexts";
-import { Ecosystem } from "./utils/enums";
 
 interface ILoginState {
     url: string;
@@ -117,16 +116,11 @@ class Login extends React.Component<ILoginProps, ILoginState> {
                         <form id="login" className="mt-6 box" onSubmit={this.handleSubmit}>
                             <Input label="URL" name="url" onChange={this.handleInputChange} value={this.state.url} />
                             {this.state.mixedContentInfo && (
-                                <div className="help mb-3">
-                                    Not encrypted protocol won't work on encrypted website (https) because of
-                                    <a href="https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content" target="_blank" className="pl-1" referrerPolicy="no-referrer">
-                                        mixed content
-                                    </a>
-                                    . You can run cypherGUI
-                                    <a href="https://github.com/stefanak-michal/cyphergui/blob/master/README.md#local-instance" target="_blank" className="px-1">
-                                        locally
-                                    </a>
-                                    or add certificate to your graph database instance.
+                                <div className="notification is-warning my-3">
+                                    <i className="fa-solid fa-triangle-exclamation mr-1"></i>
+                                    Not encrypted protocol won't work on encrypted website (https) because of <a href="https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content" target="_blank" referrerPolicy="no-referrer">mixed content</a>.
+                                    You can run cypherGUI <a href="https://github.com/stefanak-michal/cyphergui/blob/master/README.md#local-instance" target="_blank">locally</a> or add certificate to your graph database instance.
+                                    Adding certificate is a complex issue and you can read more about it <a href="https://ko-fi.com/post/Neo4j-and-self-signed-certificate-on-Windows-S6S2I0KQT" target="_blank">here</a>.
                                 </div>
                             )}
                             <Input label="Username" name="username" onChange={this.handleInputChange} value={this.state.username} focus={true} />

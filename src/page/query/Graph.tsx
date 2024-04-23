@@ -26,7 +26,15 @@ interface IGraphProps {
     tabManager: ITabManager
 }
 
-class Graph extends React.Component<IGraphProps, {}> {
+interface IGraphState {
+    sidebarVisible: boolean;
+}
+
+class Graph extends React.Component<IGraphProps, IGraphState> {
+    state: IGraphState = {
+        sidebarVisible: true
+    };
+
     graphElement = React.createRef<HTMLDivElement>();
     orb: Orb;
 
@@ -81,7 +89,30 @@ class Graph extends React.Component<IGraphProps, {}> {
 
     render() {
         return (
-            <div className="graph" ref={this.graphElement}>
+            <div className="graph-container is-flex">
+                <div className={"graph " + (this.state.sidebarVisible ? "sidebar-visible" : "")} ref={this.graphElement} />
+
+                {this.state.sidebarVisible &&
+                    <div className="sidebar px-2 py-3">
+                        <div className="header mr-6">
+                            Nejaky nadpis
+                        </div>
+                        <div className="content">
+
+                        </div>
+                    </div>
+                }
+
+                <div className="sidebar-switch-btn">
+                    <Button
+                        icon={"fa-solid " + (this.state.sidebarVisible ? "fa-chevron-right" : "fa-chevron-left")}
+                        color="ml-auto is-small"
+                        onClick={() => {
+                            this.setState({ sidebarVisible: !this.state.sidebarVisible });
+                        }}
+                    />
+                </div>
+
                 <div className="buttons">
                     {document.fullscreenEnabled && (
                         <Button
@@ -105,9 +136,7 @@ class Graph extends React.Component<IGraphProps, {}> {
                     )}
                     <Button icon="fa-solid fa-maximize" onClick={() => this.orb.view.recenter()} color="mr-0" title="Recenter" />
                 </div>
-                <div className="sidebar">
 
-                </div>
                 <div className="brand is-flex is-align-items-center">
                     <span className="is-size-7">Powered by</span>
                     <a href="https://github.com/memgraph/orb" target="_blank" className="ml-1">
@@ -115,7 +144,8 @@ class Graph extends React.Component<IGraphProps, {}> {
                     </a>
                 </div>
             </div>
-        );
+        )
+            ;
     }
 }
 

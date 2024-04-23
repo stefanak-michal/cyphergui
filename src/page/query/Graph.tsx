@@ -105,6 +105,9 @@ class Graph extends React.Component<IGraphProps, {}> {
                     )}
                     <Button icon="fa-solid fa-maximize" onClick={() => this.orb.view.recenter()} color="mr-0" title="Recenter" />
                 </div>
+                <div className="sidebar">
+
+                </div>
                 <div className="brand is-flex is-align-items-center">
                     <span className="is-size-7">Powered by</span>
                     <a href="https://github.com/memgraph/orb" target="_blank" className="ml-1">

@@ -221,11 +221,24 @@ $colors: ("white": (var(--bulma-white), var(--bulma-black)), "black": (var(--bul
 .is-copyable
   cursor: copy !important
 
+@keyframes sidebarSlideOut
+  0%
+    margin-right: 0
+  100%
+    margin-right: -25%
+
+@keyframes sidebarSlideIn
+  0%
+    margin-right: -25%
+  100%
+    margin-right: 0
+
 .graph-container
   border-radius: var(--bulma-radius-large)
   height: 70vh
   position: relative
   border: 1px solid var(--bulma-border)
+  overflow: hidden
   &:fullscreen
     border-radius: 0
     > .graph
@@ -261,11 +274,20 @@ $colors: ("white": (var(--bulma-white), var(--bulma-black)), "black": (var(--bul
     min-width: 200px
     width: 25%
     height: 100%
+    overflow: auto
+    animation-fill-mode: both
+    animation-timing-function: linear
+    animation-duration: .2s
+    &.animate_in
+      animation-name: sidebarSlideIn
+    &.animate_out
+      animation-name: sidebarSlideOut
 
-  > .sidebar-switch-btn
+  .sidebar-switch-btn
     position: absolute
     top: 10px
     right: 10px
+    z-index: 1
 
 .tabs
   box-shadow: var(--bulma-shadow)

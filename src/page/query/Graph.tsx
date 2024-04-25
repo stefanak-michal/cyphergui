@@ -24,7 +24,7 @@ interface IGraphProps {
 }
 
 interface IGraphState {
-    sidebarVisible: boolean;
+    sidebarVisible: number; // 1 - visible, 0 - hidden, 2 - animate in, 3 - animate out
     labels: { [key: string]: number }; // label: amount of nodes with it
     types: { [key: string]: number }; // type: amount of rels with it
     detail: _Node | _Relationship | null;
@@ -32,7 +32,7 @@ interface IGraphState {
 
 class Graph extends React.Component<IGraphProps, IGraphState> {
     state: IGraphState = {
-        sidebarVisible: true,
+        sidebarVisible: 1,
         labels: {},
         types: {},
         detail: null
@@ -122,24 +122,44 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
     render() {
         return (
             <div className="graph-container is-flex" ref={this.graphContainer}>
-                <div className={"graph " + (this.state.sidebarVisible ? "sidebar-visible" : "")} ref={this.graphElement} />
-
-                {this.state.sidebarVisible && <Sidebar
-                    detail={this.state.detail}
-                    labels={this.state.labels}
-                    types={this.state.types} />
-                }
-
-                <div className="sidebar-switch-btn">
-                    <Button
-                        icon={"fa-solid " + (this.state.sidebarVisible ? "fa-chevron-right" : "fa-chevron-left")}
-                        color="ml-auto is-small"
-                        onClick={() => {
-                            setTimeout(() => this.orb.view.recenter(), 100);
-                            this.setState({ sidebarVisible: !this.state.sidebarVisible });
-                        }}
-                    />
+                <div className={"graph " + (this.state.sidebarVisible ? "sidebar-visible" : "")} ref={this.graphElement}>
+                    {/* canvas will be inserted here */}
+                    <div className="sidebar-switch-btn">
+                        <Button
+                            icon={"fa-solid " + ((this.state.sidebarVisible === 1 || this.state.sidebarVisible === 3) ? "fa-chevron-right" : "fa-chevron-left")}
+                            color="ml-auto is-small"
+                            onClick={() => {
+                                if (this.state.sidebarVisible <= 1) {
+                                    this.setState({
+                                        sidebarVisible: this.state.sidebarVisible === 1 ? 3 : 2
+                                    });
+                                }
+                            }}
+                        />
+                    </div>
                 </div>
+
+                {this.state.sidebarVisible > 0 && (
+                    <div className={"sidebar px-2 py-3 "
+                        + (this.state.sidebarVisible === 3 ? "animate_out" : "")
+                        + (this.state.sidebarVisible === 2 ? "animate_in" : "")
+                        } onAnimationEnd={() => {
+                            this.setState({
+                                sidebarVisible: this.state.sidebarVisible === 3 ? 0 : 1
+                            });
+                            setTimeout(() => this.orb.view.recenter(), 100);
+                    }}>
+                        <div className="header has-text-weight-bold mr-6 mb-3">{
+                            this.state.detail === null ? "Overview" : (this.state.detail instanceof _Node ? "Node" : "Relationship")
+                        }</div>
+                        <div className="content">
+                            <SidebarContent
+                                detail={this.state.detail}
+                                labels={this.state.labels}
+                                types={this.state.types} />
+                        </div>
+                    </div>
+                )}
 
                 <div className="buttons">
                     {document.fullscreenEnabled && (
@@ -180,67 +200,58 @@ interface ISidebarProps {
     types: { [key: string]: number };
 }
 
-class Sidebar extends React.Component<ISidebarProps, {}> {
+class SidebarContent extends React.Component<ISidebarProps, {}> {
     render() {
         if (this.props.detail === null) {
             //todo onclick option to change color and text size
             return (
-                <div className="sidebar px-2 py-3">
-                    <div className="header has-text-weight-bold mr-6 mb-3">Overview</div>
-                    <div className="content">
-                        {Object.keys(this.props.labels).length > 0 && (
-                            <>
-                                <div>Node Labels</div>
-                                <span className="buttons">
-                                    {Object.keys(this.props.labels).map(label => (
-                                        <Button
-                                            color={"tag is-link is-rounded px-2 "}
-                                            // onClick={() => }
-                                            text={":" + label + " (" + this.props.labels[label] + ")"}
-                                        />
-                                    ))}
-                                </span>
-                            </>
-                        )}
+                <>
+                    {Object.keys(this.props.labels).length > 0 && (
+                        <>
+                            <div>Node Labels</div>
+                            <span className="buttons">
+                                {Object.keys(this.props.labels).map(label => (
+                                    <Button
+                                        color={"tag is-link is-rounded px-2 "}
+                                        // onClick={() => }
+                                        text={":" + label + " (" + this.props.labels[label] + ")"}
+                                    />
+                                ))}
+                            </span>
+                        </>
+                    )}
 
-                        {Object.keys(this.props.types).length > 0 && (
-                            <>
-                                <div>Relationship Types</div>
-                                <span className="buttons">
-                                    {Object.keys(this.props.types).map(type => (
-                                        <Button
-                                            color={"tag is-info is-rounded px-2 has-text-white "}
-                                            // onClick={() => }
-                                            text={":" + type + " (" + this.props.types[type] + ")"}
-                                        />
-                                    ))}
-                                </span>
-                            </>
-                        )}
-                    </div>
-                </div>
+                    {Object.keys(this.props.types).length > 0 && (
+                        <>
+                            <div>Relationship Types</div>
+                            <span className="buttons">
+                                {Object.keys(this.props.types).map(type => (
+                                    <Button
+                                        color={"tag is-info is-rounded px-2 has-text-white "}
+                                        // onClick={() => }
+                                        text={":" + type + " (" + this.props.types[type] + ")"}
+                                    />
+                                ))}
+                            </span>
+                        </>
+                    )}
+                </>
             );
         }
 
         if (this.props.detail instanceof _Node) {
             //todo stash button, labels (LabelButton?) and properties
             return (
-                <div className="sidebar px-2 py-3">
-                    <div className="header has-text-weight-bold mr-6 mb-3">Node</div>
-                    <div className="content">
-                    </div>
-                </div>
+                <>
+                </>
             );
         }
 
         if (this.props.detail instanceof _Relationship) {
             //todo similar to _Node
             return (
-                <div className="sidebar px-2 py-3">
-                    <div className="header has-text-weight-bold mr-6 mb-3">Relationship</div>
-                    <div className="content">
-                    </div>
-                </div>
+                <>
+                </>
             );
         }
 

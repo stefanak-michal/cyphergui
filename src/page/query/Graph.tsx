@@ -27,7 +27,7 @@ interface IGraphState {
     sidebarVisible: number; // 1 - visible, 0 - hidden, 2 - animate in, 3 - animate out
     labels: { [key: string]: number }; // label: amount of nodes with it
     types: { [key: string]: number }; // type: amount of rels with it
-    detail: _Node | _Relationship | null;
+    detail: _Node | _Relationship | null; // clicked node/rel to see details in sidebar
 }
 
 class Graph extends React.Component<IGraphProps, IGraphState> {
@@ -41,7 +41,12 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
     graphContainer = React.createRef<HTMLDivElement>();
     graphElement = React.createRef<HTMLDivElement>();
     orb: Orb;
-    collection: { [identity: string]: _Node | _Relationship } = {};
+
+    // Collected unique map of Nodes and Relationships from result rows
+    collection: {
+        nodes: { [identity: string]: _Node },
+        rels: { [identity: string]: _Relationship }
+    } = { nodes: {}, rels: {} };
 
     componentDidMount() {
         this.initGraphView();
@@ -56,13 +61,13 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
 
             this.orb.events.on(OrbEventType.NODE_CLICK, event => {
                 this.setState({
-                    detail: this.collection[event.node.data.id] || null
+                    detail: this.collection.nodes[event.node.data.id] || null
                 });
             });
 
             this.orb.events.on(OrbEventType.EDGE_CLICK, event => {
                 this.setState({
-                    detail: this.collection[event.edge.data.id] || null
+                    detail: this.collection.rels[event.edge.data.id] || null
                 });
             });
 
@@ -83,27 +88,33 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
             for (let key of row.keys) {
                 const value = row.get(key);
                 if (value instanceof _Node && !nodes.find(n => n.id === db.strInt(value.identity))) {
+                    //prepare data for orb
                     nodes.push({
                         id: db.strInt(value.identity),
                         label: ":" + value.labels.join(":")
                     });
+                    //collect labels with counts
                     value.labels.forEach(label => {
                         if (!(label in labels))
                             labels[label] = 0;
                         labels[label]++;
                     });
-                    this.collection[db.strInt(value.identity)] = value;
+                    //add node to collection
+                    this.collection.nodes[db.strInt(value.identity)] = value;
                 } else if (value instanceof _Relationship && !edges.find(e => e.id === db.strInt(value.identity))) {
+                    //prepare data for orb
                     edges.push({
                         id: db.strInt(value.identity),
                         start: db.strInt(value.start),
                         end: db.strInt(value.end),
                         label: ":" + value.type
                     });
+                    //collect type with count
                     if (!(value.type in types))
                         types[value.type] = 0;
                     types[value.type]++;
-                    this.collection[db.strInt(value.identity)] = value;
+                    //add relationship to collection
+                    this.collection.rels[db.strInt(value.identity)] = value;
                 }
             }
         });
@@ -119,22 +130,24 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
         });
     };
 
+    sidebarSwitchBtn = () => {
+        if (this.state.sidebarVisible <= 1) {
+            this.setState(state => {
+                return { sidebarVisible: state.sidebarVisible === 1 ? 3 : 2 };
+            });
+        }
+    }
+
     render() {
         return (
             <div className="graph-container is-flex" ref={this.graphContainer}>
-                <div className={"graph " + (this.state.sidebarVisible ? "sidebar-visible" : "")} ref={this.graphElement}>
+                <div className={"graph " + (this.state.sidebarVisible > 0 ? "sidebar-visible" : "")} ref={this.graphElement}>
                     {/* canvas will be inserted here */}
                     <div className="sidebar-switch-btn">
                         <Button
-                            icon={"fa-solid " + ((this.state.sidebarVisible === 1 || this.state.sidebarVisible === 3) ? "fa-chevron-right" : "fa-chevron-left")}
+                            icon={"fa-solid " + (this.state.sidebarVisible % 2 === 1 ? "fa-chevron-right" : "fa-chevron-left")}
                             color="ml-auto is-small"
-                            onClick={() => {
-                                if (this.state.sidebarVisible <= 1) {
-                                    this.setState({
-                                        sidebarVisible: this.state.sidebarVisible === 1 ? 3 : 2
-                                    });
-                                }
-                            }}
+                            onClick={this.sidebarSwitchBtn}
                         />
                     </div>
                 </div>
@@ -144,13 +157,13 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
                         + (this.state.sidebarVisible === 3 ? "animate_out" : "")
                         + (this.state.sidebarVisible === 2 ? "animate_in" : "")
                         } onAnimationEnd={() => {
-                            this.setState({
-                                sidebarVisible: this.state.sidebarVisible === 3 ? 0 : 1
+                            this.setState(state => {
+                                return { sidebarVisible: state.sidebarVisible === 3 ? 0 : 1 };
                             });
                             setTimeout(() => this.orb.view.recenter(), 100);
                     }}>
                         <div className="header has-text-weight-bold mr-6 mb-3">{
-                            this.state.detail === null ? "Overview" : (this.state.detail instanceof _Node ? "Node" : "Relationship")
+                            this.state.detail instanceof _Node ? "Node" : (this.state.detail instanceof _Relationship ? "Relationship" : "Overview")
                         }</div>
                         <div className="content">
                             <SidebarContent

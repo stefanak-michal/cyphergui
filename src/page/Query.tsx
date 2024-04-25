@@ -243,17 +243,17 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                     </div>
                 </div>
 
-                {this.state.view === EQueryView.Table && this.state.rows.length && <Table
+                {this.state.view === EQueryView.Table && this.state.rows.length > 0 && <Table
                     keys={this.state.keys}
                     rows={this.state.rows}
                     tableSize={this.state.tableSize}
                     tabManager={this.props.tabManager} />}
 
-                {this.state.view === EQueryView.Graph && this.state.rows.length && <Graph
+                {this.state.view === EQueryView.Graph && this.state.rows.length > 0 && <Graph
                     rows={this.state.rows}
                     tabManager={this.props.tabManager} />}
 
-                {this.state.view === EQueryView.JSON && this.state.rows.length && <Json rows={this.state.rows} />}
+                {this.state.view === EQueryView.JSON && this.state.rows.length > 0 && <Json rows={this.state.rows} />}
 
                 {this.state.view === EQueryView.Summary && this.state.summary && <Summary summary={this.state.summary} />}
 

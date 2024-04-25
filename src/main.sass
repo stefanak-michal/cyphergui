@@ -226,14 +226,16 @@ $colors: ("white": (var(--bulma-white), var(--bulma-black)), "black": (var(--bul
   height: 70vh
   position: relative
   border: 1px solid var(--bulma-border)
+  &:fullscreen
+    border-radius: 0
+    > .graph
+      border-radius: 0 !important
 
   > .graph
     box-shadow: inset var(--bulma-shadow)
     width: auto
     height: 100%
     border-radius: var(--bulma-radius-large)
-    &:fullscreen
-      border-radius: 0
     &.sidebar-visible
       border-top-right-radius: 0
       border-bottom-right-radius: 0
@@ -315,3 +317,6 @@ $colors: ("white": (var(--bulma-white), var(--bulma-black)), "black": (var(--bul
 
 .box
   margin-bottom: var(--bulma-block-spacing)
+
+:not(:root):fullscreen::backdrop
+  background: var(--bulma-scheme-main)

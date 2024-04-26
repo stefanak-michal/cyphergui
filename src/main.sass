@@ -367,3 +367,19 @@ $colors: ("white": (var(--bulma-white), var(--bulma-black)), "black": (var(--bul
 
 :not(:root):fullscreen::backdrop
   background: var(--bulma-scheme-main)
+
+input[type=range].slider
+  height: var(--bulma-control-height)
+  &.is-fullwidth
+    display: block
+    width: 100%
+
+.icon
+  &.is-small i
+    font-size: .5rem
+  &.r-90 i
+    transform: rotateZ(90deg)
+  &.r-180 i
+    transform: rotateZ(180deg)
+  &.r-270 i
+    transform: rotateZ(270deg)

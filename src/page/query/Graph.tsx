@@ -1,11 +1,13 @@
 import * as React from "react";
-import { IEdgeBase, INodeBase, INodeStyle, IEdgeStyle, NodeShapeType, Orb, OrbEventType } from "@memgraph/orb";
+import { IEdgeBase, IEdgeStyle, INodeBase, INodeStyle, NodeShapeType, Orb, OrbEventType } from "@memgraph/orb";
 import db from "../../db";
 import { Node as _Node, Record, Relationship as _Relationship } from "neo4j-driver";
 import { Button } from "../../components/form";
 import orb_logo from "../../assets/orb_logo.png";
+import hexagon_icon from "../../assets/hexagon_icon.png";
 import { ITabManager } from "../../utils/interfaces";
 import { settings } from "../../layout/Settings";
+import Modal from "../../components/Modal";
 
 const COLORS = ['#604A0E', '#C990C0', '#F79767', '#57C7E3', '#F16667', '#D9C8AE', '#8DCC93', '#ECB5C9', '#4C8EDA', '#FFC454', '#DA7194', '#569480'];
 
@@ -39,6 +41,9 @@ interface IGraphState {
     labels: { [key: string]: number }; // label: amount of nodes with it
     types: { [key: string]: number }; // type: amount of rels with it
     detail: _Node | _Relationship | null; // clicked node/rel to see details in sidebar
+    labelModal: string|null;
+    typeModal: string|null;
+    orbSettings: IOrbSettings;
 }
 
 class Graph extends React.Component<IGraphProps, IGraphState> {
@@ -46,19 +51,18 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
         sidebarVisible: 1,
         labels: {},
         types: {},
-        detail: null
+        detail: null,
+        labelModal: null,
+        typeModal: null,
+        orbSettings: Object.assign(
+            sessionStorage.getItem("orbSettings") ? JSON.parse(sessionStorage.getItem("orbSettings")) : {},
+            { labelStyles: {} }
+        )
     };
 
     graphContainer = React.createRef<HTMLDivElement>();
     graphElement = React.createRef<HTMLDivElement>();
     orb: Orb;
-
-    // todo use sessionStorage to hold these settings
-    // https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage
-    orbSettings: IOrbSettings = {
-        labelStyles: {},
-        // typeStyles: {}
-    };
 
     componentDidMount() {
         this.initGraphView();
@@ -115,22 +119,29 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
         this.orb.data.setup({ nodes, edges });
 
         //remove unused labels
-        Object.keys(this.orbSettings.labelStyles).forEach(label => {
+        const tmpOrbSettings: IOrbSettings = Object.assign({}, this.state.orbSettings);
+        Object.keys(tmpOrbSettings.labelStyles).forEach(label => {
             if (!(label in labels))
-                delete labels[label];
+                delete tmpOrbSettings[label];
         });
         //define missing styles for labels
         Object.keys(labels).forEach((label, i) => {
-            if (!(label in this.orbSettings.labelStyles)) {
-                this.orbSettings.labelStyles[label] = {
-                    color: COLORS[i]
+            if (!(label in tmpOrbSettings.labelStyles)) {
+                tmpOrbSettings.labelStyles[label] = {
+                    color: COLORS[i],
+                    shape: NodeShapeType.CIRCLE
                 };
             }
         });
         //apply label styles
         this.orb.data.getNodes().forEach(node => {
-            node.style.color = this.orbSettings.labelStyles[node.data.element.labels[0]].color;
+            node.style.color = tmpOrbSettings.labelStyles[node.data.element.labels[0]].color;
         });
+
+        this.setState({
+            orbSettings: tmpOrbSettings
+        });
+        sessionStorage.setItem('orbSettings', JSON.stringify(tmpOrbSettings))
 
         this.orb.view.setSettings({
             render: {
@@ -203,6 +214,37 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
         }
     }
 
+    fullscreenSwitchBtn = () => {
+        if (document.fullscreenElement === null) {
+            this.graphContainer.current.requestFullscreen().then(() => {
+                setTimeout(() => this.orb.view.recenter(), 100);
+            });
+        } else {
+            document.exitFullscreen().then(() => {
+                setTimeout(() => this.orb.view.recenter(), 100);
+            });
+        }
+    }
+
+    updateOrbSettingsLabelStyle = (label: string, property: string, value: any) => {
+        this.setState(state => {
+            return {
+                orbSettings: Object.assign(state.orbSettings, {
+                    labelStyles: {
+                        [label]: {
+                            [property]: value
+                        }
+                    }
+                })
+            };
+        });
+        this.orb.data.getNodes().forEach(node => {
+            if (node.data.element.labels[0] === label)
+                node.style[property] = value;
+            this.orb.view.render();
+        });
+    }
+
     render() {
         return (
             <div className="graph-container is-flex" ref={this.graphContainer}>
@@ -235,7 +277,8 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
                                 detail={this.state.detail}
                                 labels={this.state.labels}
                                 types={this.state.types}
-                                orbSettings={this.orbSettings} />
+                                labelClick={(label: string) => this.setState({ labelModal: label })}
+                                orbSettings={this.state.orbSettings} />
                         </div>
                     </div>
                 )}
@@ -245,17 +288,7 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
                         <Button
                             icon={"fa-solid " + (document.fullscreenElement === null ? "fa-expand" : "fa-compress")}
                             color="mr-0"
-                            onClick={() => {
-                                if (document.fullscreenElement === null) {
-                                    this.graphContainer.current.requestFullscreen().then(() => {
-                                        setTimeout(() => this.orb.view.recenter(), 100);
-                                    });
-                                } else {
-                                    document.exitFullscreen().then(() => {
-                                        setTimeout(() => this.orb.view.recenter(), 100);
-                                    });
-                                }
-                            }}
+                            onClick={this.fullscreenSwitchBtn}
                             title="Fullscreen"
                         />
                     )}
@@ -268,6 +301,16 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
                         <img src={orb_logo} alt="ORB" />
                     </a>
                 </div>
+
+                {this.state.labelModal && <LabelModal
+                    label={this.state.labelModal}
+                    currentSettings={this.state.orbSettings.labelStyles[this.state.labelModal]}
+                    handleClose={() => this.setState({labelModal: null})}
+                    handleColor={(label: string, color: string) => this.updateOrbSettingsLabelStyle(label, 'color', color)}
+                    handleSize={(label: string, size: number) => this.updateOrbSettingsLabelStyle(label, 'size', size)}
+                    handleFontSize={(label: string, size: number) => this.updateOrbSettingsLabelStyle(label, 'fontSize', size)}
+                    handleShape={(label: string, shape: NodeShapeType) => this.updateOrbSettingsLabelStyle(label, 'shape', shape)}
+                />}
             </div>
         );
     }
@@ -277,13 +320,13 @@ interface ISidebarProps {
     detail: _Node | _Relationship | null;
     labels: { [key: string]: number };
     types: { [key: string]: number };
-    orbSettings: IOrbSettings
+    labelClick: (label: string) => void;
+    orbSettings: IOrbSettings;
 }
 
 class SidebarContent extends React.Component<ISidebarProps, {}> {
     render() {
         if (this.props.detail === null) {
-            //todo onclick option to change color and text size
             return (
                 <>
                     {Object.keys(this.props.labels).length > 0 && (
@@ -293,8 +336,10 @@ class SidebarContent extends React.Component<ISidebarProps, {}> {
                                 {Object.keys(this.props.labels).map(label => (
                                     <Button
                                         color={"tag is-link is-rounded px-2 c"
-                                            + COLORS.indexOf(this.props.orbSettings.labelStyles[label].color as string) }
-                                        // onClick={() => }
+                                            + (label in this.props.orbSettings.labelStyles
+                                                ? COLORS.indexOf(this.props.orbSettings.labelStyles[label].color as string)
+                                                : '0') }
+                                        onClick={() => this.props.labelClick(label)}
                                         text={":" + label + " (" + this.props.labels[label] + ")"}
                                     />
                                 ))}
@@ -337,6 +382,75 @@ class SidebarContent extends React.Component<ISidebarProps, {}> {
         }
 
         return undefined;
+    }
+}
+
+interface ILabelModalProps {
+    label: string;
+    currentSettings: INodeStyle;
+    handleClose: () => void;
+    handleColor: (label: string, color: string) => void;
+    handleSize: (label: string, size: number) => void;
+    handleFontSize: (label: string, size: number) => void;
+    handleShape: (label: string, shape: NodeShapeType) => void;
+}
+
+class LabelModal extends React.Component<ILabelModalProps, {}> {
+    render() {
+        return (
+            <Modal
+                title={"Set style of label :" + this.props.label}
+                backdrop={true}
+                handleClose={this.props.handleClose}>
+                <div className="field">
+                    <label className="label">Color:</label>
+                    <div className="control buttons">
+                        {COLORS.map((color, i) => <Button
+                            color={"is-small c" + i + (this.props.currentSettings.color === color ? ' is-focused' : '')}
+                            text="&nbsp;"
+                            onClick={() => this.props.handleColor(this.props.label, color)} />)}
+                    </div>
+                </div>
+                <div className="field">
+                    <label className="label">Size:</label>
+                    <div className="control">
+                        <input className="slider is-fullwidth" type="range" min="1" max="10" step="1" value={this.props.currentSettings.size ?? 5}
+                               onChange={(e) => this.props.handleSize(this.props.label, e.currentTarget.valueAsNumber)} />
+                    </div>
+                </div>
+                <div className="field">
+                    <label className="label">Font size:</label>
+                    <div className="control">
+                        <input className="slider is-fullwidth" type="range" min="0" max="10" step="1" value={this.props.currentSettings.fontSize ?? 4}
+                               onChange={(e) => this.props.handleFontSize(this.props.label, e.currentTarget.valueAsNumber)} />
+                    </div>
+                </div>
+                <div className="field">
+                    <label className="label">Shape:</label>
+                    <div className="control buttons has-addons">
+                        <Button icon="fa-solid fa-circle" color={this.props.currentSettings.shape === NodeShapeType.CIRCLE ? 'is-active' : ''} onClick={() => this.props.handleShape(this.props.label, NodeShapeType.CIRCLE)} />
+                        <Button icon="fa-solid fa-square" color={this.props.currentSettings.shape === NodeShapeType.SQUARE ? 'is-active' : ''} onClick={() => this.props.handleShape(this.props.label, NodeShapeType.SQUARE)} />
+                        <Button icon="fa-solid fa-diamond" color={this.props.currentSettings.shape === NodeShapeType.DIAMOND ? 'is-active' : ''} onClick={() => this.props.handleShape(this.props.label, NodeShapeType.DIAMOND)} />
+                        <Button color={this.props.currentSettings.shape === NodeShapeType.TRIANGLE ? 'is-active' : ''} onClick={() => this.props.handleShape(this.props.label, NodeShapeType.TRIANGLE)}>
+                            <span className="icon r-270">
+                                <i className="fa-solid fa-play" />
+                            </span>
+                        </Button>
+                        <Button color={this.props.currentSettings.shape === NodeShapeType.TRIANGLE_DOWN ? 'is-active' : ''} onClick={() => this.props.handleShape(this.props.label, NodeShapeType.TRIANGLE_DOWN)}>
+                            <span className="icon r-90">
+                                <i className="fa-solid fa-play" />
+                            </span>
+                        </Button>
+                        <Button icon="fa-solid fa-star" color={this.props.currentSettings.shape === NodeShapeType.STAR ? 'is-active' : ''} onClick={() => this.props.handleShape(this.props.label, NodeShapeType.STAR)} />
+                        <Button color={this.props.currentSettings.shape === NodeShapeType.HEXAGON ? 'is-active' : ''} onClick={() => this.props.handleShape(this.props.label, NodeShapeType.HEXAGON)}>
+                            <span className="icon">
+                            <img src={hexagon_icon} alt="hexagon" />
+                                </span>
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+        );
     }
 }
 

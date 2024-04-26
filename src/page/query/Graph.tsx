@@ -1,21 +1,32 @@
 import * as React from "react";
-import { Orb, OrbEventType } from "@memgraph/orb";
+import { IEdgeBase, INodeBase, INodeStyle, IEdgeStyle, NodeShapeType, Orb, OrbEventType } from "@memgraph/orb";
 import db from "../../db";
 import { Node as _Node, Record, Relationship as _Relationship } from "neo4j-driver";
 import { Button } from "../../components/form";
 import orb_logo from "../../assets/orb_logo.png";
 import { ITabManager } from "../../utils/interfaces";
+import { settings } from "../../layout/Settings";
 
-interface MyNode {
+const COLORS = ['#604A0E', '#C990C0', '#F79767', '#57C7E3', '#F16667', '#D9C8AE', '#8DCC93', '#ECB5C9', '#4C8EDA', '#FFC454', '#DA7194', '#569480'];
+
+interface MyNode extends INodeBase {
     id: string;
     label: string;
+    element: _Node;
 }
 
-interface MyEdge {
+interface MyEdge extends IEdgeBase {
     id: string;
     label: string;
     start: any;
     end: any;
+    element: _Relationship;
+}
+
+interface IOrbSettings {
+    labelStyles: {
+        [label: string]: INodeStyle
+    }
 }
 
 interface IGraphProps {
@@ -42,11 +53,12 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
     graphElement = React.createRef<HTMLDivElement>();
     orb: Orb;
 
-    // Collected unique map of Nodes and Relationships from result rows
-    collection: {
-        nodes: { [identity: string]: _Node },
-        rels: { [identity: string]: _Relationship }
-    } = { nodes: {}, rels: {} };
+    // todo use sessionStorage to hold these settings
+    // https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage
+    orbSettings: IOrbSettings = {
+        labelStyles: {},
+        // typeStyles: {}
+    };
 
     componentDidMount() {
         this.initGraphView();
@@ -56,29 +68,7 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
         const current = this.graphElement.current;
         if (!current) return;
 
-        if (!this.orb) {
-            this.orb = new Orb<MyNode, MyEdge>(current);
-
-            this.orb.events.on(OrbEventType.NODE_CLICK, event => {
-                this.setState({
-                    detail: this.collection.nodes[event.node.data.id] || null
-                });
-            });
-
-            this.orb.events.on(OrbEventType.EDGE_CLICK, event => {
-                this.setState({
-                    detail: this.collection.rels[event.edge.data.id] || null
-                });
-            });
-
-            this.orb.events.on(OrbEventType.MOUSE_CLICK, event => {
-                if (!event.subject) {
-                    this.setState({
-                        detail: null
-                    });
-                }
-            })
-        }
+        this.initializeOrb();
 
         const nodes: MyNode[] = [];
         const edges: MyEdge[] = [];
@@ -91,7 +81,8 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
                     //prepare data for orb
                     nodes.push({
                         id: db.strInt(value.identity),
-                        label: ":" + value.labels.join(":")
+                        label: ":" + value.labels.join(":"),
+                        element: value
                     });
                     //collect labels with counts
                     value.labels.forEach(label => {
@@ -99,22 +90,19 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
                             labels[label] = 0;
                         labels[label]++;
                     });
-                    //add node to collection
-                    this.collection.nodes[db.strInt(value.identity)] = value;
                 } else if (value instanceof _Relationship && !edges.find(e => e.id === db.strInt(value.identity))) {
                     //prepare data for orb
                     edges.push({
                         id: db.strInt(value.identity),
                         start: db.strInt(value.start),
                         end: db.strInt(value.end),
-                        label: ":" + value.type
+                        label: ":" + value.type,
+                        element: value
                     });
                     //collect type with count
                     if (!(value.type in types))
                         types[value.type] = 0;
                     types[value.type]++;
-                    //add relationship to collection
-                    this.collection.rels[db.strInt(value.identity)] = value;
                 }
             }
         });
@@ -125,10 +113,87 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
         });
 
         this.orb.data.setup({ nodes, edges });
+
+        //remove unused labels
+        Object.keys(this.orbSettings.labelStyles).forEach(label => {
+            if (!(label in labels))
+                delete labels[label];
+        });
+        //define missing styles for labels
+        Object.keys(labels).forEach((label, i) => {
+            if (!(label in this.orbSettings.labelStyles)) {
+                this.orbSettings.labelStyles[label] = {
+                    color: COLORS[i]
+                };
+            }
+        });
+        //apply label styles
+        this.orb.data.getNodes().forEach(node => {
+            node.style.color = this.orbSettings.labelStyles[node.data.element.labels[0]].color;
+        });
+
+        this.orb.view.setSettings({
+            render: {
+                shadowIsEnabled: false,
+                shadowOnEventIsEnabled: true
+            }
+        });
         this.orb.view.render(() => {
             this.orb.view.recenter();
         });
     };
+
+    initializeOrb = () => {
+        if (!this.orb) {
+            this.orb = new Orb<MyNode, MyEdge>(this.graphElement.current);
+            this.orb.data.setDefaultStyle({
+                getNodeStyle(node): INodeStyle {
+                    return {
+                        size: 5,
+                        color: '#1d87c9',
+                        fontSize: 4,
+                        fontColor: settings().darkMode ? 'white' : 'black',
+                        shape: NodeShapeType.CIRCLE,
+                        fontFamily: 'Inter, Helvetica, Arial, sans-serif',
+                        label: node.data.label,
+                        shadowSize: 5,
+                        shadowColor: 'black'
+                    };
+                },
+                getEdgeStyle(edge): IEdgeStyle {
+                    return {
+                        color: '#ababab',
+                        width: 0.3,
+                        fontSize: 4,
+                        arrowSize: 1,
+                        fontColor: settings().darkMode ? 'white' : 'black',
+                        fontFamily: 'Inter, Helvetica, Arial, sans-serif',
+                        label: edge.data.label,
+                    };
+                }
+            });
+
+            this.orb.events.on(OrbEventType.NODE_CLICK, event => {
+                this.setState({
+                    detail: event.node.data.element
+                });
+            });
+
+            this.orb.events.on(OrbEventType.EDGE_CLICK, event => {
+                this.setState({
+                    detail: event.edge.data.element
+                });
+            });
+
+            this.orb.events.on(OrbEventType.MOUSE_CLICK, event => {
+                if (!event.subject) {
+                    this.setState({
+                        detail: null
+                    });
+                }
+            })
+        }
+    }
 
     sidebarSwitchBtn = () => {
         if (this.state.sidebarVisible <= 1) {
@@ -162,14 +227,15 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
                             });
                             setTimeout(() => this.orb.view.recenter(), 100);
                     }}>
-                        <div className="header has-text-weight-bold mr-6 mb-3">{
-                            this.state.detail instanceof _Node ? "Node" : (this.state.detail instanceof _Relationship ? "Relationship" : "Overview")
-                        }</div>
+                        <div className="header has-text-weight-bold mb-3">
+                            {this.state.detail instanceof _Node ? "Node" : (this.state.detail instanceof _Relationship ? "Relationship" : "Overview")}
+                        </div>
                         <div className="content">
                             <SidebarContent
                                 detail={this.state.detail}
                                 labels={this.state.labels}
-                                types={this.state.types} />
+                                types={this.state.types}
+                                orbSettings={this.orbSettings} />
                         </div>
                     </div>
                 )}
@@ -211,6 +277,7 @@ interface ISidebarProps {
     detail: _Node | _Relationship | null;
     labels: { [key: string]: number };
     types: { [key: string]: number };
+    orbSettings: IOrbSettings
 }
 
 class SidebarContent extends React.Component<ISidebarProps, {}> {
@@ -225,7 +292,8 @@ class SidebarContent extends React.Component<ISidebarProps, {}> {
                             <span className="buttons">
                                 {Object.keys(this.props.labels).map(label => (
                                     <Button
-                                        color={"tag is-link is-rounded px-2 "}
+                                        color={"tag is-link is-rounded px-2 c"
+                                            + COLORS.indexOf(this.props.orbSettings.labelStyles[label].color as string) }
                                         // onClick={() => }
                                         text={":" + label + " (" + this.props.labels[label] + ")"}
                                     />

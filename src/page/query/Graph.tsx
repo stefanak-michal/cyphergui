@@ -8,7 +8,9 @@ import { ITabManager } from "../../utils/interfaces";
 import { settings } from "../../layout/Settings";
 import NodeStyleModal from "./graph/NodeStyleModal";
 import SidebarContent from "./graph/SidebarContent";
+import EdgeStyleModal from "./graph/EdgeStyleModal";
 
+//todo solve if there is more labels than color
 const COLORS = ['#604A0E', '#C990C0', '#F79767', '#57C7E3', '#F16667', '#D9C8AE', '#8DCC93', '#ECB5C9', '#4C8EDA', '#FFC454', '#DA7194', '#569480'];
 
 interface MyNode extends INodeBase {
@@ -38,7 +40,7 @@ interface IGraphState {
     types: { [key: string]: number }; // type: amount of rels with it
     detail: _Node | _Relationship | null; // clicked node/rel to see details in sidebar
     nodeStyleModal: string|null;
-    typeModal: string|null;
+    edgeStyleModal: string|null;
     nodeStyles: IStyle;
     edgeStyles: IStyle;
 }
@@ -50,9 +52,9 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
         types: {},
         detail: null,
         nodeStyleModal: null,
-        typeModal: null,
+        edgeStyleModal: null,
         nodeStyles: sessionStorage.getItem("nodeStyles") ? JSON.parse(sessionStorage.getItem("nodeStyles")) : {},
-        edgeStyles: {}
+        edgeStyles: sessionStorage.getItem("edgeStyles") ? JSON.parse(sessionStorage.getItem("edgeStyles")) : {},
     };
 
     graphContainer = React.createRef<HTMLDivElement>();
@@ -110,47 +112,8 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
         });
 
         this.orb.data.setup({ nodes, edges });
-
-        //remove unused styles
-        const tmpNodeStyles = {...this.state.nodeStyles};
-        Object.keys(tmpNodeStyles).forEach(label => {
-            if (!(label in labels))
-                delete tmpNodeStyles[label];
-        });
-        //define missing styles for labels
-        Object.keys(labels).forEach((label, i) => {
-            if (!(label in tmpNodeStyles)) {
-                tmpNodeStyles[label] = {
-                    color: COLORS[i]
-                };
-            } else if (!('color' in tmpNodeStyles[label])) {
-                tmpNodeStyles[label].color = COLORS[i];
-            }
-        });
-        //apply label styles
-        this.orb.data.getNodes().forEach(node => {
-            node.style.color = tmpNodeStyles[node.data.element.labels[0]].color;
-            if ('shape' in tmpNodeStyles[node.data.element.labels[0]])
-                node.style.shape = tmpNodeStyles[node.data.element.labels[0]].shape;
-            if ('size' in tmpNodeStyles[node.data.element.labels[0]])
-                node.style.size = tmpNodeStyles[node.data.element.labels[0]].size;
-            if ('fontSize' in tmpNodeStyles[node.data.element.labels[0]])
-                node.style.fontSize = tmpNodeStyles[node.data.element.labels[0]].fontSize;
-
-            if ('label' in tmpNodeStyles[node.data.element.labels[0]]) {
-                if (tmpNodeStyles[node.data.element.labels[0]].label in node.data.element.properties)
-                    node.style.label = node.data.element.properties[tmpNodeStyles[node.data.element.labels[0]].label];
-                else if (tmpNodeStyles[node.data.element.labels[0]].label === '#id')
-                    node.style.label = node.data.id;
-                else
-                    node.style.label = node.data.label;
-            }
-        });
-
-        this.setState({
-            nodeStyles: tmpNodeStyles
-        });
-        sessionStorage.setItem('nodeStyles', JSON.stringify(tmpNodeStyles))
+        this.applyNodeStyles(Object.keys(labels));
+        this.applyEdgeStyles(Object.keys(types));
 
         this.orb.view.setSettings({
             render: {
@@ -177,8 +140,8 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
                         shape: NodeShapeType.CIRCLE,
                         fontFamily: 'Inter, Helvetica, Arial, sans-serif',
                         label: node.data.label,
-                        shadowSize: 5,
-                        shadowColor: 'black'
+                        shadowSize: 2,
+                        shadowColor: '#8c8c8c',
                     };
                 },
                 getEdgeStyle(edge): IEdgeStyle {
@@ -190,30 +153,102 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
                         fontColor: settings().darkMode ? 'white' : 'black',
                         fontFamily: 'Inter, Helvetica, Arial, sans-serif',
                         label: edge.data.label,
+                        shadowSize: 2,
+                        shadowColor: '#8c8c8c'
                     };
                 }
             });
 
-            this.orb.events.on(OrbEventType.NODE_CLICK, event => {
-                this.setState({
-                    detail: event.node.data.element
-                });
-            });
-
-            this.orb.events.on(OrbEventType.EDGE_CLICK, event => {
-                this.setState({
-                    detail: event.edge.data.element
-                });
-            });
-
             this.orb.events.on(OrbEventType.MOUSE_CLICK, event => {
-                if (!event.subject) {
-                    this.setState({
-                        detail: null
-                    });
-                }
-            })
+                this.setState({
+                    detail: typeof event.subject === 'undefined' ? null : event.subject.data.element
+                });
+            });
         }
+    }
+
+    applyNodeStyles = (labels: string[]) => {
+        const tmpNodeStyles = {...this.state.nodeStyles};
+        //remove unused styles
+        Object.keys(tmpNodeStyles).forEach(label => {
+            if (!labels.includes(label))
+                delete tmpNodeStyles[label];
+        });
+        //define missing styles for labels
+        labels.forEach((label, i) => {
+            if (!(label in tmpNodeStyles)) {
+                tmpNodeStyles[label] = {
+                    color: COLORS[i]
+                };
+            } else if (!('color' in tmpNodeStyles[label])) {
+                tmpNodeStyles[label].color = COLORS[i];
+            }
+        });
+        
+        //apply label styles
+        this.orb.data.getNodes().forEach(node => {
+            node.style.color = tmpNodeStyles[node.data.element.labels[0]].color;
+            if ('shape' in tmpNodeStyles[node.data.element.labels[0]])
+                node.style.shape = tmpNodeStyles[node.data.element.labels[0]].shape;
+            if ('size' in tmpNodeStyles[node.data.element.labels[0]])
+                node.style.size = tmpNodeStyles[node.data.element.labels[0]].size;
+            if ('fontSize' in tmpNodeStyles[node.data.element.labels[0]])
+                node.style.fontSize = tmpNodeStyles[node.data.element.labels[0]].fontSize;
+            if ('label' in tmpNodeStyles[node.data.element.labels[0]]) {
+                if (tmpNodeStyles[node.data.element.labels[0]].label in node.data.element.properties)
+                    node.style.label = node.data.element.properties[tmpNodeStyles[node.data.element.labels[0]].label];
+                else if (tmpNodeStyles[node.data.element.labels[0]].label === '#id')
+                    node.style.label = node.data.id;
+                else
+                    node.style.label = node.data.label;
+            }
+        });
+
+        this.setState({
+            nodeStyles: tmpNodeStyles
+        });
+        sessionStorage.setItem('nodeStyles', JSON.stringify(tmpNodeStyles));
+    }
+
+    applyEdgeStyles = (types: string[]) => {
+        const tmpEdgeStyles = {...this.state.edgeStyles};
+        //remove unused styles
+        Object.keys(tmpEdgeStyles).forEach(type => {
+            if (!types.includes(type))
+                delete tmpEdgeStyles[type];
+        });
+        //define missing styles for types
+        types.forEach(type => {
+            if (!(type in tmpEdgeStyles)) {
+                tmpEdgeStyles[type] = {
+                    color: '#ababab'
+                };
+            } else if (!('color' in tmpEdgeStyles[type])) {
+                tmpEdgeStyles[type].color = '#ababab';
+            }
+        });
+
+        //apply type styles
+        this.orb.data.getEdges().forEach(edge => {
+            edge.style.color = tmpEdgeStyles[edge.data.element.type].color;
+            if ('width' in tmpEdgeStyles[edge.data.element.type])
+                edge.style.width = tmpEdgeStyles[edge.data.element.type].width;
+            if ('fontSize' in tmpEdgeStyles[edge.data.element.type])
+                edge.style.fontSize = tmpEdgeStyles[edge.data.element.type].fontSize;
+            if ('label' in tmpEdgeStyles[edge.data.element.type]) {
+                if (tmpEdgeStyles[edge.data.element.type].label in edge.data.element.properties)
+                    edge.style.label = edge.data.element.properties[tmpEdgeStyles[edge.data.element.type].label];
+                else if (tmpEdgeStyles[edge.data.element.type].label === '#id')
+                    edge.style.label = edge.data.id;
+                else
+                    edge.style.label = edge.data.label;
+            }
+        });
+
+        this.setState({
+            edgeStyles: tmpEdgeStyles
+        });
+        sessionStorage.setItem('edgeStyles', JSON.stringify(tmpEdgeStyles));
     }
 
     sidebarSwitchBtn = () => {
@@ -236,7 +271,7 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
         }
     }
 
-    updateNodeStyle = (label: string, property: string, value: any) => {
+    updateNodeStyle = (label: string, property: string, value: string|number|NodeShapeType) => {
         this.setState(state => {
             state.nodeStyles[label][property] = value;
             return state;
@@ -256,6 +291,31 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
                         tmpValue = node.data.label;
                 }
                 node.style[property] = tmpValue;
+            }
+        });
+        this.orb.view.render();
+    }
+
+    updateEdgeStyle = (type: string, property: string, value: string|number) => {
+        this.setState(state => {
+            state.edgeStyles[type][property] = value;
+            return state;
+        }, () => {
+            sessionStorage.setItem('edgeStyles', JSON.stringify(this.state.edgeStyles))
+        });
+
+        this.orb.data.getEdges().forEach(edge => {
+            if (edge.data.element.type === type) {
+                let tmpValue = value;
+                if (property === 'label') {
+                    if (value in edge.data.element.properties)
+                        tmpValue = edge.data.element.properties[value];
+                    else if (value === '#id')
+                        tmpValue = edge.data.id;
+                    else
+                        tmpValue = edge.data.label;
+                }
+                edge.style[property] = tmpValue;
             }
         });
         this.orb.view.render();
@@ -294,7 +354,9 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
                                 labels={this.state.labels}
                                 types={this.state.types}
                                 labelClick={(label: string) => this.setState({ nodeStyleModal: label })}
+                                typeClick={(type: string) => this.setState({edgeStyleModal: type})}
                                 nodeStyles={this.state.nodeStyles}
+                                edgeStyles={this.state.edgeStyles}
                             />
                         </div>
                     </div>
@@ -321,6 +383,7 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
 
                 {this.state.nodeStyleModal && <NodeStyleModal
                     label={this.state.nodeStyleModal}
+                    i={Object.keys(this.state.labels).indexOf(this.state.nodeStyleModal)}
                     currentSettings={this.state.nodeStyles[this.state.nodeStyleModal]}
                     handleClose={() => this.setState({nodeStyleModal: null})}
                     handleStyleSet={this.updateNodeStyle}
@@ -329,6 +392,22 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
                             for (const key of record.keys) {
                                 const item = record.get(key);
                                 if (item instanceof _Node && item.labels[0] === this.state.nodeStyleModal)
+                                    return Object.keys(item.properties);
+                            }
+                        })[0]
+                    }
+                />}
+
+                {this.state.edgeStyleModal && <EdgeStyleModal
+                    type={this.state.edgeStyleModal}
+                    currentSettings={this.state.edgeStyles[this.state.edgeStyleModal]}
+                    handleClose={() => this.setState({edgeStyleModal: null})}
+                    handleStyleSet={this.updateEdgeStyle}
+                    labelFields={
+                        this.props.rows.map(record => {
+                            for (const key of record.keys) {
+                                const item = record.get(key);
+                                if (item instanceof _Relationship && item.type === this.state.edgeStyleModal)
                                     return Object.keys(item.properties);
                             }
                         })[0]

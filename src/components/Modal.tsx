@@ -49,7 +49,7 @@ export class CloseConfirmModal extends React.Component<{
             buttons={
                 <>
                     <Button text="Close anyway" icon="fa-solid fa-check" onClick={this.props.handleConfirm} color="is-warning" />
-                    <Button text="Don't close" icon="fa-solid fa-xmark" onClick={this.props.handleClose} color="is-secondary" />
+                    <Button text="Don't close" icon="fa-solid fa-xmark" onClick={this.props.handleClose} />
                 </>
             }>
             <p>You have unsaved changes. By closing this tab you will lose them.</p>
@@ -84,7 +84,7 @@ export class DeleteModal extends React.Component<
                 buttons={
                     <>
                         <Button text="Confirm" icon="fa-solid fa-check" onClick={this.handleConfirm} color="is-danger" />
-                        <Button text="Cancel" icon="fa-solid fa-xmark" onClick={this.props.handleClose} color="is-secondary" />
+                        <Button text="Cancel" icon="fa-solid fa-xmark" onClick={this.props.handleClose} />
                     </>
                 }>
                 {this.props.detach && (

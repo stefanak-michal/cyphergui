@@ -29,7 +29,7 @@ class Settings extends React.Component<{ handleClose: () => void }, ISettingsSta
                 title="Settings"
                 icon="fa-solid fa-gears"
                 handleClose={this.props.handleClose}
-                buttons={<Button text="Close" icon="fa-solid fa-xmark" onClick={this.props.handleClose} color="is-secondary" />}>
+                buttons={<Button text="Close" icon="fa-solid fa-xmark" onClick={this.props.handleClose} />}>
                 {db.hasElementId && (
                     <div className="mb-3">
                         <Checkbox

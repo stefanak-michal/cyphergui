@@ -5,21 +5,32 @@ import { Button } from "../../../components/form";
 import hexagon_icon from "../../../assets/hexagon_icon.png";
 import { COLORS } from "../Graph";
 
-interface ILabelModalProps {
+interface IEdgeStyleModalProps {
     label: string;
+    i: number;
     currentSettings: INodeStyle;
     handleClose: () => void;
     handleStyleSet: (label: string, property: string, value: string|number|NodeShapeType) => void;
     labelFields: string[]; //list of available options for visible label
 }
 
-class NodeStyleModal extends React.Component<ILabelModalProps, {}> {
+class NodeStyleModal extends React.Component<IEdgeStyleModalProps, {}> {
     render() {
         return (
             <Modal
                 title={"Set style of label :" + this.props.label}
                 backdrop={true}
-                handleClose={this.props.handleClose}>
+                handleClose={this.props.handleClose}
+                buttons={<>
+                    <Button text="Default values" icon="fa-solid fa-rotate-right" onClick={() => {
+                        this.props.handleStyleSet(this.props.label, 'color', COLORS[this.props.i]);
+                        this.props.handleStyleSet(this.props.label, 'size', 5);
+                        this.props.handleStyleSet(this.props.label, 'fontSize', 4);
+                        this.props.handleStyleSet(this.props.label, 'shape', NodeShapeType.CIRCLE);
+                        this.props.handleStyleSet(this.props.label, 'label', '#label');
+                    }} color="is-info" />
+                    <Button text="Close" icon="fa-solid fa-xmark" onClick={this.props.handleClose} />
+                </>}>
                 <div className="field">
                     <label className="label">Color:</label>
                     <div className="control buttons">

@@ -8,7 +8,9 @@ interface ISidebarProps {
     labels: { [key: string]: number };
     types: { [key: string]: number };
     labelClick: (label: string) => void;
-    nodeStyles: IStyle
+    typeClick: (type: string) => void;
+    nodeStyles: IStyle;
+    edgeStyles: IStyle;
 }
 
 class SidebarContent extends React.Component<ISidebarProps, {}> {
@@ -39,11 +41,11 @@ class SidebarContent extends React.Component<ISidebarProps, {}> {
                             <div>Relationship Types</div>
                             <span className="buttons">
                                 {Object.keys(this.props.types).map(type => (
-                                    <Button
-                                        color={"tag is-info is-rounded px-2 has-text-white "}
-                                        // onClick={() => }
-                                        text={":" + type + " (" + this.props.types[type] + ")"}
-                                    />
+                                    <button className="button tag is-info is-rounded px-2 has-text-white"
+                                            style={{backgroundColor: this.props.edgeStyles[type].color}}
+                                            onClick={() => this.props.typeClick(type)}>
+                                        :{type} ({this.props.types[type]})
+                                    </button>
                                 ))}
                             </span>
                         </>

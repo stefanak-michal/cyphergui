@@ -4,10 +4,10 @@ import db from "../../db";
 import { Node as _Node, Record, Relationship as _Relationship } from "neo4j-driver";
 import { Button } from "../../components/form";
 import orb_logo from "../../assets/orb_logo.png";
-import hexagon_icon from "../../assets/hexagon_icon.png";
 import { ITabManager } from "../../utils/interfaces";
 import { settings } from "../../layout/Settings";
-import Modal from "../../components/Modal";
+import NodeStyleModal from "./graph/NodeStyleModal";
+import SidebarContent from "./graph/SidebarContent";
 
 const COLORS = ['#604A0E', '#C990C0', '#F79767', '#57C7E3', '#F16667', '#D9C8AE', '#8DCC93', '#ECB5C9', '#4C8EDA', '#FFC454', '#DA7194', '#569480'];
 
@@ -25,11 +25,7 @@ interface MyEdge extends IEdgeBase {
     element: _Relationship;
 }
 
-interface IOrbSettings {
-    labelStyles: {
-        [label: string]: INodeStyle
-    }
-}
+interface IStyle { [label: string]: { [key: string]: any } }
 
 interface IGraphProps {
     rows: Record[];
@@ -41,9 +37,10 @@ interface IGraphState {
     labels: { [key: string]: number }; // label: amount of nodes with it
     types: { [key: string]: number }; // type: amount of rels with it
     detail: _Node | _Relationship | null; // clicked node/rel to see details in sidebar
-    labelModal: string|null;
+    nodeStyleModal: string|null;
     typeModal: string|null;
-    orbSettings: IOrbSettings;
+    nodeStyles: IStyle;
+    edgeStyles: IStyle;
 }
 
 class Graph extends React.Component<IGraphProps, IGraphState> {
@@ -52,12 +49,10 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
         labels: {},
         types: {},
         detail: null,
-        labelModal: null,
+        nodeStyleModal: null,
         typeModal: null,
-        orbSettings: Object.assign(
-            sessionStorage.getItem("orbSettings") ? JSON.parse(sessionStorage.getItem("orbSettings")) : {},
-            { labelStyles: {} }
-        )
+        nodeStyles: sessionStorage.getItem("nodeStyles") ? JSON.parse(sessionStorage.getItem("nodeStyles")) : {},
+        edgeStyles: {}
     };
 
     graphContainer = React.createRef<HTMLDivElement>();
@@ -89,11 +84,9 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
                         element: value
                     });
                     //collect labels with counts
-                    value.labels.forEach(label => {
-                        if (!(label in labels))
-                            labels[label] = 0;
-                        labels[label]++;
-                    });
+                    if (!(value.labels[0] in labels))
+                        labels[value.labels[0]] = 0;
+                    labels[value.labels[0]]++;
                 } else if (value instanceof _Relationship && !edges.find(e => e.id === db.strInt(value.identity))) {
                     //prepare data for orb
                     edges.push({
@@ -118,35 +111,52 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
 
         this.orb.data.setup({ nodes, edges });
 
-        //remove unused labels
-        const tmpOrbSettings: IOrbSettings = Object.assign({}, this.state.orbSettings);
-        Object.keys(tmpOrbSettings.labelStyles).forEach(label => {
+        //remove unused styles
+        const tmpNodeStyles = {...this.state.nodeStyles};
+        Object.keys(tmpNodeStyles).forEach(label => {
             if (!(label in labels))
-                delete tmpOrbSettings[label];
+                delete tmpNodeStyles[label];
         });
         //define missing styles for labels
         Object.keys(labels).forEach((label, i) => {
-            if (!(label in tmpOrbSettings.labelStyles)) {
-                tmpOrbSettings.labelStyles[label] = {
-                    color: COLORS[i],
-                    shape: NodeShapeType.CIRCLE
+            if (!(label in tmpNodeStyles)) {
+                tmpNodeStyles[label] = {
+                    color: COLORS[i]
                 };
+            } else if (!('color' in tmpNodeStyles[label])) {
+                tmpNodeStyles[label].color = COLORS[i];
             }
         });
         //apply label styles
         this.orb.data.getNodes().forEach(node => {
-            node.style.color = tmpOrbSettings.labelStyles[node.data.element.labels[0]].color;
+            node.style.color = tmpNodeStyles[node.data.element.labels[0]].color;
+            if ('shape' in tmpNodeStyles[node.data.element.labels[0]])
+                node.style.shape = tmpNodeStyles[node.data.element.labels[0]].shape;
+            if ('size' in tmpNodeStyles[node.data.element.labels[0]])
+                node.style.size = tmpNodeStyles[node.data.element.labels[0]].size;
+            if ('fontSize' in tmpNodeStyles[node.data.element.labels[0]])
+                node.style.fontSize = tmpNodeStyles[node.data.element.labels[0]].fontSize;
+
+            if ('label' in tmpNodeStyles[node.data.element.labels[0]]) {
+                if (tmpNodeStyles[node.data.element.labels[0]].label in node.data.element.properties)
+                    node.style.label = node.data.element.properties[tmpNodeStyles[node.data.element.labels[0]].label];
+                else if (tmpNodeStyles[node.data.element.labels[0]].label === '#id')
+                    node.style.label = node.data.id;
+                else
+                    node.style.label = node.data.label;
+            }
         });
 
         this.setState({
-            orbSettings: tmpOrbSettings
+            nodeStyles: tmpNodeStyles
         });
-        sessionStorage.setItem('orbSettings', JSON.stringify(tmpOrbSettings))
+        sessionStorage.setItem('nodeStyles', JSON.stringify(tmpNodeStyles))
 
         this.orb.view.setSettings({
             render: {
                 shadowIsEnabled: false,
-                shadowOnEventIsEnabled: true
+                shadowOnEventIsEnabled: true,
+                contextAlphaOnEvent: 0.5
             }
         });
         this.orb.view.render(() => {
@@ -226,23 +236,29 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
         }
     }
 
-    updateOrbSettingsLabelStyle = (label: string, property: string, value: any) => {
+    updateNodeStyle = (label: string, property: string, value: any) => {
         this.setState(state => {
-            return {
-                orbSettings: Object.assign(state.orbSettings, {
-                    labelStyles: {
-                        [label]: {
-                            [property]: value
-                        }
-                    }
-                })
-            };
+            state.nodeStyles[label][property] = value;
+            return state;
+        }, () => {
+            sessionStorage.setItem('nodeStyles', JSON.stringify(this.state.nodeStyles))
         });
+
         this.orb.data.getNodes().forEach(node => {
-            if (node.data.element.labels[0] === label)
-                node.style[property] = value;
-            this.orb.view.render();
+            if (node.data.element.labels[0] === label) {
+                let tmpValue = value;
+                if (property === 'label') {
+                    if (value in node.data.element.properties)
+                        tmpValue = node.data.element.properties[value];
+                    else if (value === '#id')
+                        tmpValue = node.data.id;
+                    else
+                        tmpValue = node.data.label;
+                }
+                node.style[property] = tmpValue;
+            }
         });
+        this.orb.view.render();
     }
 
     render() {
@@ -277,8 +293,9 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
                                 detail={this.state.detail}
                                 labels={this.state.labels}
                                 types={this.state.types}
-                                labelClick={(label: string) => this.setState({ labelModal: label })}
-                                orbSettings={this.state.orbSettings} />
+                                labelClick={(label: string) => this.setState({ nodeStyleModal: label })}
+                                nodeStyles={this.state.nodeStyles}
+                            />
                         </div>
                     </div>
                 )}
@@ -302,156 +319,26 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
                     </a>
                 </div>
 
-                {this.state.labelModal && <LabelModal
-                    label={this.state.labelModal}
-                    currentSettings={this.state.orbSettings.labelStyles[this.state.labelModal]}
-                    handleClose={() => this.setState({labelModal: null})}
-                    handleColor={(label: string, color: string) => this.updateOrbSettingsLabelStyle(label, 'color', color)}
-                    handleSize={(label: string, size: number) => this.updateOrbSettingsLabelStyle(label, 'size', size)}
-                    handleFontSize={(label: string, size: number) => this.updateOrbSettingsLabelStyle(label, 'fontSize', size)}
-                    handleShape={(label: string, shape: NodeShapeType) => this.updateOrbSettingsLabelStyle(label, 'shape', shape)}
+                {this.state.nodeStyleModal && <NodeStyleModal
+                    label={this.state.nodeStyleModal}
+                    currentSettings={this.state.nodeStyles[this.state.nodeStyleModal]}
+                    handleClose={() => this.setState({nodeStyleModal: null})}
+                    handleStyleSet={this.updateNodeStyle}
+                    labelFields={
+                        this.props.rows.map(record => {
+                            for (const key of record.keys) {
+                                const item = record.get(key);
+                                if (item instanceof _Node && item.labels[0] === this.state.nodeStyleModal)
+                                    return Object.keys(item.properties);
+                            }
+                        })[0]
+                    }
                 />}
             </div>
         );
     }
 }
 
-interface ISidebarProps {
-    detail: _Node | _Relationship | null;
-    labels: { [key: string]: number };
-    types: { [key: string]: number };
-    labelClick: (label: string) => void;
-    orbSettings: IOrbSettings;
-}
-
-class SidebarContent extends React.Component<ISidebarProps, {}> {
-    render() {
-        if (this.props.detail === null) {
-            return (
-                <>
-                    {Object.keys(this.props.labels).length > 0 && (
-                        <>
-                            <div>Node Labels</div>
-                            <span className="buttons">
-                                {Object.keys(this.props.labels).map(label => (
-                                    <Button
-                                        color={"tag is-link is-rounded px-2 c"
-                                            + (label in this.props.orbSettings.labelStyles
-                                                ? COLORS.indexOf(this.props.orbSettings.labelStyles[label].color as string)
-                                                : '0') }
-                                        onClick={() => this.props.labelClick(label)}
-                                        text={":" + label + " (" + this.props.labels[label] + ")"}
-                                    />
-                                ))}
-                            </span>
-                        </>
-                    )}
-
-                    {Object.keys(this.props.types).length > 0 && (
-                        <>
-                            <div>Relationship Types</div>
-                            <span className="buttons">
-                                {Object.keys(this.props.types).map(type => (
-                                    <Button
-                                        color={"tag is-info is-rounded px-2 has-text-white "}
-                                        // onClick={() => }
-                                        text={":" + type + " (" + this.props.types[type] + ")"}
-                                    />
-                                ))}
-                            </span>
-                        </>
-                    )}
-                </>
-            );
-        }
-
-        if (this.props.detail instanceof _Node) {
-            //todo stash button, labels (LabelButton?) and properties
-            return (
-                <>
-                </>
-            );
-        }
-
-        if (this.props.detail instanceof _Relationship) {
-            //todo similar to _Node
-            return (
-                <>
-                </>
-            );
-        }
-
-        return undefined;
-    }
-}
-
-interface ILabelModalProps {
-    label: string;
-    currentSettings: INodeStyle;
-    handleClose: () => void;
-    handleColor: (label: string, color: string) => void;
-    handleSize: (label: string, size: number) => void;
-    handleFontSize: (label: string, size: number) => void;
-    handleShape: (label: string, shape: NodeShapeType) => void;
-}
-
-class LabelModal extends React.Component<ILabelModalProps, {}> {
-    render() {
-        return (
-            <Modal
-                title={"Set style of label :" + this.props.label}
-                backdrop={true}
-                handleClose={this.props.handleClose}>
-                <div className="field">
-                    <label className="label">Color:</label>
-                    <div className="control buttons">
-                        {COLORS.map((color, i) => <Button
-                            color={"is-small c" + i + (this.props.currentSettings.color === color ? ' is-focused' : '')}
-                            text="&nbsp;"
-                            onClick={() => this.props.handleColor(this.props.label, color)} />)}
-                    </div>
-                </div>
-                <div className="field">
-                    <label className="label">Size:</label>
-                    <div className="control">
-                        <input className="slider is-fullwidth" type="range" min="1" max="10" step="1" value={this.props.currentSettings.size ?? 5}
-                               onChange={(e) => this.props.handleSize(this.props.label, e.currentTarget.valueAsNumber)} />
-                    </div>
-                </div>
-                <div className="field">
-                    <label className="label">Font size:</label>
-                    <div className="control">
-                        <input className="slider is-fullwidth" type="range" min="0" max="10" step="1" value={this.props.currentSettings.fontSize ?? 4}
-                               onChange={(e) => this.props.handleFontSize(this.props.label, e.currentTarget.valueAsNumber)} />
-                    </div>
-                </div>
-                <div className="field">
-                    <label className="label">Shape:</label>
-                    <div className="control buttons has-addons">
-                        <Button icon="fa-solid fa-circle" color={this.props.currentSettings.shape === NodeShapeType.CIRCLE ? 'is-active' : ''} onClick={() => this.props.handleShape(this.props.label, NodeShapeType.CIRCLE)} />
-                        <Button icon="fa-solid fa-square" color={this.props.currentSettings.shape === NodeShapeType.SQUARE ? 'is-active' : ''} onClick={() => this.props.handleShape(this.props.label, NodeShapeType.SQUARE)} />
-                        <Button icon="fa-solid fa-diamond" color={this.props.currentSettings.shape === NodeShapeType.DIAMOND ? 'is-active' : ''} onClick={() => this.props.handleShape(this.props.label, NodeShapeType.DIAMOND)} />
-                        <Button color={this.props.currentSettings.shape === NodeShapeType.TRIANGLE ? 'is-active' : ''} onClick={() => this.props.handleShape(this.props.label, NodeShapeType.TRIANGLE)}>
-                            <span className="icon r-270">
-                                <i className="fa-solid fa-play" />
-                            </span>
-                        </Button>
-                        <Button color={this.props.currentSettings.shape === NodeShapeType.TRIANGLE_DOWN ? 'is-active' : ''} onClick={() => this.props.handleShape(this.props.label, NodeShapeType.TRIANGLE_DOWN)}>
-                            <span className="icon r-90">
-                                <i className="fa-solid fa-play" />
-                            </span>
-                        </Button>
-                        <Button icon="fa-solid fa-star" color={this.props.currentSettings.shape === NodeShapeType.STAR ? 'is-active' : ''} onClick={() => this.props.handleShape(this.props.label, NodeShapeType.STAR)} />
-                        <Button color={this.props.currentSettings.shape === NodeShapeType.HEXAGON ? 'is-active' : ''} onClick={() => this.props.handleShape(this.props.label, NodeShapeType.HEXAGON)}>
-                            <span className="icon">
-                            <img src={hexagon_icon} alt="hexagon" />
-                                </span>
-                        </Button>
-                    </div>
-                </div>
-            </Modal>
-        );
-    }
-}
-
 export default Graph;
+export { COLORS };
+export type { IStyle };

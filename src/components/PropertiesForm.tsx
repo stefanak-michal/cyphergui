@@ -12,7 +12,7 @@ import {
     LocalTime as _LocalTime,
     Point as _Point,
     Time as _Time
-} from "neo4j-driver";
+} from "neo4j-driver-lite";
 import { getPropertyAsTemp, stringToDuration } from "../utils/fn";
 
 interface IPropertiesFormProps {

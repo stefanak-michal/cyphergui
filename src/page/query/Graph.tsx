@@ -1,7 +1,7 @@
 import * as React from "react";
 import { IEdgeBase, IEdgeStyle, INodeBase, INodeStyle, NodeShapeType, Orb, OrbEventType, Color } from "@memgraph/orb";
 import db from "../../db";
-import { Node as _Node, Record, Relationship as _Relationship } from "neo4j-driver";
+import { Node as _Node, Record, Relationship as _Relationship } from "neo4j-driver-lite";
 import { Button } from "../../components/form";
 import orb_logo from "../../assets/orb_logo.png";
 import { IStashManager, ITabManager } from "../../utils/interfaces";

@@ -9,7 +9,7 @@ import {
     Record,
     Relationship as _Relationship,
     ResultSummary,
-} from "neo4j-driver";
+} from "neo4j-driver-lite";
 import { Ecosystem, EPage, EQueryView } from "../utils/enums";
 import { t_StashQuery } from "../utils/types";
 import Table from "./query/Table";

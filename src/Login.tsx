@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Button, Checkbox, Input } from "./components/form";
 import db from "./db";
-import { Driver } from "neo4j-driver";
+import { Driver } from "neo4j-driver-lite";
 import logo from "./assets/logo.png";
 import logo_dark from "./assets/logo_dark.png";
 import { ThemeSwitchContext } from "./utils/contexts";

@@ -2,7 +2,7 @@ import * as React from "react";
 import { Button, LabelButton } from "./form";
 import db from "../db";
 import { EPage } from "../utils/enums";
-import { Node as _Node } from "neo4j-driver";
+import { Node as _Node } from "neo4j-driver-lite";
 import { ITabManager } from "../utils/interfaces";
 import { PropertiesModalContext } from "../utils/contexts";
 

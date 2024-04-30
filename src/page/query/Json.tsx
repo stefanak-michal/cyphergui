@@ -1,6 +1,6 @@
 import { toJSON } from "../../utils/fn";
 import { ClipboardContext } from "../../utils/contexts";
-import { Record } from "neo4j-driver";
+import { Record } from "neo4j-driver-lite";
 import * as React from "react";
 
 interface IJsonProps {

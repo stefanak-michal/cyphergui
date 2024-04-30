@@ -1,6 +1,13 @@
 import db from "../db";
 import { EPropertyType } from "./enums";
-import { DateTime as _DateTime, Duration as _Duration, LocalDateTime as _LocalDateTime, LocalTime as _LocalTime, Point as _Point, Time as _Time } from "neo4j-driver";
+import {
+    DateTime as _DateTime,
+    Duration as _Duration,
+    LocalDateTime as _LocalDateTime,
+    LocalTime as _LocalTime,
+    Point as _Point,
+    Time as _Time
+} from "neo4j-driver-lite";
 import { t_FormProperty, t_FormValue } from "./types";
 import * as React from "react";
 import { Checkbox } from "../components/form";

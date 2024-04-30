@@ -1,4 +1,4 @@
-import { Node as _Node, Relationship as _Relationship } from "neo4j-driver";
+import { Node as _Node, Relationship as _Relationship } from "neo4j-driver-lite";
 import { EPropertyType } from "./enums";
 
 export class t_StashQuery {

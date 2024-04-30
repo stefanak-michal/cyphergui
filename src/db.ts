@@ -1,9 +1,9 @@
-import { Driver, Integer, Node as _Node, QueryResult, Relationship as _Relationship } from "neo4j-driver";
+import { Driver, Integer, Node as _Node, QueryResult, Relationship as _Relationship } from "neo4j-driver-lite";
 import { t_Log } from "./utils/types";
 import { Ecosystem } from "./utils/enums";
 
 class Db {
-    private _neo4j = require("neo4j-driver");
+    private _neo4j = require("neo4j-driver-lite");
     private _driver: Driver;
     private activedb: string = undefined;
     private availableDatabases: string[] = [];

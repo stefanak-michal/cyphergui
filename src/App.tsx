@@ -60,13 +60,13 @@ class App extends React.Component<{}, IAppState> {
                         </p>
                         <div className="buttons is-justify-content-center mt-2">
                             <a href="https://github.com/stefanak-michal/cyphergui" target="_blank" className="button is-small">
-                                <span className="icon is-small">
+                                <span className="icon">
                                     <i className="fa-brands fa-github" />
                                 </span>
                                 <span>GitHub</span>
                             </a>
                             <a href="https://www.linkedin.com/in/michalstefanak/" target="_blank" className="button is-small">
-                                <span className="icon is-small">
+                                <span className="icon">
                                     <i className="fa-brands fa-linkedin" />
                                 </span>
                                 <span>LinkedIn</span>

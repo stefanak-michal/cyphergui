@@ -4,8 +4,8 @@ $f1: Inter, Helvetica, Arial, sans-serif
 $f2: "Oxygen Mono", monospace
 @use "../node_modules/bulma/sass" with ($family-sans-serif: $f1, $family-monospace: $f2)
 
-@import url('https://fonts.googleapis.com/css?family=Inter:400,700')
-@import url('https://fonts.googleapis.com/css?family=Oxygen+Mono:400,700')
+@import url('https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,800')
+@import url('https://fonts.googleapis.com/css?family=Oxygen+Mono:300,400,500,600,700,800')
 @import "../node_modules/animate.css/animate.css"
 
 #root
@@ -221,15 +221,37 @@ $colors: ("white": (var(--bulma-white), var(--bulma-black)), "black": (var(--bul
 .is-copyable
   cursor: copy !important
 
-.graph
-  border-radius: var(--bulma-box-radius)
-  box-shadow: inset var(--bulma-box-shadow)
+@keyframes sidebarSlideOut
+  0%
+    margin-right: 0
+  100%
+    margin-right: -25%
+
+@keyframes sidebarSlideIn
+  0%
+    margin-right: -25%
+  100%
+    margin-right: 0
+
+.graph-container
+  border-radius: var(--bulma-radius-large)
   height: 70vh
   position: relative
-  background-color: white
-
+  border: 1px solid var(--bulma-border)
+  overflow: hidden
   &:fullscreen
     border-radius: 0
+    > .graph
+      border-radius: 0 !important
+
+  > .graph
+    box-shadow: inset var(--bulma-shadow)
+    width: auto
+    height: 100%
+    border-radius: var(--bulma-radius-large)
+    &.sidebar-visible
+      border-top-right-radius: 0
+      border-bottom-right-radius: 0
 
   > .buttons
     position: absolute
@@ -243,12 +265,32 @@ $colors: ("white": (var(--bulma-white), var(--bulma-black)), "black": (var(--bul
     left: 20px
     bottom: 10px
     z-index: 1
-
     a
       height: 30px
-
       img
         height: 100%
+
+  > .sidebar
+    min-width: 230px
+    width: 25%
+    height: 100%
+    overflow: auto
+    animation-fill-mode: both
+    animation-timing-function: linear
+    animation-duration: .2s
+    &.animate_in
+      animation-name: sidebarSlideIn
+    &.animate_out
+      animation-name: sidebarSlideOut
+
+  .sidebar-switch-btn
+    position: absolute
+    top: 10px
+    right: 10px
+    z-index: 1
+
+html.theme-dark .graph
+  background-color: rgb(41, 44, 51)
 
 .tabs
   box-shadow: var(--bulma-shadow)
@@ -300,3 +342,22 @@ $colors: ("white": (var(--bulma-white), var(--bulma-black)), "black": (var(--bul
 
 .box
   margin-bottom: var(--bulma-block-spacing)
+
+:not(:root):fullscreen::backdrop
+  background: var(--bulma-scheme-main)
+
+input[type=range].slider
+  height: var(--bulma-control-height)
+  &.is-fullwidth
+    display: block
+    width: 100%
+
+.icon
+  &.is-small i
+    font-size: .5rem
+  &.r-90 i
+    transform: rotateZ(90deg)
+  &.r-180 i
+    transform: rotateZ(180deg)
+  &.r-270 i
+    transform: rotateZ(270deg)

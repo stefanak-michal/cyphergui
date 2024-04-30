@@ -4,26 +4,18 @@ import { IPageProps } from "../utils/interfaces";
 import db from "../db";
 import { ClipboardContext } from "../utils/contexts";
 import {
-    Date as _Date,
-    DateTime as _DateTime,
-    Duration as _Duration,
-    LocalDateTime as _LocalDateTime,
-    LocalTime as _LocalTime,
     Node as _Node,
     Path as _Path,
     Record,
     Relationship as _Relationship,
     ResultSummary,
-    Time as _Time,
 } from "neo4j-driver";
 import { Ecosystem, EPage, EQueryView } from "../utils/enums";
-import { settings } from "../layout/Settings";
-import { Orb, OrbEventType } from "@memgraph/orb";
-import InlineNode from "../components/InlineNode";
-import InlineRelationship from "../components/InlineRelationship";
-import { durationToString, toJSON } from "../utils/fn";
-import orb_logo from "../assets/orb_logo.png";
 import { t_StashQuery } from "../utils/types";
+import Table from "./query/Table";
+import Summary from "./query/Summary";
+import Json from "./query/Json";
+import Graph from "./query/Graph";
 
 interface IQueryProps extends IPageProps {
     query?: string;
@@ -36,29 +28,15 @@ interface IQueryState {
     tableSize: number;
     query: string;
     rows: Record[];
-    summary: ResultSummary;
+    summary: ResultSummary | null;
     error: string | null;
     loading: boolean;
     keys: string[];
-}
-
-interface MyNode {
-    id: string;
-    label: string;
-    identity: number | string;
-}
-
-interface MyEdge {
-    id: string;
-    label: string;
-    start: any;
-    end: any;
-    identity: number | string;
+    database: string;
 }
 
 /**
  * Execute custom query
- * todo improve graph view (not yet defined how)
  */
 class Query extends React.Component<IQueryProps, IQueryState> {
     state: IQueryState = {
@@ -69,12 +47,11 @@ class Query extends React.Component<IQueryProps, IQueryState> {
         summary: null,
         error: null,
         loading: false,
-        keys: []
+        keys: [],
+        database: null
     };
 
     showTableSize = false;
-    graphElement = React.createRef<HTMLDivElement>();
-    orb: Orb;
 
     componentDidMount() {
         if (this.props.execute) this.handleSubmit(null);
@@ -95,6 +72,8 @@ class Query extends React.Component<IQueryProps, IQueryState> {
         this.setState(
             {
                 loading: true,
+                rows: [],
+                summary: null
             },
             () => {
                 db.query(this.state.query, {}, db.database)
@@ -107,7 +86,8 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                                         .filter(row => !row.has("type") || row.get("type") !== "system")
                                         .map(row => db.ecosystem === Ecosystem.Memgraph ? row.get("Name") : row.get("name"));
                                 })
-                                .catch(() => {});
+                                .catch(() => {
+                                });
                         }
 
                         const keys: Set<string> = new Set();
@@ -122,11 +102,9 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                                     error: null,
                                     loading: false,
                                     view: response.records.length === 0 ? EQueryView.Summary : state.view,
-                                    keys: Array.from(keys)
+                                    keys: Array.from(keys),
+                                    database: db.database
                                 };
-                            },
-                            () => {
-                                if (this.state.view === EQueryView.Graph) this.initGraphView();
                             }
                         );
                     })
@@ -142,60 +120,10 @@ class Query extends React.Component<IQueryProps, IQueryState> {
         );
     };
 
-    initGraphView = () => {
-        const current = this.graphElement.current;
-        if (!current) return;
-
-        if (!this.orb) {
-            this.orb = new Orb<MyNode, MyEdge>(current);
-
-            this.orb.events.on(OrbEventType.NODE_CLICK, event => {
-                this.props.tabManager.add({ prefix: "Node", i: event.node.id }, "fa-solid fa-pen-to-square", EPage.Node, {
-                    id: event.node.data.identity,
-                    database: db.database,
-                });
-            });
-
-            this.orb.events.on(OrbEventType.EDGE_CLICK, event => {
-                this.props.tabManager.add({ prefix: "Rel", i: event.edge.id }, "fa-regular fa-pen-to-square", EPage.Rel, {
-                    id: event.edge.data.identity,
-                    database: db.database,
-                });
-            });
-        }
-
-        let nodes: MyNode[] = [];
-        let edges: MyEdge[] = [];
-        this.state.rows.forEach(row => {
-            for (let key of row.keys) {
-                const value = row.get(key);
-                if (value instanceof _Node) nodes.push({ id: db.strInt(value.identity), label: ":" + value.labels.join(":"), identity: db.getId(value) });
-                else if (value instanceof _Relationship)
-                    edges.push({
-                        id: db.strInt(value.identity),
-                        start: db.strInt(value.start),
-                        end: db.strInt(value.end),
-                        label: ":" + value.type,
-                        identity: db.getId(value),
-                    });
-            }
-        });
-
-        this.orb.data.setup({ nodes, edges });
-        this.orb.view.render(() => {
-            this.orb.view.recenter();
-        });
-    };
-
     changeView = (i: EQueryView) => {
-        this.setState(
-            {
-                view: i,
-            },
-            () => {
-                if (this.state.view === EQueryView.Graph) this.initGraphView();
-            }
-        );
+        this.setState({
+            view: i,
+        });
     };
 
     setTableSize = (i: number) => {
@@ -250,7 +178,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                     <div className="field">
                         <div className="buttons is-justify-content-flex-end">
                             <Button color={"is-success " + (this.state.loading ? "is-loading" : "")} type="submit" icon="fa-solid fa-check" text="Execute" />
-                            <a href={db.ecosystem === Ecosystem.Memgraph ? 'https://memgraph.com/docs/querying' : 'https://neo4j.com/docs/cypher-manual/' } target="_blank" className="button" title="Cypher documentation">
+                            <a href={db.ecosystem === Ecosystem.Memgraph ? 'https://memgraph.com/docs/querying' : 'https://neo4j.com/docs/cypher-manual/'} target="_blank" className="button" title="Cypher documentation">
                                 <span className="icon">
                                     <i className="fa-solid fa-book" />
                                 </span>
@@ -318,172 +246,28 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                     </div>
                 </div>
 
-                <div className={"block " + (this.state.view === EQueryView.Table && this.state.rows.length ? "" : "is-hidden")}>
-                    <div className="table-container">
-                        <table className="table is-bordered is-striped is-narrow is-hoverable">
-                            <thead>
-                                <tr>
-                                    {this.state.keys.map(key => (
-                                        <th key={key}>{key}</th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {this.state.rows.map((row, i) => (
-                                    <tr key={i}>
-                                        {this.state.keys.map(key => (
-                                            <td key={key}>{row.has(key) ? this.printValue(row.get(key)) : ""}</td>
-                                        ))}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                {this.state.view === EQueryView.Table && this.state.rows.length > 0 && <Table
+                    keys={this.state.keys}
+                    rows={this.state.rows}
+                    tableSize={this.state.tableSize}
+                    tabManager={this.props.tabManager}
+                />}
 
-                <div className={"block " + (this.state.view === EQueryView.Graph && this.state.rows.length ? "" : "is-hidden")}>
-                    <div className="graph" ref={this.graphElement}>
-                        <div className="buttons">
-                            {document.fullscreenEnabled && (
-                                <Button
-                                    icon={"fa-solid " + (document.fullscreenElement === null ? "fa-expand" : "fa-compress")}
-                                    color="mr-0"
-                                    onClick={() => {
-                                        if (document.fullscreenElement === null) {
-                                            this.graphElement.current.requestFullscreen().then(() => {
-                                                setTimeout(() => this.orb.view.recenter(), 100);
-                                                this.setState({});
-                                            });
-                                        } else {
-                                            document.exitFullscreen().then(() => {
-                                                setTimeout(() => this.orb.view.recenter(), 100);
-                                                this.setState({});
-                                            });
-                                        }
-                                    }}
-                                    title="Fullscreen"
-                                />
-                            )}
-                            <Button icon="fa-solid fa-maximize" onClick={() => this.orb.view.recenter()} color="mr-0" title="Recenter" />
-                        </div>
-                        <div className="brand is-flex is-align-items-center">
-                            <span className="is-size-7">Powered by</span>
-                            <a href="https://github.com/memgraph/orb" target="_blank" className="ml-1">
-                                <img src={orb_logo} alt="ORB" />
-                            </a>
-                        </div>
-                    </div>
-                </div>
+                {this.state.view === EQueryView.Graph && this.state.rows.length > 0 && <Graph
+                    rows={this.state.rows}
+                    tabManager={this.props.tabManager}
+                    stashManager={this.props.stashManager}
+                    database={this.state.database}
+                />}
 
-                <div className={"block " + (this.state.view === EQueryView.JSON && this.state.rows.length ? "" : "is-hidden")}>
-                    <div className="control has-icons-right">
-                        <pre>{toJSON(this.state.rows)}</pre>
-                        <ClipboardContext.Consumer>
-                            {copy => (
-                                <span className="icon is-right is-clickable" onClick={copy}>
-                                    <i className="fa-regular fa-copy" />
-                                </span>
-                            )}
-                        </ClipboardContext.Consumer>
-                    </div>
-                </div>
+                {this.state.view === EQueryView.JSON && this.state.rows.length > 0 && <Json rows={this.state.rows} />}
 
-                <div className={"block " + (this.state.view === EQueryView.Summary && this.state.summary ? "" : "is-hidden")}>
-                    <div className="control has-icons-right">
-                        <pre>{toJSON(this.state.summary)}</pre>
-                        <ClipboardContext.Consumer>
-                            {copy => (
-                                <span className="icon is-right is-clickable" onClick={copy}>
-                                    <i className="fa-regular fa-copy" />
-                                </span>
-                            )}
-                        </ClipboardContext.Consumer>
-                    </div>
-                </div>
+                {this.state.view === EQueryView.Summary && this.state.summary && <Summary summary={this.state.summary} />}
 
                 {this.state.rows.length === 0 && !this.state.summary && <div className="block">No result</div>}
             </>
         );
     }
-
-    printValue = (value: any): React.ReactElement => {
-        if (db.isInt(value)) return <>{db.strInt(value)}</>;
-        if (Array.isArray(value)) return <>[
-                {value.length ? value
-                .map<React.ReactNode>(entry => this.printValue(entry))
-                .reduce((prev, curr) => [prev, ", ", curr]) : ""}
-            ]</>;
-        if (value === null) return <p className="has-text-grey">null</p>;
-        if (typeof value === "boolean") return <>{value ? "true" : "false"}</>;
-        if (typeof value === "string") return <p className="wspace-pre is-inline-block">{value}</p>;
-
-        if (value instanceof _Node) {
-            return <InlineNode node={value} tabManager={this.props.tabManager} small={this.state.tableSize === 1} />;
-        }
-        if (value instanceof _Relationship) {
-            return <InlineRelationship rel={value} tabManager={this.props.tabManager} small={this.state.tableSize === 1} />;
-        }
-        if (value instanceof _Path) {
-            let start = value.start;
-            let first = true;
-            return (
-                <div className="is-flex is-align-items-center">
-                    {value.segments.map(segment => {
-                        const r = (
-                            <>
-                                {first && (
-                                    <>
-                                        <span className="is-size-4">(</span>
-                                        {this.printValue(db.strInt(segment.start.identity) === db.strInt(start.identity) ? segment.start : segment.end)}
-                                        <span className="is-size-4">)</span>
-                                    </>
-                                )}
-                                <span className="is-size-4 wspace-nowrap">{db.strInt(segment.start.identity) === db.strInt(start.identity) ? "-" : "<-"}[</span>
-                                {this.printValue(segment.relationship)}
-                                <span className="is-size-4 wspace-nowrap">]{db.strInt(segment.start.identity) === db.strInt(start.identity) ? "->" : "-"}(</span>
-                                {this.printValue(db.strInt(segment.start.identity) === db.strInt(start.identity) ? segment.end : segment.start)}
-                                <span className="is-size-4">)</span>
-                            </>
-                        );
-                        start = segment.end;
-                        first = false;
-                        return r;
-                    })}
-                </div>
-            );
-        }
-
-        // Temporal values
-        if (value instanceof _Date) {
-            const fn = settings().temporalValueToStringFunction === "toString" ? "toDateString" : settings().temporalValueToStringFunction;
-            return <p className="wspace-nowrap">{value.toStandardDate()[fn]()}</p>;
-        }
-        if (value instanceof _DateTime) return <p className="wspace-nowrap">{value.toStandardDate()[settings().temporalValueToStringFunction]()}</p>;
-        if (value instanceof _Time) return <p className="wspace-nowrap">{value.toString()}</p>;
-        if (value instanceof _LocalDateTime) return <p className="wspace-nowrap">{value.toStandardDate().toLocaleString()}</p>;
-        if (value instanceof _LocalTime) return <p className="wspace-nowrap">{value.toString()}</p>;
-        if (value instanceof _Duration) return <p className="wspace-nowrap">{durationToString(value)}</p>;
-
-        if (typeof value === "object") {
-            return (
-                <>
-                    {value.constructor.name || ""}
-                    <div className="control has-icons-right">
-                        <pre>{toJSON(value)}</pre>
-                        <ClipboardContext.Consumer>
-                            {copy => (
-                                <span className="icon is-right is-clickable" onClick={copy}>
-                                    <i className="fa-regular fa-copy" />
-                                </span>
-                            )}
-                        </ClipboardContext.Consumer>
-                    </div>
-                </>
-            );
-        }
-
-        return value.toString();
-    };
 }
 
 export default Query;

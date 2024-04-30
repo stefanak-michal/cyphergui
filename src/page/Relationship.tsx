@@ -10,7 +10,7 @@ import { settings } from "../layout/Settings";
 import InlineNode from "../components/InlineNode";
 import PropertiesForm from "../components/PropertiesForm";
 import { t_FormProperty, t_FormValue } from "../utils/types";
-import { getPropertyAsTemp, printProperties, resolvePropertyType, sanitizeFormValues } from "../utils/fn";
+import { getPropertyAsTemp, cypherPrintProperties, resolvePropertyType, sanitizeFormValues } from "../utils/fn";
 
 interface IRelationshipProps extends IPageProps {
     database: string;
@@ -240,7 +240,7 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
 
         if (printable) {
             if (this.state.properties.length) {
-                query += " SET r = " + printProperties(this.state.properties);
+                query += " SET r = " + cypherPrintProperties(this.state.properties);
             }
         } else {
             query += " SET r = $p RETURN r";

@@ -2,6 +2,8 @@ import db from "../db";
 import { EPropertyType } from "./enums";
 import { DateTime as _DateTime, Duration as _Duration, LocalDateTime as _LocalDateTime, LocalTime as _LocalTime, Point as _Point, Time as _Time } from "neo4j-driver";
 import { t_FormProperty, t_FormValue } from "./types";
+import * as React from "react";
+import { Checkbox } from "../components/form";
 
 export function toJSON(data: any[] | object): string {
     let obj;
@@ -86,11 +88,11 @@ export function getPropertyAsTemp(type: EPropertyType, value: any): any {
     }
 }
 
-export function printProperties(properties: t_FormProperty[]): string {
-    return "{" + properties.map(p => p.key + ": " + printProperty(p)).join(", ") + "}";
+export function cypherPrintProperties(properties: t_FormProperty[]): string {
+    return "{" + properties.map(p => p.key + ": " + cypherPrintProperty(p)).join(", ") + "}";
 }
 
-function printProperty(property: t_FormProperty | t_FormValue): string {
+function cypherPrintProperty(property: t_FormProperty | t_FormValue): string {
     if (property.value === null) return "null";
     switch (property.type) {
         case EPropertyType.String:
@@ -100,9 +102,9 @@ function printProperty(property: t_FormProperty | t_FormValue): string {
         case EPropertyType.Boolean:
             return property.value ? "true" : "false";
         case EPropertyType.List:
-            return "[" + (property.value as t_FormValue[]).map(entry => printProperty(entry)).join(", ") + "]";
+            return "[" + (property.value as t_FormValue[]).map(entry => cypherPrintProperty(entry)).join(", ") + "]";
         case EPropertyType.Map:
-            return "{" + (property.value as t_FormValue[]).map(entry => entry.key + ": " + printProperty(entry)).join(", ") + "}";
+            return "{" + (property.value as t_FormValue[]).map(entry => entry.key + ": " + cypherPrintProperty(entry)).join(", ") + "}";
         case EPropertyType.Point:
             return "point({srid: " + property.temp[0] + ", x: " + property.temp[1] + ", y: " + property.temp[2] + (property.temp.length === 4 ? ", z: " + property.temp[3] : "") + "})";
         case EPropertyType.Date:
@@ -212,4 +214,12 @@ export function sanitizeFormValues(properties: t_FormProperty[]): {} {
         }
     }
     return props;
+}
+
+export function printProperty(property: any): string | React.ReactElement {
+    if (db.isInt(property)) return db.strInt(property);
+    if (Array.isArray(property)) return "[" + property.join(", ") + "]";
+    if (typeof property === "boolean") return <Checkbox name="" label="" checked={property} disabled />;
+    if (property.constructor.name === "Object") return "{" + Object.keys(property).map(key => key + ": " + printProperty(property[key])).join(", ") + "}";
+    return property.toString();
 }

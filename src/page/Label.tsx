@@ -1,7 +1,7 @@
 import * as React from "react";
 import Pagination from "../components/Pagination";
 import TableSortIcon from "../components/TableSortIcon";
-import { Button, Checkbox, LabelButton } from "../components/form";
+import { Button, LabelButton } from "../components/form";
 import { Node as _Node } from "neo4j-driver";
 import { Ecosystem, EPage, EQueryView } from "../utils/enums";
 import { IPageProps } from "../utils/interfaces";
@@ -9,6 +9,7 @@ import db from "../db";
 import { DeleteModal } from "../components/Modal";
 import { settings } from "../layout/Settings";
 import { ClipboardContext } from "../utils/contexts";
+import { printProperty } from "../utils/fn";
 
 interface ILabelProps extends IPageProps {
     database: string;
@@ -364,7 +365,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                                         </td>
                                     )}
                                     {keys.map(key => (
-                                        <td key={"td-" + key}>{key in row.properties && this.printProperty(row.properties[key])}</td>
+                                        <td key={"td-" + key}>{key in row.properties && printProperty(row.properties[key])}</td>
                                     ))}
                                 </tr>
                             ))}
@@ -376,14 +377,6 @@ class Label extends React.Component<ILabelProps, ILabelState> {
             </>
         );
     }
-
-    printProperty = (property: any): string | React.ReactElement => {
-        if (db.isInt(property)) return db.strInt(property);
-        if (Array.isArray(property)) return "[" + property.join(", ") + "]";
-        if (typeof property === "boolean") return <Checkbox name="" label="" checked={property} disabled />;
-        if (property.constructor.name === "Object") return "{" + Object.keys(property).map(key => key + ": " + this.printProperty(property[key])).join(", ") + "}";
-        return property.toString();
-    };
 }
 
 export default Label;

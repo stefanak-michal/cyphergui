@@ -4,7 +4,7 @@ import db from "../../db";
 import { Node as _Node, Record, Relationship as _Relationship } from "neo4j-driver";
 import { Button } from "../../components/form";
 import orb_logo from "../../assets/orb_logo.png";
-import { ITabManager } from "../../utils/interfaces";
+import { IStashManager, ITabManager } from "../../utils/interfaces";
 import { settings } from "../../layout/Settings";
 import NodeStyleModal from "./graph/NodeStyleModal";
 import SidebarContent from "./graph/SidebarContent";
@@ -28,7 +28,9 @@ interface IStyle { [label: string]: { [key: string]: any } }
 
 interface IGraphProps {
     rows: Record[];
-    tabManager: ITabManager
+    tabManager: ITabManager;
+    stashManager: IStashManager;
+    database: string;
 }
 
 interface IGraphState {
@@ -36,6 +38,7 @@ interface IGraphState {
     labels: { [key: string]: number }; // label: amount of nodes with it
     types: { [key: string]: number }; // type: amount of rels with it
     detail: _Node | _Relationship | null; // clicked node/rel to see details in sidebar
+    detailHover: _Node | null; // hovered node to see details in sidebar
     nodeStyleModal: string|null;
     edgeStyleModal: string|null;
     nodeStyles: IStyle;
@@ -48,6 +51,7 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
         labels: {},
         types: {},
         detail: null,
+        detailHover: null,
         nodeStyleModal: null,
         edgeStyleModal: null,
         nodeStyles: sessionStorage.getItem("nodeStyles") ? JSON.parse(sessionStorage.getItem("nodeStyles")) : {},
@@ -60,6 +64,11 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
 
     componentDidMount() {
         this.initGraphView();
+        document.getElementById('root').addEventListener("input", this.listenForDarkMode);
+    }
+
+    componentWillUnmount() {
+        document.getElementById('root').removeEventListener("input", this.listenForDarkMode);
     }
 
     initGraphView = () => {
@@ -161,6 +170,11 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
                     detail: typeof event.subject === 'undefined' ? null : event.subject.data.element
                 });
             });
+            this.orb.events.on(OrbEventType.MOUSE_MOVE, event => {
+                this.setState({
+                    detailHover: typeof event.subject === 'undefined' ? null : event.subject.data.element
+                });
+            });
         }
     }
 
@@ -248,6 +262,19 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
         sessionStorage.setItem('edgeStyles', JSON.stringify(tmpEdgeStyles));
     }
 
+    listenForDarkMode = (event: Event) => {
+        event.preventDefault();
+        if ((event.target as HTMLInputElement).matches('input[type="checkbox"][name="darkMode"]')) {
+            this.orb.data.getNodes().forEach(node => {
+                node.style.fontColor = settings().darkMode ? 'white' : 'black';
+            });
+            this.orb.data.getEdges().forEach(edge => {
+                edge.style.fontColor = settings().darkMode ? 'white' : 'black';
+            });
+            this.orb.view.render();
+        }
+    }
+
     sidebarSwitchBtn = () => {
         if (this.state.sidebarVisible <= 1) {
             this.setState(state => {
@@ -333,7 +360,7 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
                 </div>
 
                 {this.state.sidebarVisible > 0 && (
-                    <div className={"sidebar px-2 py-3 "
+                    <div className={"sidebar p-3 "
                         + (this.state.sidebarVisible === 3 ? "animate_out" : "")
                         + (this.state.sidebarVisible === 2 ? "animate_in" : "")
                         } onAnimationEnd={() => {
@@ -342,18 +369,21 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
                             });
                             setTimeout(() => this.orb.view.recenter(), 100);
                     }}>
-                        <div className="header has-text-weight-bold mb-3">
-                            {this.state.detail instanceof _Node ? "Node" : (this.state.detail instanceof _Relationship ? "Relationship" : "Overview")}
-                        </div>
+                        <p className="title is-4 mb-3">
+                            {(this.state.detailHover || this.state.detail) instanceof _Node ? "Node" : ((this.state.detailHover || this.state.detail) instanceof _Relationship ? "Relationship" : "Overview")}
+                        </p>
                         <div className="content">
                             <SidebarContent
-                                detail={this.state.detail}
+                                detail={this.state.detailHover || this.state.detail}
                                 labels={this.state.labels}
                                 types={this.state.types}
                                 labelClick={(label: string) => this.setState({ nodeStyleModal: label })}
                                 typeClick={(type: string) => this.setState({edgeStyleModal: type})}
                                 nodeStyles={this.state.nodeStyles}
                                 edgeStyles={this.state.edgeStyles}
+                                tabManager={this.props.tabManager}
+                                stashManager={this.props.stashManager}
+                                database={this.props.database}
                             />
                         </div>
                     </div>

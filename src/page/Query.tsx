@@ -32,6 +32,7 @@ interface IQueryState {
     error: string | null;
     loading: boolean;
     keys: string[];
+    database: string;
 }
 
 /**
@@ -46,7 +47,8 @@ class Query extends React.Component<IQueryProps, IQueryState> {
         summary: null,
         error: null,
         loading: false,
-        keys: []
+        keys: [],
+        database: null
     };
 
     showTableSize = false;
@@ -100,7 +102,8 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                                     error: null,
                                     loading: false,
                                     view: response.records.length === 0 ? EQueryView.Summary : state.view,
-                                    keys: Array.from(keys)
+                                    keys: Array.from(keys),
+                                    database: db.database
                                 };
                             }
                         );
@@ -247,11 +250,15 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                     keys={this.state.keys}
                     rows={this.state.rows}
                     tableSize={this.state.tableSize}
-                    tabManager={this.props.tabManager} />}
+                    tabManager={this.props.tabManager}
+                />}
 
                 {this.state.view === EQueryView.Graph && this.state.rows.length > 0 && <Graph
                     rows={this.state.rows}
-                    tabManager={this.props.tabManager} />}
+                    tabManager={this.props.tabManager}
+                    stashManager={this.props.stashManager}
+                    database={this.state.database}
+                />}
 
                 {this.state.view === EQueryView.JSON && this.state.rows.length > 0 && <Json rows={this.state.rows} />}
 

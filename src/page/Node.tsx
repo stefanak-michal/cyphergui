@@ -11,7 +11,7 @@ import InlineRelationship from "../components/InlineRelationship";
 import InlineNode from "../components/InlineNode";
 import { t_FormProperty, t_FormValue } from "../utils/types";
 import PropertiesForm from "../components/PropertiesForm";
-import { getPropertyAsTemp, printProperties, resolvePropertyType, sanitizeFormValues } from "../utils/fn";
+import { getPropertyAsTemp, cypherPrintProperties, resolvePropertyType, sanitizeFormValues } from "../utils/fn";
 
 interface INodeProps extends IPageProps {
     database: string;
@@ -227,7 +227,7 @@ class Node extends React.Component<INodeProps, INodeState> {
             else query += "CREATE (n)";
             query += setLabels + removeLabels;
             if (this.state.properties.length) {
-                query += " SET n = " + printProperties(this.state.properties);
+                query += " SET n = " + cypherPrintProperties(this.state.properties);
             }
         } else {
             query += (!this.create ? "MATCH (n) WHERE " + db.fnId() + " = $id" : "CREATE (n)") + setLabels + removeLabels + " SET n = $p RETURN n";

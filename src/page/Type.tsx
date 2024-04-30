@@ -1,7 +1,7 @@
 import * as React from "react";
 import Pagination from "../components/Pagination";
 import { Relationship as Neo4jRelationship } from "neo4j-driver";
-import { Button, Checkbox, TypeButton } from "../components/form";
+import { Button, TypeButton } from "../components/form";
 import { Ecosystem, EPage, EQueryView } from "../utils/enums";
 import { IPageProps } from "../utils/interfaces";
 import TableSortIcon from "../components/TableSortIcon";
@@ -9,6 +9,7 @@ import { DeleteModal } from "../components/Modal";
 import db from "../db";
 import { settings } from "../layout/Settings";
 import { ClipboardContext } from "../utils/contexts";
+import { printProperty } from "../utils/fn";
 
 interface ITypeProps extends IPageProps {
     database: string;
@@ -366,7 +367,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                         </td>
                                     )}
                                     {keys.map(key => (
-                                        <td key={"td-" + key}>{key in row.properties && this.printProperty(row.properties[key])}</td>
+                                        <td key={"td-" + key}>{key in row.properties && printProperty(row.properties[key])}</td>
                                     ))}
 
                                     <td>
@@ -405,14 +406,6 @@ class Type extends React.Component<ITypeProps, ITypeState> {
             </>
         );
     }
-
-    printProperty = (property: any): string | React.ReactElement => {
-        if (db.isInt(property)) return db.strInt(property);
-        if (Array.isArray(property)) return "[" + property.join(", ") + "]";
-        if (typeof property === "boolean") return <Checkbox name="" label="" checked={property} disabled />;
-        if (property.constructor.name === "Object") return "{" + Object.keys(property).map(key => key + ": " + this.printProperty(property[key])).join(", ") + "}";
-        return property.toString();
-    };
 }
 
 export default Type;

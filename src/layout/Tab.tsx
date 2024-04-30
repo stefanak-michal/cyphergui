@@ -26,7 +26,7 @@ class Tab extends React.Component<ITabProps> {
             <li className={this.props.active ? "is-active" : ""} onClick={() => this.props.handleClick(this.props.id)} onMouseEnter={this.showDelete} onMouseLeave={this.showDelete}>
                 <a>
                     {this.props.icon && (
-                        <span className="icon is-small">
+                        <span className="icon">
                             <i className={this.props.icon} aria-hidden="true" />
                         </span>
                     )}

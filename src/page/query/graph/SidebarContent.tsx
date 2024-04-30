@@ -32,7 +32,7 @@ class SidebarContent extends React.Component<ISidebarProps, {}> {
     }
 
     labelButton = (label: string, modal: boolean = true): React.ReactElement => {
-        return <button className={"button tag is-rounded px-2 " + (this.isColorDark(this.props.nodeStyles[label].color) ? "has-text-white" : "has-text-black")}
+        return <button className={"button tag is-rounded px-2 is-medium " + (this.isColorDark(this.props.nodeStyles[label].color) ? "has-text-white" : "has-text-black")}
                        key={label}
                        style={{ backgroundColor: this.props.nodeStyles[label].color }}
                        onClick={() => modal
@@ -44,7 +44,7 @@ class SidebarContent extends React.Component<ISidebarProps, {}> {
     }
 
     typeButton = (type: string, modal: boolean = true): React.ReactElement => {
-        return <button className={"button tag is-rounded px-2 " + (this.isColorDark(this.props.edgeStyles[type].color) ? "has-text-white" : "")}
+        return <button className={"button tag is-rounded px-2 is-medium " + (this.isColorDark(this.props.edgeStyles[type].color) ? "has-text-white" : "")}
                        key={type}
                        style={{ backgroundColor: this.props.edgeStyles[type].color }}
                        onClick={() => modal
@@ -87,7 +87,6 @@ class SidebarContent extends React.Component<ISidebarProps, {}> {
                         <>
                             <div className="buttons mb-3">
                                 <Button
-                                    color="is-small"
                                     onClick={() =>
                                         this.props.tabManager.add({ prefix: "Node", i: this.props.detail.identity }, "fa-solid fa-pen-to-square", EPage.Node, {
                                             id: db.getId(this.props.detail),
@@ -97,7 +96,7 @@ class SidebarContent extends React.Component<ISidebarProps, {}> {
                                     icon="fa-solid fa-pen-clip"
                                     text={"#" + db.strInt(this.props.detail.identity)}
                                 />
-                                {this.props.stashManager.button(this.props.detail, this.props.database, 'is-small')}
+                                {this.props.stashManager.button(this.props.detail, this.props.database)}
                             </div>
 
                             <div className="buttons mb-0">
@@ -136,7 +135,6 @@ class SidebarContent extends React.Component<ISidebarProps, {}> {
                         <>
                             <div className="buttons mb-3">
                                 <Button
-                                    color="is-small"
                                     onClick={() =>
                                         this.props.tabManager.add({ prefix: "Rel", i: this.props.detail.identity }, "fa-solid fa-pen-to-square", EPage.Rel, {
                                             id: db.getId(this.props.detail),
@@ -146,7 +144,7 @@ class SidebarContent extends React.Component<ISidebarProps, {}> {
                                     icon="fa-solid fa-pen-clip"
                                     text={"#" + db.strInt(this.props.detail.identity)}
                                 />
-                                {this.props.stashManager.button(this.props.detail, this.props.database, 'is-small')}
+                                {this.props.stashManager.button(this.props.detail, this.props.database)}
                             </div>
 
                             <div className="buttons mb-0">

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { IEdgeBase, IEdgeStyle, INodeBase, INodeStyle, NodeShapeType, Orb, OrbEventType } from "@memgraph/orb";
+import { IEdgeBase, IEdgeStyle, INodeBase, INodeStyle, NodeShapeType, Orb, OrbEventType, Color } from "@memgraph/orb";
 import db from "../../db";
 import { Node as _Node, Record, Relationship as _Relationship } from "neo4j-driver";
 import { Button } from "../../components/form";
@@ -9,9 +9,6 @@ import { settings } from "../../layout/Settings";
 import NodeStyleModal from "./graph/NodeStyleModal";
 import SidebarContent from "./graph/SidebarContent";
 import EdgeStyleModal from "./graph/EdgeStyleModal";
-
-//todo solve if there is more labels than color
-const COLORS = ['#604A0E', '#C990C0', '#F79767', '#57C7E3', '#F16667', '#D9C8AE', '#8DCC93', '#ECB5C9', '#4C8EDA', '#FFC454', '#DA7194', '#569480'];
 
 interface MyNode extends INodeBase {
     id: string;
@@ -175,13 +172,13 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
                 delete tmpNodeStyles[label];
         });
         //define missing styles for labels
-        labels.forEach((label, i) => {
+        labels.forEach((label) => {
             if (!(label in tmpNodeStyles)) {
                 tmpNodeStyles[label] = {
-                    color: COLORS[i]
+                    color: Color.getRandomColor().toString()
                 };
             } else if (!('color' in tmpNodeStyles[label])) {
-                tmpNodeStyles[label].color = COLORS[i];
+                tmpNodeStyles[label].color = Color.getRandomColor().toString();
             }
         });
         
@@ -383,7 +380,6 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
 
                 {this.state.nodeStyleModal && <NodeStyleModal
                     label={this.state.nodeStyleModal}
-                    i={Object.keys(this.state.labels).indexOf(this.state.nodeStyleModal)}
                     currentSettings={this.state.nodeStyles[this.state.nodeStyleModal]}
                     handleClose={() => this.setState({nodeStyleModal: null})}
                     handleStyleSet={this.updateNodeStyle}
@@ -419,5 +415,4 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
 }
 
 export default Graph;
-export { COLORS };
 export type { IStyle };

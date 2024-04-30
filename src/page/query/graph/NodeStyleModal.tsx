@@ -3,11 +3,9 @@ import * as React from "react";
 import Modal from "../../../components/Modal";
 import { Button } from "../../../components/form";
 import hexagon_icon from "../../../assets/hexagon_icon.png";
-import { COLORS } from "../Graph";
 
 interface IEdgeStyleModalProps {
     label: string;
-    i: number;
     currentSettings: INodeStyle;
     handleClose: () => void;
     handleStyleSet: (label: string, property: string, value: string|number|NodeShapeType) => void;
@@ -15,6 +13,13 @@ interface IEdgeStyleModalProps {
 }
 
 class NodeStyleModal extends React.Component<IEdgeStyleModalProps, {}> {
+    static defaultColor: { [label: string]: string } = {};
+
+    componentDidMount() {
+        if (!(this.props.label in NodeStyleModal.defaultColor))
+            NodeStyleModal.defaultColor[this.props.label] = this.props.currentSettings.color as string;
+    }
+
     render() {
         return (
             <Modal
@@ -22,23 +27,20 @@ class NodeStyleModal extends React.Component<IEdgeStyleModalProps, {}> {
                 backdrop={true}
                 handleClose={this.props.handleClose}
                 buttons={<>
+                    <Button text="Close" icon="fa-solid fa-xmark" onClick={this.props.handleClose} />
                     <Button text="Default values" icon="fa-solid fa-rotate-right" onClick={() => {
-                        this.props.handleStyleSet(this.props.label, 'color', COLORS[this.props.i]);
+                        this.props.handleStyleSet(this.props.label, 'color', NodeStyleModal.defaultColor[this.props.label]);
                         this.props.handleStyleSet(this.props.label, 'size', 5);
                         this.props.handleStyleSet(this.props.label, 'fontSize', 4);
                         this.props.handleStyleSet(this.props.label, 'shape', NodeShapeType.CIRCLE);
                         this.props.handleStyleSet(this.props.label, 'label', '#label');
-                    }} color="is-info" />
-                    <Button text="Close" icon="fa-solid fa-xmark" onClick={this.props.handleClose} />
+                    }} color="is-warning" />
                 </>}>
                 <div className="field">
                     <label className="label">Color:</label>
                     <div className="control buttons">
-                        {COLORS.map((color, i) => <Button
-                            key={'c' + i}
-                            color={"is-small c" + i + (this.props.currentSettings.color === color ? ' is-focused' : '')}
-                            text="&nbsp;"
-                            onClick={() => this.props.handleStyleSet(this.props.label, 'color', color)} />)}
+                        <input type="color" value={this.props.currentSettings.color as string} className="input"
+                               onChange={(e) => this.props.handleStyleSet(this.props.label, 'color', e.currentTarget.value)} />
                     </div>
                 </div>
                 <div className="field">

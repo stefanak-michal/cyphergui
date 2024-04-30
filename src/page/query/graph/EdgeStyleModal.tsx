@@ -19,13 +19,13 @@ class EdgeStyleModal extends React.Component<IEdgeStyleModalProps, {}> {
                 backdrop={true}
                 handleClose={this.props.handleClose}
                 buttons={<>
+                    <Button text="Close" icon="fa-solid fa-xmark" onClick={this.props.handleClose} />
                     <Button text="Default values" icon="fa-solid fa-rotate-right" onClick={() => {
                         this.props.handleStyleSet(this.props.type, 'color', '#ababab');
                         this.props.handleStyleSet(this.props.type, 'width', .3);
                         this.props.handleStyleSet(this.props.type, 'fontSize', 4);
                         this.props.handleStyleSet(this.props.type, 'label', '#label');
-                    }} color="is-info" />
-                    <Button text="Close" icon="fa-solid fa-xmark" onClick={this.props.handleClose} />
+                    }} color="is-warning" />
                 </>}>
                 <div className="field">
                     <label className="label">Color:</label>

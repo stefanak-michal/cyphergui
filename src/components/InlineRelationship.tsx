@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Relationship as _Relationship } from "neo4j-driver-core/types/graph-types";
+import { Relationship as _Relationship } from "neo4j-driver-lite";
 import { ITabManager } from "../utils/interfaces";
 import { Button, TypeButton } from "./form";
 import db from "../db";

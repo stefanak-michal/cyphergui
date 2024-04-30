@@ -1,6 +1,6 @@
 import * as React from "react";
 import { IPageProps, IStashManager } from "../utils/interfaces";
-import { Node as _Node, Relationship as _Relationship } from "neo4j-driver";
+import { Node as _Node, Relationship as _Relationship } from "neo4j-driver-lite";
 import { EPage, EPropertyType } from "../utils/enums";
 import { Button } from "../components/form";
 import db from "../db";

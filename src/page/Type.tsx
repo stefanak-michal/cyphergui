@@ -1,6 +1,6 @@
 import * as React from "react";
 import Pagination from "../components/Pagination";
-import { Relationship as Neo4jRelationship } from "neo4j-driver";
+import { Relationship as Neo4jRelationship } from "neo4j-driver-lite";
 import { Button, TypeButton } from "../components/form";
 import { Ecosystem, EPage, EQueryView } from "../utils/enums";
 import { IPageProps } from "../utils/interfaces";

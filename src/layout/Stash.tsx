@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Node as _Node, Relationship as _Relationship } from "neo4j-driver";
+import { Node as _Node, Relationship as _Relationship } from "neo4j-driver-lite";
 import db from "../db";
 import { IStashEntry, IStashManager, ITabManager } from "../utils/interfaces";
 import { Button } from "../components/form";

@@ -1,7 +1,7 @@
 import { toJSON } from "../../utils/fn";
 import { ClipboardContext } from "../../utils/contexts";
 import * as React from "react";
-import { ResultSummary } from "neo4j-driver";
+import { ResultSummary } from "neo4j-driver-lite";
 
 interface ISummaryProps {
     summary: ResultSummary

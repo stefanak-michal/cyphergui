@@ -13,7 +13,7 @@ import {
     Node as _Node,
     Path as _Path,
     Relationship as _Relationship
-} from "neo4j-driver";
+} from "neo4j-driver-lite";
 import { settings } from "../../layout/Settings";
 import { durationToString, toJSON } from "../../utils/fn";
 import { ClipboardContext } from "../../utils/contexts";

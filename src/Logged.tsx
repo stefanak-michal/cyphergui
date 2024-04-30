@@ -16,7 +16,7 @@ import db from "./db";
 import Stash from "./layout/Stash";
 import Settings, { settings } from "./layout/Settings";
 import { ClipboardContext, PropertiesModalContext, ToastContext } from "./utils/contexts";
-import { Node as _Node, Relationship as _Relationship } from "neo4j-driver";
+import { Node as _Node, Relationship as _Relationship } from "neo4j-driver-lite";
 import { CloseConfirmModal, PropertiesModal } from "./components/Modal";
 
 interface ILoggedState {

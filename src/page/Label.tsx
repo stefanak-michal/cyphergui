@@ -2,7 +2,7 @@ import * as React from "react";
 import Pagination from "../components/Pagination";
 import TableSortIcon from "../components/TableSortIcon";
 import { Button, LabelButton } from "../components/form";
-import { Node as _Node } from "neo4j-driver";
+import { Node as _Node } from "neo4j-driver-lite";
 import { Ecosystem, EPage, EQueryView } from "../utils/enums";
 import { IPageProps } from "../utils/interfaces";
 import db from "../db";

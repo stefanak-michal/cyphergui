@@ -126,9 +126,7 @@ class Db {
     query = (stmt: string, params: object = {}, db: string = undefined): Promise<QueryResult> => {
         return new Promise((resolve, reject) => {
             try {
-                const session = this._driver.session({ database: db });
-                Promise.all([session.run(stmt, params), session.close()]).then(responses => {
-                    const result = responses[0];
+                this._driver.executeQuery(stmt, params, { database: db }).then(result => {
                     this.logs = this.logs
                         .concat({
                             query: stmt,

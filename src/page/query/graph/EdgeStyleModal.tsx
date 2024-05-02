@@ -11,7 +11,7 @@ interface IEdgeStyleModalProps {
     labelFields: string[]; //list of available options for visible label
 }
 
-class EdgeStyleModal extends React.Component<IEdgeStyleModalProps, null> {
+class EdgeStyleModal extends React.Component<IEdgeStyleModalProps> {
     render() {
         return (
             <Modal

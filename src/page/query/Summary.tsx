@@ -7,7 +7,7 @@ interface ISummaryProps {
     summary: ResultSummary;
 }
 
-class Summary extends React.Component<ISummaryProps, null> {
+class Summary extends React.Component<ISummaryProps> {
     render() {
         return (
             <div className='control has-icons-right'>

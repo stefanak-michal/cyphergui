@@ -498,16 +498,13 @@ class PropertyType extends React.Component<{
     }
 }
 
-abstract class APropertyInput extends React.Component<
-    {
-        name: string;
-        value: any;
-        temp: any;
-        onValueChange: (name: string, value: any, temp?: any) => void;
-        focus: boolean;
-    },
-    object
-> {}
+abstract class APropertyInput extends React.Component<{
+    name: string;
+    value: any;
+    temp: any;
+    onValueChange: (name: string, value: any, temp?: any) => void;
+    focus: boolean;
+}> {}
 
 class PropertyStringInput extends APropertyInput {
     render() {
@@ -695,15 +692,12 @@ class DateControl extends React.Component<{
     }
 }
 
-class TimezoneControl extends React.Component<
-    {
-        value: number;
-        handleChange: () => void;
-        selectRef: React.RefObject<HTMLSelectElement>;
-        invalid?: boolean;
-    },
-    any
-> {
+class TimezoneControl extends React.Component<{
+    value: number;
+    handleChange: () => void;
+    selectRef: React.RefObject<HTMLSelectElement>;
+    invalid?: boolean;
+}> {
     render() {
         const range = [];
         for (let i = -11; i <= 12; i++) range.push(i);

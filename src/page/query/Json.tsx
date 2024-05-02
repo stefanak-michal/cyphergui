@@ -7,7 +7,7 @@ interface IJsonProps {
     rows: Record[];
 }
 
-class Json extends React.Component<IJsonProps, null> {
+class Json extends React.Component<IJsonProps> {
     render() {
         return (
             <div className='control has-icons-right'>

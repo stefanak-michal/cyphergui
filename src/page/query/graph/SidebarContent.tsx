@@ -21,7 +21,7 @@ interface ISidebarProps {
     database: string;
 }
 
-class SidebarContent extends React.Component<ISidebarProps, null> {
+class SidebarContent extends React.Component<ISidebarProps> {
     isColorDark = (color: string): boolean => {
         color = color.replace('#', '');
         const rgb = parseInt(color, 16); // convert rrggbb to decimal

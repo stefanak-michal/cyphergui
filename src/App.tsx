@@ -11,7 +11,7 @@ interface IAppState {
     darkMode: boolean;
 }
 
-class App extends React.Component<null, IAppState> {
+class App extends React.Component<object, IAppState> {
     state = {
         logged: false,
         darkMode: settings().darkMode,

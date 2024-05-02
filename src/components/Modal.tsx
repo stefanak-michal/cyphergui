@@ -40,13 +40,10 @@ export default class Modal extends React.Component<{
     }
 }
 
-export class CloseConfirmModal extends React.Component<
-    {
-        handleConfirm: () => void;
-        handleClose: () => void;
-    },
-    null
-> {
+export class CloseConfirmModal extends React.Component<{
+    handleConfirm: () => void;
+    handleClose: () => void;
+}> {
     render() {
         return (
             <Modal
@@ -133,7 +130,7 @@ export class DeleteModal extends React.Component<
     }
 }
 
-export class PropertiesModal extends React.Component<{ properties: object; handleClose: () => void }, null> {
+export class PropertiesModal extends React.Component<{ properties: object; handleClose: () => void }> {
     render() {
         return (
             <Modal

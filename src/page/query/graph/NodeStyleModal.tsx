@@ -12,7 +12,7 @@ interface IEdgeStyleModalProps {
     labelFields: string[]; //list of available options for visible label
 }
 
-class NodeStyleModal extends React.Component<IEdgeStyleModalProps, null> {
+class NodeStyleModal extends React.Component<IEdgeStyleModalProps> {
     static defaultColor: { [label: string]: string } = {};
 
     componentDidMount() {

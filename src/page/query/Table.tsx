@@ -26,7 +26,7 @@ interface ITableProps {
     tabManager: ITabManager;
 }
 
-class Table extends React.Component<ITableProps, null> {
+class Table extends React.Component<ITableProps> {
     render() {
         return (
             <div className='table-container'>

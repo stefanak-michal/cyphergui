@@ -1,12 +1,23 @@
-import { EPage } from "./enums";
-import * as React from "react";
-import { t_StashValue, t_ToastFn } from "./types";
+import { EPage } from './enums';
+import * as React from 'react';
+import { t_StashValue, t_ToastFn } from './types';
+import { Integer } from 'neo4j-driver-lite';
 
 export interface ITabManager {
-    add: (title: string | { prefix: string; i?: any }, icon: string, page: EPage, props?: object, id?: string, active?: boolean) => string;
+    add: (
+        title: string | { prefix: string; i?: any },
+        icon: string,
+        page: EPage,
+        props?: object,
+        id?: string,
+        active?: boolean
+    ) => string;
     close: (id: string, e?: React.PointerEvent) => void;
     setActive: (id: string) => void;
-    generateName: (prefix: string, i?: any) => string;
+    generateName: (
+        prefix: string,
+        i?: Integer | string | number | null
+    ) => string;
     setChanged: (id: string, changed: boolean, callback?: () => void) => void;
 }
 
@@ -24,7 +35,11 @@ export interface IStashManager {
     remove: (id: number) => void;
     indexOf: (value: t_StashValue, stashed?: IStashEntry[]) => number;
     empty: () => void;
-    button: (value: t_StashValue, database: string, color?: string) => React.ReactElement;
+    button: (
+        value: t_StashValue,
+        database: string,
+        color?: string
+    ) => React.ReactElement;
     get: () => IStashEntry[];
 }
 
@@ -46,12 +61,12 @@ export interface IPageProps {
 export interface ITab {
     id: string;
     title: string;
-    icon: string
+    icon: string;
 }
 
 export interface ITabContent {
     id: string;
     page: EPage;
-    props: object,
+    props: object;
     changed?: boolean;
 }

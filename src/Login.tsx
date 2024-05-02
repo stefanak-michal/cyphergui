@@ -39,32 +39,20 @@ class Login extends React.Component<ILoginProps, ILoginState> {
         e.preventDefault();
         this.setState({ submitted: true });
 
-        this.tryConnect(
-            this.state.url,
-            this.state.username,
-            this.state.password,
-            err => {
-                this.setState({
-                    submitted: false,
-                    error: err,
-                });
-            }
-        );
+        this.tryConnect(this.state.url, this.state.username, this.state.password, err => {
+            this.setState({
+                submitted: false,
+                error: err,
+            });
+        });
     };
 
-    tryConnect = (
-        url: string,
-        username: string,
-        password: string,
-        onError: (error: string) => void
-    ) => {
+    tryConnect = (url: string, username: string, password: string, onError: (error: string) => void) => {
         let driver: Driver;
         try {
             driver = db.neo4j.driver(
                 url,
-                username.length > 0 && password.length > 0
-                    ? db.neo4j.auth.basic(username, password)
-                    : undefined,
+                username.length > 0 && password.length > 0 ? db.neo4j.auth.basic(username, password) : undefined,
                 {
                     userAgent: 'stefanak-michal/cypherGUI',
                 }
@@ -95,46 +83,35 @@ class Login extends React.Component<ILoginProps, ILoginState> {
     handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         e.preventDefault();
         const target = e.currentTarget;
-        const value =
-            e.currentTarget.type === 'checkbox' ? target.checked : target.value;
+        const value = e.currentTarget.type === 'checkbox' ? target.checked : target.value;
         const name = target.name;
 
-        let obj = {};
+        const obj = {};
         obj[name] = value;
-        if (name === 'url')
-            obj['mixedContentInfo'] = this.isMixedContent(value as string);
+        if (name === 'url') obj['mixedContentInfo'] = this.isMixedContent(value as string);
         this.setState(obj);
     };
 
     componentDidMount() {
-        let login = localStorage.getItem('login');
+        const login = localStorage.getItem('login');
         if (login) {
             try {
-                let parsed = JSON.parse(login);
-                this.tryConnect(
-                    this.state.url,
-                    parsed.username,
-                    parsed.password,
-                    () => {
-                        localStorage.removeItem('login');
-                    }
-                );
+                const parsed = JSON.parse(login);
+                this.tryConnect(this.state.url, parsed.username, parsed.password, () => {
+                    localStorage.removeItem('login');
+                });
             } catch (err) {
                 console.error(err);
             }
         }
 
-        if (this.isMixedContent(this.state.url))
-            this.setState({ mixedContentInfo: true });
+        if (this.isMixedContent(this.state.url)) this.setState({ mixedContentInfo: true });
     }
 
     isMixedContent = (url: string): boolean => {
         try {
             const parser = new URL(url);
-            if (
-                location.protocol === 'https:' &&
-                (parser.protocol === 'bolt:' || parser.protocol === 'neo4j:')
-            )
+            if (location.protocol === 'https:' && (parser.protocol === 'bolt:' || parser.protocol === 'neo4j:'))
                 return true;
         } catch (err) {
             console.error(err);
@@ -149,28 +126,15 @@ class Login extends React.Component<ILoginProps, ILoginState> {
                 <div className='columns'>
                     <div className='column is-6-desktop is-offset-3-desktop'>
                         <h1 className='has-text-centered'>
-                            <img
-                                src={this.props.darkMode ? logo_dark : logo}
-                                alt='cypherGUI'
-                            />
+                            <img src={this.props.darkMode ? logo_dark : logo} alt='cypherGUI' />
                         </h1>
 
-                        <form
-                            id='login'
-                            className='mt-6 box'
-                            onSubmit={this.handleSubmit}
-                        >
-                            <Input
-                                label='URL'
-                                name='url'
-                                onChange={this.handleInputChange}
-                                value={this.state.url}
-                            />
+                        <form id='login' className='mt-6 box' onSubmit={this.handleSubmit}>
+                            <Input label='URL' name='url' onChange={this.handleInputChange} value={this.state.url} />
                             {this.state.mixedContentInfo && (
                                 <div className='notification is-warning my-3'>
                                     <i className='fa-solid fa-triangle-exclamation mr-1'></i>
-                                    Not encrypted protocol won't work on
-                                    encrypted website (https) because of{' '}
+                                    Not encrypted protocol won't work on encrypted website (https) because of{' '}
                                     <a
                                         href='https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content'
                                         target='_blank'
@@ -185,8 +149,7 @@ class Login extends React.Component<ILoginProps, ILoginState> {
                                     >
                                         locally
                                     </a>{' '}
-                                    or add certificate to your graph database
-                                    instance. Adding certificate is a complex
+                                    or add certificate to your graph database instance. Adding certificate is a complex
                                     issue and you can read more about it{' '}
                                     <a
                                         href='https://ko-fi.com/post/Neo4j-and-self-signed-certificate-on-Windows-S6S2I0KQT'
@@ -204,12 +167,7 @@ class Login extends React.Component<ILoginProps, ILoginState> {
                                 value={this.state.username}
                                 focus={true}
                             />
-                            <Input
-                                label='Password'
-                                name='password'
-                                type='password'
-                                onChange={this.handleInputChange}
-                            />
+                            <Input label='Password' name='password' type='password' onChange={this.handleInputChange} />
                             <Checkbox
                                 name='remember'
                                 label='Remember (not secure)'
@@ -222,20 +180,13 @@ class Login extends React.Component<ILoginProps, ILoginState> {
                                 }
                             />
                             {this.state.error && (
-                                <div className='notification is-danger mt-3 mb-0'>
-                                    {this.state.error}
-                                </div>
+                                <div className='notification is-danger mt-3 mb-0'>{this.state.error}</div>
                             )}
                             <div className='buttons mt-3 is-justify-content-space-between'>
                                 <Button
                                     text='Login'
                                     icon='fa-solid fa-check'
-                                    color={
-                                        'is-primary ' +
-                                        (this.state.submitted
-                                            ? 'is-loading'
-                                            : '')
-                                    }
+                                    color={'is-primary ' + (this.state.submitted ? 'is-loading' : '')}
                                     type='submit'
                                 />
                                 <ThemeSwitchContext.Consumer>

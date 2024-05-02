@@ -1,8 +1,5 @@
 import * as React from 'react';
-import {
-    Node as _Node,
-    Relationship as _Relationship,
-} from 'neo4j-driver-lite';
+import { Node as _Node, Relationship as _Relationship } from 'neo4j-driver-lite';
 import db from '../db';
 import { IStashEntry, IStashManager, ITabManager } from '../utils/interfaces';
 import { Button } from '../components/form';
@@ -33,58 +30,32 @@ class Stash extends React.Component<IStashProps, IStashState> {
     };
 
     shouldComponentUpdate = (nextProps: Readonly<IStashProps>): boolean => {
-        if (
-            this.props.stashed.length !== nextProps.stashed.length &&
-            !this.state.pulse
-        )
-            this.setState({ pulse: true });
+        if (this.props.stashed.length !== nextProps.stashed.length && !this.state.pulse) this.setState({ pulse: true });
         return true;
     };
 
     filter = (entry: IStashEntry): boolean => {
         //tab
-        if (this.state.tab === 'Nodes' && !(entry.value instanceof _Node))
-            return false;
-        if (
-            this.state.tab === 'Relationships' &&
-            !(entry.value instanceof _Relationship)
-        )
-            return false;
-        if (
-            this.state.tab === 'Queries' &&
-            !(entry.value instanceof t_StashQuery)
-        )
-            return false;
+        if (this.state.tab === 'Nodes' && !(entry.value instanceof _Node)) return false;
+        if (this.state.tab === 'Relationships' && !(entry.value instanceof _Relationship)) return false;
+        if (this.state.tab === 'Queries' && !(entry.value instanceof t_StashQuery)) return false;
         //search
         if (this.state.search.length === 0) return true;
         if (db.strInt(entry.value.identity) === this.state.search) return true;
-        if (
-            'elementId' in entry.value &&
-            db.hasElementId &&
-            entry.value.elementId.includes(this.state.search)
-        )
+        if ('elementId' in entry.value && db.hasElementId && entry.value.elementId.includes(this.state.search))
             return true;
         if (
             entry.value instanceof _Node &&
-            entry.value.labels.filter(x => x.indexOf(this.state.search) >= 0)
-                .length > 0
+            entry.value.labels.filter(x => x.indexOf(this.state.search) >= 0).length > 0
         )
             return true;
-        if (
-            entry.value instanceof _Relationship &&
-            entry.value.type.indexOf(this.state.search) >= 0
-        )
-            return true;
-        if (
-            entry.value instanceof t_StashQuery &&
-            entry.value.query.indexOf(this.state.search) >= 0
-        )
-            return true;
+        if (entry.value instanceof _Relationship && entry.value.type.indexOf(this.state.search) >= 0) return true;
+        if (entry.value instanceof t_StashQuery && entry.value.query.indexOf(this.state.search) >= 0) return true;
         return false;
     };
 
     render() {
-        let a = [];
+        const a = [];
         for (let i = 0; i < 20; i++) {
             a.push(
                 <a className='panel-block'>
@@ -97,12 +68,7 @@ class Stash extends React.Component<IStashProps, IStashState> {
         }
 
         return (
-            <section
-                className={
-                    'stash panel is-link ' +
-                    (this.state.active ? 'is-active' : '')
-                }
-            >
+            <section className={'stash panel is-link ' + (this.state.active ? 'is-active' : '')}>
                 <div
                     className='panel-heading is-clickable wspace-nowrap'
                     onClick={() =>
@@ -114,18 +80,10 @@ class Stash extends React.Component<IStashProps, IStashState> {
                     }
                 >
                     <span
-                        className={
-                            'icon mr-2 animate__animated ' +
-                            (this.state.pulse ? 'animate__swing' : '')
-                        }
+                        className={'icon mr-2 animate__animated ' + (this.state.pulse ? 'animate__swing' : '')}
                         onAnimationEnd={() => this.setState({ pulse: false })}
                     >
-                        <i
-                            className={
-                                'fa-regular fa-folder' +
-                                (this.state.active ? '-open' : '')
-                            }
-                        />
+                        <i className={'fa-regular fa-folder' + (this.state.active ? '-open' : '')} />
                     </span>
                     Stash
                 </div>
@@ -137,24 +95,16 @@ class Stash extends React.Component<IStashProps, IStashState> {
                                 type='text'
                                 placeholder='Search'
                                 value={this.state.search}
-                                onChange={(
-                                    e: React.ChangeEvent<HTMLInputElement>
-                                ) =>
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                     this.setState({
                                         search: e.currentTarget.value,
                                     })
                                 }
                             />
                             <span className='icon is-left'>
-                                <i
-                                    className='fas fa-search'
-                                    aria-hidden='true'
-                                />
+                                <i className='fas fa-search' aria-hidden='true' />
                             </span>
-                            <span
-                                className='icon is-right is-clickable'
-                                onClick={() => this.setState({ search: '' })}
-                            >
+                            <span className='icon is-right is-clickable' onClick={() => this.setState({ search: '' })}>
                                 <i className='fa-solid fa-xmark' />
                             </span>
                         </p>
@@ -163,9 +113,7 @@ class Stash extends React.Component<IStashProps, IStashState> {
                         {['All', 'Nodes', 'Relationships', 'Queries'].map(t => (
                             <a
                                 key={t}
-                                className={
-                                    this.state.tab === t ? 'is-active' : ''
-                                }
+                                className={this.state.tab === t ? 'is-active' : ''}
                                 onClick={() => this.setState({ tab: t })}
                             >
                                 {t}
@@ -173,10 +121,7 @@ class Stash extends React.Component<IStashProps, IStashState> {
                         ))}
                     </p>
                     {this.props.stashed.filter(this.filter).map(entry => (
-                        <div
-                            className='panel-block is-hoverable'
-                            key={entry.id}
-                        >
+                        <div className='panel-block is-hoverable' key={entry.id}>
                             {entry.value instanceof _Node && (
                                 <InlineNode
                                     node={entry.value}
@@ -196,11 +141,7 @@ class Stash extends React.Component<IStashProps, IStashState> {
                             {entry.value instanceof t_StashQuery && (
                                 <a
                                     className='is-align-items-center'
-                                    title={
-                                        entry.value.query.length > 25
-                                            ? entry.value.query
-                                            : ''
-                                    }
+                                    title={entry.value.query.length > 25 ? entry.value.query : ''}
                                     onClick={() =>
                                         this.props.tabManager.add(
                                             entry.value.identity as string,
@@ -212,29 +153,19 @@ class Stash extends React.Component<IStashProps, IStashState> {
                                         )
                                     }
                                 >
-                                    {entry.value.query.substring(0, 25)}{' '}
-                                    {entry.value.query.length > 25 ? '...' : ''}
+                                    {entry.value.query.substring(0, 25)} {entry.value.query.length > 25 ? '...' : ''}
                                 </a>
                             )}
-                            {(entry.value instanceof _Node ||
-                                entry.value instanceof _Relationship) &&
-                                db.databases.length > 1 && (
-                                    <span className='ml-1'>
-                                        (db: {entry.database})
-                                    </span>
-                                )}
+                            {(entry.value instanceof _Node || entry.value instanceof _Relationship) &&
+                                db.databases.length > 1 && <span className='ml-1'>(db: {entry.database})</span>}
                             <button
                                 className='delete ml-auto'
-                                onClick={() =>
-                                    this.props.stashManager.remove(entry.id)
-                                }
+                                onClick={() => this.props.stashManager.remove(entry.id)}
                             />
                         </div>
                     ))}
                     {this.props.stashed.filter(this.filter).length === 0 && (
-                        <span className='panel-block has-text-grey-light'>
-                            empty
-                        </span>
+                        <span className='panel-block has-text-grey-light'>empty</span>
                     )}
                     <div className='panel-block'>
                         <Button

@@ -19,10 +19,7 @@ export default class InlineRelationship extends React.Component<{
                     type={this.props.rel.type}
                     database={this.props.database || db.database}
                     tabManager={this.props.tabManager}
-                    size={
-                        'mr-1 ' +
-                        (!!this.props.small ? 'is-small' : 'is-medium')
-                    }
+                    size={'mr-1 ' + (this.props.small ? 'is-small' : 'is-medium')}
                 />
                 <Button
                     onClick={() =>
@@ -37,7 +34,7 @@ export default class InlineRelationship extends React.Component<{
                         )
                     }
                     icon='fa-solid fa-pen-clip'
-                    color={!!this.props.small ? 'is-small' : ''}
+                    color={this.props.small ? 'is-small' : ''}
                     text={'#' + db.strInt(this.props.rel.identity)}
                 />
                 {Object.keys(this.props.rel.properties).length > 0 && (
@@ -46,10 +43,7 @@ export default class InlineRelationship extends React.Component<{
                             <Button
                                 icon='fa-solid fa-rectangle-list'
                                 onClick={() => fn(this.props.rel.properties)}
-                                color={
-                                    'ml-1 ' +
-                                    (!!this.props.small ? 'is-small' : '')
-                                }
+                                color={'ml-1 ' + (this.props.small ? 'is-small' : '')}
                             />
                         )}
                     </PropertiesModalContext.Consumer>

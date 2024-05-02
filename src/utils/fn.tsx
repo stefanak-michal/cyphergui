@@ -17,8 +17,8 @@ export function toJSON(data: any[] | object): string {
     if (Array.isArray(data)) {
         obj = [];
         data.forEach(row => {
-            let entry = {};
-            for (let key of row.keys) entry[key] = row.get(key);
+            const entry = {};
+            for (const key of row.keys) entry[key] = row.get(key);
             obj.push(entry);
         });
     } else if (typeof data === 'object') {
@@ -59,10 +59,7 @@ export function getPropertyAsTemp(type: EPropertyType, value: any): any {
             return (() => {
                 const [date, timepart] = value.toString().split('T');
                 const time = timepart.substring(0, 8);
-                const tz =
-                    db.fromInt((value as _DateTime).timeZoneOffsetSeconds) /
-                    60 /
-                    60;
+                const tz = db.fromInt((value as _DateTime).timeZoneOffsetSeconds) / 60 / 60;
                 const nanosec = db.strInt((value as _DateTime).nanosecond);
                 return [date, time, nanosec, tz];
             })();
@@ -76,20 +73,13 @@ export function getPropertyAsTemp(type: EPropertyType, value: any): any {
                 return [date, time, nanosec];
             })();
         case EPropertyType.LocalTime:
-            return [
-                (value as _LocalTime).toString().substring(0, 8),
-                db.strInt((value as _LocalTime).nanosecond),
-            ];
-        case EPropertyType.Point:
+            return [(value as _LocalTime).toString().substring(0, 8), db.strInt((value as _LocalTime).nanosecond)];
+        case EPropertyType.Point: {
             const srid = db.strInt((value as _Point).srid);
             return ['4979', '9157'].includes(srid)
-                ? [
-                      srid,
-                      (value as _Point).x,
-                      (value as _Point).y,
-                      (value as _Point).z,
-                  ]
+                ? [srid, (value as _Point).x, (value as _Point).y, (value as _Point).z]
                 : [srid, (value as _Point).x, (value as _Point).y];
+        }
         case EPropertyType.Time:
             return [
                 (value as _Time).toString().substring(0, 8),
@@ -113,36 +103,20 @@ export function getPropertyAsTemp(type: EPropertyType, value: any): any {
 }
 
 export function cypherPrintProperties(properties: t_FormProperty[]): string {
-    return (
-        '{' +
-        properties.map(p => p.key + ': ' + cypherPrintProperty(p)).join(', ') +
-        '}'
-    );
+    return '{' + properties.map(p => p.key + ': ' + cypherPrintProperty(p)).join(', ') + '}';
 }
 
 function cypherPrintProperty(property: t_FormProperty | t_FormValue): string {
     if (property.value === null) return 'null';
     switch (property.type) {
         case EPropertyType.String:
-            return (
-                "'" +
-                (property.value as string)
-                    .replaceAll("'", "\\'")
-                    .replaceAll('\n', '\\n') +
-                "'"
-            );
+            return "'" + (property.value as string).replaceAll("'", "\\'").replaceAll('\n', '\\n') + "'";
         case EPropertyType.Integer:
             return property.temp;
         case EPropertyType.Boolean:
             return property.value ? 'true' : 'false';
         case EPropertyType.List:
-            return (
-                '[' +
-                (property.value as t_FormValue[])
-                    .map(entry => cypherPrintProperty(entry))
-                    .join(', ') +
-                ']'
-            );
+            return '[' + (property.value as t_FormValue[]).map(entry => cypherPrintProperty(entry)).join(', ') + ']';
         case EPropertyType.Map:
             return (
                 '{' +
@@ -188,7 +162,7 @@ export function stringToDuration(value: string): _Duration {
     const [date, time] = value.substring(1).split('T');
 
     if (date) {
-        for (let m of date.match(/[\d\.]+[A-Z]/g) || []) {
+        for (const m of date.match(/[\d.]+[A-Z]/g) || []) {
             switch (m.slice(-1)) {
                 case 'Y':
                     months += parseInt(m.slice(0, -1)) * 12;
@@ -204,7 +178,7 @@ export function stringToDuration(value: string): _Duration {
     }
 
     if (time) {
-        for (let m of time.match(/[\d\.]+[A-Z]/g) || []) {
+        for (const m of time.match(/[\d.]+[A-Z]/g) || []) {
             switch (m.slice(-1)) {
                 case 'H':
                     seconds += parseInt(m.slice(0, -1)) * 60 * 60;
@@ -212,21 +186,17 @@ export function stringToDuration(value: string): _Duration {
                 case 'M':
                     seconds += parseInt(m.slice(0, -1)) * 60;
                     break;
-                case 'S':
+                case 'S': {
                     const [sec, nano] = m.slice(0, -1).split('.', 2);
                     seconds += parseInt(sec);
                     nanoseconds = parseInt(nano);
                     break;
+                }
             }
         }
     }
 
-    return new _Duration(
-        db.toInt(months),
-        db.toInt(days),
-        db.toInt(seconds),
-        db.toInt(nanoseconds)
-    );
+    return new _Duration(db.toInt(months), db.toInt(days), db.toInt(seconds), db.toInt(nanoseconds));
 }
 
 export function durationToString(duration: _Duration): string {
@@ -240,7 +210,7 @@ export function durationToString(duration: _Duration): string {
     if (days > 0) r += days + 'D';
 
     let time: string = '';
-    let seconds = db.fromInt(duration.seconds);
+    const seconds = db.fromInt(duration.seconds);
     const hours = Math.floor(seconds / 3600);
     if (hours > 0) time += hours + 'H';
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -255,17 +225,15 @@ export function durationToString(duration: _Duration): string {
     if ((seconds % 3600) % 60 > 0) time += (seconds % 3600) % 60;
     const nano = db.strInt(duration.nanoseconds);
     if (nano.length > 0 && nano !== '0')
-        time +=
-            (time.length === 0 ? '0.' : '.') +
-            nano.substring(0, 6).replace(/0*$/, '');
+        time += (time.length === 0 ? '0.' : '.') + nano.substring(0, 6).replace(/0*$/, '');
     if (time.length > 0) r += (t ? 'T' : '') + time + 'S';
 
     return r;
 }
 
-export function sanitizeFormValues(properties: t_FormProperty[]): {} {
+export function sanitizeFormValues(properties: t_FormProperty[]): object {
     const props = {};
-    for (let p of properties) {
+    for (const p of properties) {
         if (p.type === EPropertyType.List) {
             props[p.key] = [];
             (p.value as t_FormValue[]).forEach(entry => {
@@ -286,8 +254,7 @@ export function sanitizeFormValues(properties: t_FormProperty[]): {} {
 export function printProperty(property: any): string | React.ReactElement {
     if (db.isInt(property)) return db.strInt(property);
     if (Array.isArray(property)) return '[' + property.join(', ') + ']';
-    if (typeof property === 'boolean')
-        return <Checkbox name='' label='' checked={property} disabled />;
+    if (typeof property === 'boolean') return <Checkbox name='' label='' checked={property} disabled />;
     if (property.constructor.name === 'Object')
         return (
             '{' +

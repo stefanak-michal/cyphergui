@@ -26,7 +26,7 @@ interface ITableProps {
     tabManager: ITabManager;
 }
 
-class Table extends React.Component<ITableProps, {}> {
+class Table extends React.Component<ITableProps, null> {
     render() {
         return (
             <div className='table-container'>
@@ -42,11 +42,7 @@ class Table extends React.Component<ITableProps, {}> {
                         {this.props.rows.map((row, i) => (
                             <tr key={i}>
                                 {this.props.keys.map(key => (
-                                    <td key={key}>
-                                        {row.has(key)
-                                            ? this.printValue(row.get(key))
-                                            : ''}
-                                    </td>
+                                    <td key={key}>{row.has(key) ? this.printValue(row.get(key)) : ''}</td>
                                 ))}
                             </tr>
                         ))}
@@ -64,9 +60,7 @@ class Table extends React.Component<ITableProps, {}> {
                     [
                     {value.length
                         ? value
-                              .map<React.ReactNode>(entry =>
-                                  this.printValue(entry)
-                              )
+                              .map<React.ReactNode>(entry => this.printValue(entry))
                               .reduce((prev, curr) => [prev, ', ', curr])
                         : ''}
                     ]
@@ -74,25 +68,14 @@ class Table extends React.Component<ITableProps, {}> {
             );
         if (value === null) return <p className='has-text-grey'>null</p>;
         if (typeof value === 'boolean') return <>{value ? 'true' : 'false'}</>;
-        if (typeof value === 'string')
-            return <p className='wspace-pre is-inline-block'>{value}</p>;
+        if (typeof value === 'string') return <p className='wspace-pre is-inline-block'>{value}</p>;
 
         if (value instanceof _Node) {
-            return (
-                <InlineNode
-                    node={value}
-                    tabManager={this.props.tabManager}
-                    small={this.props.tableSize === 1}
-                />
-            );
+            return <InlineNode node={value} tabManager={this.props.tabManager} small={this.props.tableSize === 1} />;
         }
         if (value instanceof _Relationship) {
             return (
-                <InlineRelationship
-                    rel={value}
-                    tabManager={this.props.tabManager}
-                    small={this.props.tableSize === 1}
-                />
+                <InlineRelationship rel={value} tabManager={this.props.tabManager} small={this.props.tableSize === 1} />
             );
         }
         if (value instanceof _Path) {
@@ -107,9 +90,7 @@ class Table extends React.Component<ITableProps, {}> {
                                     <>
                                         <span className='is-size-4'>(</span>
                                         {this.printValue(
-                                            db.strInt(
-                                                segment.start.identity
-                                            ) === db.strInt(start.identity)
+                                            db.strInt(segment.start.identity) === db.strInt(start.identity)
                                                 ? segment.start
                                                 : segment.end
                                         )}
@@ -117,24 +98,14 @@ class Table extends React.Component<ITableProps, {}> {
                                     </>
                                 )}
                                 <span className='is-size-4 wspace-nowrap'>
-                                    {db.strInt(segment.start.identity) ===
-                                    db.strInt(start.identity)
-                                        ? '-'
-                                        : '<-'}
-                                    [
+                                    {db.strInt(segment.start.identity) === db.strInt(start.identity) ? '-' : '<-'}[
                                 </span>
                                 {this.printValue(segment.relationship)}
                                 <span className='is-size-4 wspace-nowrap'>
-                                    ]
-                                    {db.strInt(segment.start.identity) ===
-                                    db.strInt(start.identity)
-                                        ? '->'
-                                        : '-'}
-                                    (
+                                    ]{db.strInt(segment.start.identity) === db.strInt(start.identity) ? '->' : '-'}(
                                 </span>
                                 {this.printValue(
-                                    db.strInt(segment.start.identity) ===
-                                        db.strInt(start.identity)
+                                    db.strInt(segment.start.identity) === db.strInt(start.identity)
                                         ? segment.end
                                         : segment.start
                                 )}
@@ -155,30 +126,17 @@ class Table extends React.Component<ITableProps, {}> {
                 settings().temporalValueToStringFunction === 'toString'
                     ? 'toDateString'
                     : settings().temporalValueToStringFunction;
-            return (
-                <p className='wspace-nowrap'>{value.toStandardDate()[fn]()}</p>
-            );
+            return <p className='wspace-nowrap'>{value.toStandardDate()[fn]()}</p>;
         }
         if (value instanceof _DateTime)
             return (
-                <p className='wspace-nowrap'>
-                    {value
-                        .toStandardDate()
-                        [settings().temporalValueToStringFunction]()}
-                </p>
+                <p className='wspace-nowrap'>{value.toStandardDate()[settings().temporalValueToStringFunction]()}</p>
             );
-        if (value instanceof _Time)
-            return <p className='wspace-nowrap'>{value.toString()}</p>;
+        if (value instanceof _Time) return <p className='wspace-nowrap'>{value.toString()}</p>;
         if (value instanceof _LocalDateTime)
-            return (
-                <p className='wspace-nowrap'>
-                    {value.toStandardDate().toLocaleString()}
-                </p>
-            );
-        if (value instanceof _LocalTime)
-            return <p className='wspace-nowrap'>{value.toString()}</p>;
-        if (value instanceof _Duration)
-            return <p className='wspace-nowrap'>{durationToString(value)}</p>;
+            return <p className='wspace-nowrap'>{value.toStandardDate().toLocaleString()}</p>;
+        if (value instanceof _LocalTime) return <p className='wspace-nowrap'>{value.toString()}</p>;
+        if (value instanceof _Duration) return <p className='wspace-nowrap'>{durationToString(value)}</p>;
 
         if (typeof value === 'object') {
             return (
@@ -188,10 +146,7 @@ class Table extends React.Component<ITableProps, {}> {
                         <pre>{toJSON(value)}</pre>
                         <ClipboardContext.Consumer>
                             {copy => (
-                                <span
-                                    className='icon is-right is-clickable'
-                                    onClick={copy}
-                                >
+                                <span className='icon is-right is-clickable' onClick={copy}>
                                     <i className='fa-regular fa-copy' />
                                 </span>
                             )}

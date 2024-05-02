@@ -8,21 +8,16 @@ interface IEdgeStyleModalProps {
     label: string;
     currentSettings: INodeStyle;
     handleClose: () => void;
-    handleStyleSet: (
-        label: string,
-        property: string,
-        value: string | number | NodeShapeType
-    ) => void;
+    handleStyleSet: (label: string, property: string, value: string | number | NodeShapeType) => void;
     labelFields: string[]; //list of available options for visible label
 }
 
-class NodeStyleModal extends React.Component<IEdgeStyleModalProps, {}> {
+class NodeStyleModal extends React.Component<IEdgeStyleModalProps, null> {
     static defaultColor: { [label: string]: string } = {};
 
     componentDidMount() {
         if (!(this.props.label in NodeStyleModal.defaultColor))
-            NodeStyleModal.defaultColor[this.props.label] = this.props
-                .currentSettings.color as string;
+            NodeStyleModal.defaultColor[this.props.label] = this.props.currentSettings.color as string;
     }
 
     render() {
@@ -33,11 +28,7 @@ class NodeStyleModal extends React.Component<IEdgeStyleModalProps, {}> {
                 handleClose={this.props.handleClose}
                 buttons={
                     <>
-                        <Button
-                            text='Close'
-                            icon='fa-solid fa-xmark'
-                            onClick={this.props.handleClose}
-                        />
+                        <Button text='Close' icon='fa-solid fa-xmark' onClick={this.props.handleClose} />
                         <Button
                             text='Default values'
                             icon='fa-solid fa-rotate-right'
@@ -45,30 +36,12 @@ class NodeStyleModal extends React.Component<IEdgeStyleModalProps, {}> {
                                 this.props.handleStyleSet(
                                     this.props.label,
                                     'color',
-                                    NodeStyleModal.defaultColor[
-                                        this.props.label
-                                    ]
+                                    NodeStyleModal.defaultColor[this.props.label]
                                 );
-                                this.props.handleStyleSet(
-                                    this.props.label,
-                                    'size',
-                                    5
-                                );
-                                this.props.handleStyleSet(
-                                    this.props.label,
-                                    'fontSize',
-                                    4
-                                );
-                                this.props.handleStyleSet(
-                                    this.props.label,
-                                    'shape',
-                                    NodeShapeType.CIRCLE
-                                );
-                                this.props.handleStyleSet(
-                                    this.props.label,
-                                    'label',
-                                    '#label'
-                                );
+                                this.props.handleStyleSet(this.props.label, 'size', 5);
+                                this.props.handleStyleSet(this.props.label, 'fontSize', 4);
+                                this.props.handleStyleSet(this.props.label, 'shape', NodeShapeType.CIRCLE);
+                                this.props.handleStyleSet(this.props.label, 'label', '#label');
                             }}
                             color='is-warning'
                         />
@@ -82,13 +55,7 @@ class NodeStyleModal extends React.Component<IEdgeStyleModalProps, {}> {
                             type='color'
                             value={this.props.currentSettings.color as string}
                             className='input'
-                            onChange={e =>
-                                this.props.handleStyleSet(
-                                    this.props.label,
-                                    'color',
-                                    e.currentTarget.value
-                                )
-                            }
+                            onChange={e => this.props.handleStyleSet(this.props.label, 'color', e.currentTarget.value)}
                         />
                     </div>
                 </div>
@@ -103,11 +70,7 @@ class NodeStyleModal extends React.Component<IEdgeStyleModalProps, {}> {
                             step='1'
                             value={this.props.currentSettings.size ?? 5}
                             onChange={e =>
-                                this.props.handleStyleSet(
-                                    this.props.label,
-                                    'size',
-                                    e.currentTarget.valueAsNumber
-                                )
+                                this.props.handleStyleSet(this.props.label, 'size', e.currentTarget.valueAsNumber)
                             }
                         />
                     </div>
@@ -123,11 +86,7 @@ class NodeStyleModal extends React.Component<IEdgeStyleModalProps, {}> {
                             step='1'
                             value={this.props.currentSettings.fontSize ?? 4}
                             onChange={e =>
-                                this.props.handleStyleSet(
-                                    this.props.label,
-                                    'fontSize',
-                                    e.currentTarget.valueAsNumber
-                                )
+                                this.props.handleStyleSet(this.props.label, 'fontSize', e.currentTarget.valueAsNumber)
                             }
                         />
                     </div>
@@ -139,70 +98,29 @@ class NodeStyleModal extends React.Component<IEdgeStyleModalProps, {}> {
                             key='circle'
                             icon='fa-solid fa-circle'
                             color={
-                                typeof this.props.currentSettings.shape ===
-                                    'undefined' ||
-                                this.props.currentSettings.shape ===
-                                    NodeShapeType.CIRCLE
+                                typeof this.props.currentSettings.shape === 'undefined' ||
+                                this.props.currentSettings.shape === NodeShapeType.CIRCLE
                                     ? 'is-active'
                                     : ''
                             }
-                            onClick={() =>
-                                this.props.handleStyleSet(
-                                    this.props.label,
-                                    'shape',
-                                    NodeShapeType.CIRCLE
-                                )
-                            }
+                            onClick={() => this.props.handleStyleSet(this.props.label, 'shape', NodeShapeType.CIRCLE)}
                         />
                         <Button
                             key='square'
                             icon='fa-solid fa-square'
-                            color={
-                                this.props.currentSettings.shape ===
-                                NodeShapeType.SQUARE
-                                    ? 'is-active'
-                                    : ''
-                            }
-                            onClick={() =>
-                                this.props.handleStyleSet(
-                                    this.props.label,
-                                    'shape',
-                                    NodeShapeType.SQUARE
-                                )
-                            }
+                            color={this.props.currentSettings.shape === NodeShapeType.SQUARE ? 'is-active' : ''}
+                            onClick={() => this.props.handleStyleSet(this.props.label, 'shape', NodeShapeType.SQUARE)}
                         />
                         <Button
                             key='diamond'
                             icon='fa-solid fa-diamond'
-                            color={
-                                this.props.currentSettings.shape ===
-                                NodeShapeType.DIAMOND
-                                    ? 'is-active'
-                                    : ''
-                            }
-                            onClick={() =>
-                                this.props.handleStyleSet(
-                                    this.props.label,
-                                    'shape',
-                                    NodeShapeType.DIAMOND
-                                )
-                            }
+                            color={this.props.currentSettings.shape === NodeShapeType.DIAMOND ? 'is-active' : ''}
+                            onClick={() => this.props.handleStyleSet(this.props.label, 'shape', NodeShapeType.DIAMOND)}
                         />
                         <Button
                             key='triangle_up'
-                            color={
-                                this.props.currentSettings.shape ===
-                                NodeShapeType.TRIANGLE
-                                    ? 'is-active'
-                                    : ''
-                            }
-                            onClick={() =>
-                                this.props.handleStyleSet(
-                                    this.props.label,
-                                    'shape',
-                                    NodeShapeType.TRIANGLE
-                                )
-                            }
+                            color={this.props.currentSettings.shape === NodeShapeType.TRIANGLE ? 'is-active' : ''}
+                            onClick={() => this.props.handleStyleSet(this.props.label, 'shape', NodeShapeType.TRIANGLE)}
                         >
                             <span className='icon r-270'>
                                 <i className='fa-solid fa-play' />
@@ -210,18 +128,9 @@ class NodeStyleModal extends React.Component<IEdgeStyleModalProps, {}> {
                         </Button>
                         <Button
                             key='triangle_down'
-                            color={
-                                this.props.currentSettings.shape ===
-                                NodeShapeType.TRIANGLE_DOWN
-                                    ? 'is-active'
-                                    : ''
-                            }
+                            color={this.props.currentSettings.shape === NodeShapeType.TRIANGLE_DOWN ? 'is-active' : ''}
                             onClick={() =>
-                                this.props.handleStyleSet(
-                                    this.props.label,
-                                    'shape',
-                                    NodeShapeType.TRIANGLE_DOWN
-                                )
+                                this.props.handleStyleSet(this.props.label, 'shape', NodeShapeType.TRIANGLE_DOWN)
                             }
                         >
                             <span className='icon r-90'>
@@ -231,35 +140,13 @@ class NodeStyleModal extends React.Component<IEdgeStyleModalProps, {}> {
                         <Button
                             key='star'
                             icon='fa-solid fa-star'
-                            color={
-                                this.props.currentSettings.shape ===
-                                NodeShapeType.STAR
-                                    ? 'is-active'
-                                    : ''
-                            }
-                            onClick={() =>
-                                this.props.handleStyleSet(
-                                    this.props.label,
-                                    'shape',
-                                    NodeShapeType.STAR
-                                )
-                            }
+                            color={this.props.currentSettings.shape === NodeShapeType.STAR ? 'is-active' : ''}
+                            onClick={() => this.props.handleStyleSet(this.props.label, 'shape', NodeShapeType.STAR)}
                         />
                         <Button
                             key='hexagon'
-                            color={
-                                this.props.currentSettings.shape ===
-                                NodeShapeType.HEXAGON
-                                    ? 'is-active'
-                                    : ''
-                            }
-                            onClick={() =>
-                                this.props.handleStyleSet(
-                                    this.props.label,
-                                    'shape',
-                                    NodeShapeType.HEXAGON
-                                )
-                            }
+                            color={this.props.currentSettings.shape === NodeShapeType.HEXAGON ? 'is-active' : ''}
+                            onClick={() => this.props.handleStyleSet(this.props.label, 'shape', NodeShapeType.HEXAGON)}
                         >
                             <span className='icon'>
                                 <img src={hexagon_icon} alt='hexagon' />
@@ -273,55 +160,27 @@ class NodeStyleModal extends React.Component<IEdgeStyleModalProps, {}> {
                         <Button
                             text='<id>'
                             key='#id'
-                            color={
-                                this.props.currentSettings.label === '#id'
-                                    ? 'is-active'
-                                    : ''
-                            }
-                            onClick={() =>
-                                this.props.handleStyleSet(
-                                    this.props.label,
-                                    'label',
-                                    '#id'
-                                )
-                            }
+                            color={this.props.currentSettings.label === '#id' ? 'is-active' : ''}
+                            onClick={() => this.props.handleStyleSet(this.props.label, 'label', '#id')}
                         />
                         <Button
                             text='<label>'
                             key='#label'
                             color={
-                                typeof this.props.currentSettings.label ===
-                                    'undefined' ||
+                                typeof this.props.currentSettings.label === 'undefined' ||
                                 this.props.currentSettings.label === '#label'
                                     ? 'is-active'
                                     : ''
                             }
-                            onClick={() =>
-                                this.props.handleStyleSet(
-                                    this.props.label,
-                                    'label',
-                                    '#label'
-                                )
-                            }
+                            onClick={() => this.props.handleStyleSet(this.props.label, 'label', '#label')}
                         />
                         {this.props.labelFields.length > 0 &&
                             this.props.labelFields.map(label => (
                                 <Button
                                     key={label}
                                     text={label}
-                                    color={
-                                        this.props.currentSettings.label ===
-                                        label
-                                            ? 'is-active'
-                                            : ''
-                                    }
-                                    onClick={() =>
-                                        this.props.handleStyleSet(
-                                            this.props.label,
-                                            'label',
-                                            label
-                                        )
-                                    }
+                                    color={this.props.currentSettings.label === label ? 'is-active' : ''}
+                                    onClick={() => this.props.handleStyleSet(this.props.label, 'label', label)}
                                 />
                             ))}
                     </div>

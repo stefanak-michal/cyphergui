@@ -25,8 +25,7 @@ class Start extends React.Component<IPageProps, IStartState> {
     }
 
     componentDidUpdate(prevProps: Readonly<IPageProps>) {
-        if (prevProps.active !== this.props.active && this.props.active)
-            this.requestData();
+        if (prevProps.active !== this.props.active && this.props.active) this.requestData();
     }
 
     requestData = () => {
@@ -36,11 +35,7 @@ class Start extends React.Component<IPageProps, IStartState> {
                 {},
                 db.database
             ),
-            db.query(
-                'MATCH ()-[n]-() RETURN collect(DISTINCT type(n)) AS c',
-                {},
-                db.database
-            ),
+            db.query('MATCH ()-[n]-() RETURN collect(DISTINCT type(n)) AS c', {}, db.database),
             db.driver.getServerInfo(),
         ])
             .then(responses => {
@@ -50,9 +45,7 @@ class Start extends React.Component<IPageProps, IStartState> {
                     serverInfo: responses[2],
                 });
             })
-            .catch(err =>
-                this.setState({ error: '[' + err.name + '] ' + err.message })
-            );
+            .catch(err => this.setState({ error: '[' + err.name + '] ' + err.message }));
     };
 
     render() {
@@ -66,27 +59,18 @@ class Start extends React.Component<IPageProps, IStartState> {
                                 <button
                                     className='delete'
                                     aria-label='delete'
-                                    onClick={() =>
-                                        this.setState({ error: null })
-                                    }
+                                    onClick={() => this.setState({ error: null })}
                                 />
                             </div>
-                            <div className='message-body'>
-                                {this.state.error}
-                            </div>
+                            <div className='message-body'>{this.state.error}</div>
                         </div>
                     )}
 
                     <div className='subtitle mb-2'>Server</div>
                     {Object.keys(this.state.serverInfo).length ? (
                         <div>
-                            Connected to{' '}
-                            <b>{this.state.serverInfo['address'] || ''}</b> with
-                            protocol version{' '}
-                            <b>
-                                {this.state.serverInfo['protocolVersion'] || ''}
-                            </b>
-                            .
+                            Connected to <b>{this.state.serverInfo['address'] || ''}</b> with protocol version{' '}
+                            <b>{this.state.serverInfo['protocolVersion'] || ''}</b>.
                         </div>
                     ) : (
                         <div>Loading ...</div>

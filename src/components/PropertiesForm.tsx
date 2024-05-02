@@ -24,23 +24,19 @@ interface IPropertiesFormState {
     focus: string;
 }
 
-class PropertiesForm extends React.Component<
-    IPropertiesFormProps,
-    IPropertiesFormState
-> {
+class PropertiesForm extends React.Component<IPropertiesFormProps, IPropertiesFormState> {
     state: IPropertiesFormState = {
         focus: '',
     };
 
     handleKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const target = e.currentTarget;
-        let props = [...this.props.properties];
+        const props = [...this.props.properties];
         const i = props.findIndex(p => target.name.startsWith('key.' + p.name));
         if (i > -1) {
             const parts = target.name.split('.');
             if (parts.length === 3) {
-                (props[i].value[parseInt(parts[2])] as t_FormValue).key =
-                    target.value;
+                (props[i].value[parseInt(parts[2])] as t_FormValue).key = target.value;
             } else {
                 props[i].key = target.value;
             }
@@ -51,7 +47,7 @@ class PropertiesForm extends React.Component<
     };
 
     handleValueChange = (name: string, value: any, temp: any = null) => {
-        let props = [...this.props.properties];
+        const props = [...this.props.properties];
         let i = props.findIndex(p => p.name === name);
         if (i > -1) {
             props[i].temp = temp;
@@ -75,7 +71,7 @@ class PropertiesForm extends React.Component<
         const target = e.currentTarget;
         const value = this.getDefaultValue(EPropertyType[target.value]);
         const temp = getPropertyAsTemp(EPropertyType[target.value], value);
-        let props = [...this.props.properties];
+        const props = [...this.props.properties];
         let i = props.findIndex(p => 'type.' + p.name === target.name);
         if (i > -1) {
             if (Array.isArray(value))
@@ -87,28 +83,21 @@ class PropertiesForm extends React.Component<
             props[i].value = value;
             props[i].temp = temp;
         } else {
-            i = props.findIndex(p =>
-                target.name.startsWith('subtype.' + p.name)
-            );
+            i = props.findIndex(p => target.name.startsWith('subtype.' + p.name));
             if (i > -1) {
                 const arr: string[] = target.name.split('.');
                 if (arr.length === 2) {
                     //List
-                    (props[i].value as t_FormValue[]).forEach(
-                        (entry: t_FormValue) => {
-                            entry.type = EPropertyType[target.value];
-                            entry.value = value;
-                            entry.temp = temp;
-                        }
-                    );
+                    (props[i].value as t_FormValue[]).forEach((entry: t_FormValue) => {
+                        entry.type = EPropertyType[target.value];
+                        entry.value = value;
+                        entry.temp = temp;
+                    });
                 } else if (arr.length === 3) {
                     //Map
-                    (props[i].value as t_FormValue[])[parseInt(arr[2])].type =
-                        EPropertyType[target.value];
-                    (props[i].value as t_FormValue[])[parseInt(arr[2])].value =
-                        value;
-                    (props[i].value as t_FormValue[])[parseInt(arr[2])].temp =
-                        temp;
+                    (props[i].value as t_FormValue[])[parseInt(arr[2])].type = EPropertyType[target.value];
+                    (props[i].value as t_FormValue[])[parseInt(arr[2])].value = value;
+                    (props[i].value as t_FormValue[])[parseInt(arr[2])].temp = temp;
                 }
             }
         }
@@ -151,7 +140,7 @@ class PropertiesForm extends React.Component<
     };
 
     handleDelete = (name: string) => {
-        let props = [...this.props.properties];
+        const props = [...this.props.properties];
         let i = props.findIndex(p => p.name === name);
         if (i > -1) {
             props.splice(i, 1);
@@ -169,13 +158,11 @@ class PropertiesForm extends React.Component<
     handleAdd = (e: React.PointerEvent<HTMLButtonElement>) => {
         e.preventDefault();
         const target = e.currentTarget;
-        let props = [...this.props.properties];
+        const props = [...this.props.properties];
         if (target.value) {
             const i = props.findIndex(p => p.name === target.value);
             if (i > -1) {
-                const valueType = (props[i].value as t_FormValue[])[
-                    props[i].value.length - 1
-                ].type;
+                const valueType = (props[i].value as t_FormValue[])[props[i].value.length - 1].type;
                 const value = this.getDefaultValue(valueType);
                 (props[i].value as t_FormValue[]).push({
                     type: valueType,
@@ -217,12 +204,7 @@ class PropertiesForm extends React.Component<
                     />
                 ))}
 
-                <Button
-                    icon='fa-solid fa-plus'
-                    color='ml-1'
-                    text='Add property'
-                    onClick={this.handleAdd}
-                />
+                <Button icon='fa-solid fa-plus' color='ml-1' text='Add property' onClick={this.handleAdd} />
             </>
         );
     }
@@ -252,13 +234,11 @@ class Property extends React.Component<{
     };
 
     render() {
-        let deleteButton = (
+        const deleteButton = (
             <div className='control'>
                 <Button
                     icon='fa-regular fa-trash-can'
-                    onClick={() =>
-                        this.props.onDelete(this.props.property.name)
-                    }
+                    onClick={() => this.props.onDelete(this.props.property.name)}
                     title='Delete property'
                 />
             </div>
@@ -268,9 +248,7 @@ class Property extends React.Component<{
             <div className='control'>
                 <input
                     name={'key.' + this.props.property.name}
-                    autoFocus={
-                        this.props.focus === 'key.' + this.props.property.name
-                    }
+                    autoFocus={this.props.focus === 'key.' + this.props.property.name}
                     className='input'
                     type='text'
                     value={this.props.property.key}
@@ -301,10 +279,7 @@ class Property extends React.Component<{
                                 <PropertyType
                                     name={this.props.property.name}
                                     selected={
-                                        (
-                                            this.props.property
-                                                .value as t_FormValue[]
-                                        )[0]?.type ?? EPropertyType.String
+                                        (this.props.property.value as t_FormValue[])[0]?.type ?? EPropertyType.String
                                     }
                                     onTypeChange={this.props.onTypeChange}
                                     subtype={true}
@@ -317,13 +292,8 @@ class Property extends React.Component<{
                                             icon='fa-regular fa-copy'
                                             onClick={copy}
                                             value={JSON.stringify(
-                                                (
-                                                    this.props.property
-                                                        .value as t_FormValue[]
-                                                ).map(v =>
-                                                    db.isInt(v.value)
-                                                        ? db.fromInt(v.value)
-                                                        : v.value
+                                                (this.props.property.value as t_FormValue[]).map(v =>
+                                                    db.isInt(v.value) ? db.fromInt(v.value) : v.value
                                                 )
                                             )}
                                         />
@@ -332,45 +302,27 @@ class Property extends React.Component<{
                             </div>
                         </div>
 
-                        {(this.props.property.value as t_FormValue[]).map(
-                            (v, i) => {
-                                const PropertyInputComponent: typeof APropertyInput =
-                                    this.components[
-                                        'Property' + v.type + 'Input'
-                                    ];
-                                const focus =
-                                    this.props.focus ===
-                                    this.props.property.name + '.' + i;
-                                return (
-                                    <div className='field is-grouped' key={i}>
-                                        <PropertyInputComponent
-                                            name={
-                                                this.props.property.name +
-                                                '.' +
-                                                i
-                                            }
-                                            value={v.value}
-                                            temp={v.temp}
-                                            onValueChange={
-                                                this.props.onValueChange
-                                            }
-                                            focus={focus}
-                                        />
-                                        <Button
-                                            icon='fa-solid fa-circle-minus'
-                                            onClick={() =>
-                                                this.props.onDelete(
-                                                    this.props.property.name +
-                                                        '.' +
-                                                        i
-                                                )
-                                            }
-                                            title='Remove list entry'
-                                        />
-                                    </div>
-                                );
-                            }
-                        )}
+                        {(this.props.property.value as t_FormValue[]).map((v, i) => {
+                            const PropertyInputComponent: typeof APropertyInput =
+                                this.components['Property' + v.type + 'Input'];
+                            const focus = this.props.focus === this.props.property.name + '.' + i;
+                            return (
+                                <div className='field is-grouped' key={i}>
+                                    <PropertyInputComponent
+                                        name={this.props.property.name + '.' + i}
+                                        value={v.value}
+                                        temp={v.temp}
+                                        onValueChange={this.props.onValueChange}
+                                        focus={focus}
+                                    />
+                                    <Button
+                                        icon='fa-solid fa-circle-minus'
+                                        onClick={() => this.props.onDelete(this.props.property.name + '.' + i)}
+                                        title='Remove list entry'
+                                    />
+                                </div>
+                            );
+                        })}
                         <div className='field'>
                             <div className='control'>
                                 <Button
@@ -410,18 +362,10 @@ class Property extends React.Component<{
                                             icon='fa-regular fa-copy'
                                             onClick={e => {
                                                 const obj = {};
-                                                (
-                                                    this.props.property
-                                                        .value as t_FormValue[]
-                                                ).forEach(v => {
-                                                    obj[v.key] = db.isInt(
-                                                        v.value
-                                                    )
-                                                        ? db.fromInt(v.value)
-                                                        : v.value;
+                                                (this.props.property.value as t_FormValue[]).forEach(v => {
+                                                    obj[v.key] = db.isInt(v.value) ? db.fromInt(v.value) : v.value;
                                                 });
-                                                e.currentTarget.value =
-                                                    JSON.stringify(obj);
+                                                e.currentTarget.value = JSON.stringify(obj);
                                                 copy(e);
                                             }}
                                         />
@@ -430,87 +374,48 @@ class Property extends React.Component<{
                             </div>
                         </div>
 
-                        {(this.props.property.value as t_FormValue[]).map(
-                            (v, i) => {
-                                const PropertyInputComponent: typeof APropertyInput =
-                                    this.components[
-                                        'Property' + v.type + 'Input'
-                                    ];
-                                const focus =
-                                    this.props.focus ===
-                                    this.props.property.name + '.' + i;
-                                return (
-                                    <div className='field is-grouped' key={i}>
-                                        <div className='control'>
-                                            <input
-                                                name={
-                                                    'key.' +
-                                                    this.props.property.name +
-                                                    '.' +
-                                                    i
-                                                }
-                                                autoFocus={
-                                                    this.props.focus ===
-                                                    'key.' +
-                                                        this.props.property
-                                                            .name +
-                                                        '.' +
-                                                        i
-                                                }
-                                                className='input'
-                                                type='text'
-                                                value={v.key}
-                                                onChange={
-                                                    this.props.onKeyChange
-                                                }
-                                                placeholder='Key'
-                                                pattern='^[A-Za-z][A-Za-z_0-9]*$'
-                                                required
-                                            />
-                                        </div>
-                                        <PropertyInputComponent
-                                            name={
-                                                this.props.property.name +
-                                                '.' +
-                                                i
-                                            }
-                                            value={v.value}
-                                            temp={v.temp}
-                                            onValueChange={
-                                                this.props.onValueChange
-                                            }
-                                            focus={focus}
-                                        />
-                                        <div className='control'>
-                                            <Button
-                                                icon='fa-solid fa-circle-minus'
-                                                onClick={() =>
-                                                    this.props.onDelete(
-                                                        this.props.property
-                                                            .name +
-                                                            '.' +
-                                                            i
-                                                    )
-                                                }
-                                                title='Remove map entry'
-                                            />
-                                        </div>
-                                        <PropertyType
-                                            name={
-                                                this.props.property.name +
-                                                '.' +
-                                                i
-                                            }
-                                            selected={v.type}
-                                            onTypeChange={
-                                                this.props.onTypeChange
-                                            }
-                                            subtype={true}
+                        {(this.props.property.value as t_FormValue[]).map((v, i) => {
+                            const PropertyInputComponent: typeof APropertyInput =
+                                this.components['Property' + v.type + 'Input'];
+                            const focus = this.props.focus === this.props.property.name + '.' + i;
+                            return (
+                                <div className='field is-grouped' key={i}>
+                                    <div className='control'>
+                                        <input
+                                            name={'key.' + this.props.property.name + '.' + i}
+                                            autoFocus={this.props.focus === 'key.' + this.props.property.name + '.' + i}
+                                            className='input'
+                                            type='text'
+                                            value={v.key}
+                                            onChange={this.props.onKeyChange}
+                                            placeholder='Key'
+                                            pattern='^[A-Za-z][A-Za-z_0-9]*$'
+                                            required
                                         />
                                     </div>
-                                );
-                            }
-                        )}
+                                    <PropertyInputComponent
+                                        name={this.props.property.name + '.' + i}
+                                        value={v.value}
+                                        temp={v.temp}
+                                        onValueChange={this.props.onValueChange}
+                                        focus={focus}
+                                    />
+                                    <div className='control'>
+                                        <Button
+                                            icon='fa-solid fa-circle-minus'
+                                            onClick={() => this.props.onDelete(this.props.property.name + '.' + i)}
+                                            title='Remove map entry'
+                                        />
+                                    </div>
+                                    <PropertyType
+                                        name={this.props.property.name + '.' + i}
+                                        selected={v.type}
+                                        onTypeChange={this.props.onTypeChange}
+                                        subtype={true}
+                                    />
+                                </div>
+                            );
+                        })}
                         <div className='field'>
                             <div className='control'>
                                 <Button
@@ -562,20 +467,13 @@ class PropertyType extends React.Component<{
 }> {
     getPropertyTypes = () => {
         return Object.keys(EPropertyType).filter(k => {
-            if (
-                this.props.subtype &&
-                (k === EPropertyType.List || k === EPropertyType.Map)
-            )
-                return false;
+            if (this.props.subtype && (k === EPropertyType.List || k === EPropertyType.Map)) return false;
             if (
                 db.ecosystem === Ecosystem.Memgraph &&
-                (k === EPropertyType.Point ||
-                    k === EPropertyType.Time ||
-                    k === EPropertyType.DateTime)
+                (k === EPropertyType.Point || k === EPropertyType.Time || k === EPropertyType.DateTime)
             )
                 return false;
-            if (db.ecosystem === Ecosystem.Neo4j && k === EPropertyType.Map)
-                return false;
+            if (db.ecosystem === Ecosystem.Neo4j && k === EPropertyType.Map) return false;
             return true;
         });
     };
@@ -584,17 +482,10 @@ class PropertyType extends React.Component<{
         return (
             <div className='select'>
                 <select
-                    name={
-                        (this.props.subtype ? 'subtype.' : 'type.') +
-                        this.props.name
-                    }
+                    name={(this.props.subtype ? 'subtype.' : 'type.') + this.props.name}
                     value={this.props.selected}
                     onChange={this.props.onTypeChange}
-                    title={
-                        this.props.subtype
-                            ? 'Type of list/map entries'
-                            : 'Property type'
-                    }
+                    title={this.props.subtype ? 'Type of list/map entries' : 'Property type'}
                 >
                     {this.getPropertyTypes().map(type => (
                         <option key={type} value={type}>
@@ -607,13 +498,16 @@ class PropertyType extends React.Component<{
     }
 }
 
-abstract class APropertyInput extends React.Component<{
-    name: string;
-    value: any;
-    temp: any;
-    onValueChange: (name: string, value: any, temp?: any) => void;
-    focus: boolean;
-}> {}
+abstract class APropertyInput extends React.Component<
+    {
+        name: string;
+        value: any;
+        temp: any;
+        onValueChange: (name: string, value: any, temp?: any) => void;
+        focus: boolean;
+    },
+    object
+> {}
 
 class PropertyStringInput extends APropertyInput {
     render() {
@@ -623,20 +517,14 @@ class PropertyStringInput extends APropertyInput {
                     name={this.props.name}
                     value={this.props.value}
                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                        this.props.onValueChange(
-                            this.props.name,
-                            e.currentTarget.value
-                        )
+                        this.props.onValueChange(this.props.name, e.currentTarget.value)
                     }
                     focus={this.props.focus}
                     placeholder='Value'
                 />
                 <ClipboardContext.Consumer>
                     {copy => (
-                        <span
-                            className='icon is-right is-clickable'
-                            onClick={copy}
-                        >
+                        <span className='icon is-right is-clickable' onClick={copy}>
                             <i className='fa-regular fa-copy' />
                         </span>
                     )}
@@ -656,10 +544,7 @@ class PropertyBooleanInput extends APropertyInput {
                         type='checkbox'
                         checked={this.props.value}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                            this.props.onValueChange(
-                                this.props.name,
-                                e.currentTarget.checked
-                            )
+                            this.props.onValueChange(this.props.name, e.currentTarget.checked)
                         }
                         placeholder='Value'
                         autoFocus={this.props.focus}
@@ -685,9 +570,7 @@ class PropertyIntegerInput extends APropertyInput {
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         this.props.onValueChange(
                             this.props.name,
-                            e.currentTarget.value.length
-                                ? db.toInt(e.currentTarget.value)
-                                : null,
+                            e.currentTarget.value.length ? db.toInt(e.currentTarget.value) : null,
                             e.currentTarget.value
                         )
                     }
@@ -695,10 +578,7 @@ class PropertyIntegerInput extends APropertyInput {
                 />
                 <ClipboardContext.Consumer>
                     {copy => (
-                        <span
-                            className='icon is-right is-clickable'
-                            onClick={copy}
-                        >
+                        <span className='icon is-right is-clickable' onClick={copy}>
                             <i className='fa-regular fa-copy' />
                         </span>
                     )}
@@ -730,10 +610,7 @@ class PropertyFloatInput extends APropertyInput {
                 />
                 <ClipboardContext.Consumer>
                     {copy => (
-                        <span
-                            className='icon is-right is-clickable'
-                            onClick={copy}
-                        >
+                        <span className='icon is-right is-clickable' onClick={copy}>
                             <i className='fa-regular fa-copy' />
                         </span>
                     )}
@@ -757,9 +634,7 @@ class TimeControl extends React.Component<{
         return (
             <div className='control is-expanded'>
                 <input
-                    className={
-                        'input ' + (this.props.invalid ? 'is-danger' : '')
-                    }
+                    className={'input ' + (this.props.invalid ? 'is-danger' : '')}
                     type='time'
                     value={this.props.value}
                     onChange={this.props.handleChange}
@@ -782,9 +657,7 @@ class NanosecondsControl extends React.Component<{
         return (
             <div className='control'>
                 <input
-                    className={
-                        'input ' + (this.props.invalid ? 'is-danger' : '')
-                    }
+                    className={'input ' + (this.props.invalid ? 'is-danger' : '')}
                     type='number'
                     step='1'
                     min='0'
@@ -809,9 +682,7 @@ class DateControl extends React.Component<{
         return (
             <div className='control is-expanded'>
                 <input
-                    className={
-                        'input ' + (this.props.invalid ? 'is-danger' : '')
-                    }
+                    className={'input ' + (this.props.invalid ? 'is-danger' : '')}
                     type='date'
                     value={this.props.value}
                     onChange={this.props.handleChange}
@@ -834,28 +705,16 @@ class TimezoneControl extends React.Component<
     any
 > {
     render() {
-        let range = [];
+        const range = [];
         for (let i = -11; i <= 12; i++) range.push(i);
 
         return (
             <div className='control'>
-                <div
-                    className={
-                        'select ' + (this.props.invalid ? 'is-danger' : '')
-                    }
-                >
-                    <select
-                        ref={this.props.selectRef}
-                        value={this.props.value}
-                        onChange={this.props.handleChange}
-                    >
+                <div className={'select ' + (this.props.invalid ? 'is-danger' : '')}>
+                    <select ref={this.props.selectRef} value={this.props.value} onChange={this.props.handleChange}>
                         {range.map((offset, i) => (
                             <option key={i} value={offset}>
-                                {(offset >= 0 ? '+' : '-') +
-                                    Math.abs(offset)
-                                        .toString()
-                                        .padStart(2, '0') +
-                                    ':00'}
+                                {(offset >= 0 ? '+' : '-') + Math.abs(offset).toString().padStart(2, '0') + ':00'}
                             </option>
                         ))}
                     </select>
@@ -911,13 +770,7 @@ class PropertyDateInput extends APropertyInput {
                     {this.state.valid && (
                         <div className='control'>
                             <ClipboardContext.Consumer>
-                                {copy => (
-                                    <Button
-                                        icon='fa-regular fa-copy'
-                                        onClick={copy}
-                                        value={this.props.temp}
-                                    />
-                                )}
+                                {copy => <Button icon='fa-regular fa-copy' onClick={copy} value={this.props.temp} />}
                             </ClipboardContext.Consumer>
                         </div>
                     )}
@@ -949,11 +802,7 @@ class PropertyTimeInput extends APropertyInput {
                       parseInt(this.timezoneRef.current.value) * 60 * 60
                   )
                 : null,
-            [
-                this.timeRef.current.value,
-                this.nanosecondsRef.current.value,
-                parseInt(this.timezoneRef.current.value),
-            ]
+            [this.timeRef.current.value, this.nanosecondsRef.current.value, parseInt(this.timezoneRef.current.value)]
         );
         this.setState({ valid: valid });
     };
@@ -993,9 +842,7 @@ class PropertyTimeInput extends APropertyInput {
                                     <Button
                                         icon='fa-regular fa-copy'
                                         onClick={copy}
-                                        value={(
-                                            this.props.value as _Time
-                                        ).toString()}
+                                        value={(this.props.value as _Time).toString()}
                                     />
                                 )}
                             </ClipboardContext.Consumer>
@@ -1018,9 +865,7 @@ class PropertyDateTimeInput extends APropertyInput {
     dateRef = React.createRef<HTMLInputElement>();
 
     handleChange = () => {
-        const valid =
-            this.dateRef.current.valueAsDate !== null &&
-            this.timeRef.current.valueAsDate !== null;
+        const valid = this.dateRef.current.valueAsDate !== null && this.timeRef.current.valueAsDate !== null;
         this.props.onValueChange(
             this.props.name,
             valid
@@ -1047,9 +892,7 @@ class PropertyDateTimeInput extends APropertyInput {
 
     componentDidMount() {
         this.setState({
-            valid:
-                this.dateRef.current.valueAsDate !== null &&
-                this.timeRef.current.valueAsDate !== null,
+            valid: this.dateRef.current.valueAsDate !== null && this.timeRef.current.valueAsDate !== null,
         });
     }
 
@@ -1088,9 +931,7 @@ class PropertyDateTimeInput extends APropertyInput {
                                     <Button
                                         icon='fa-regular fa-copy'
                                         onClick={copy}
-                                        value={(
-                                            this.props.value as _DateTime
-                                        ).toString()}
+                                        value={(this.props.value as _DateTime).toString()}
                                     />
                                 )}
                             </ClipboardContext.Consumer>
@@ -1154,9 +995,7 @@ class PropertyLocalTimeInput extends APropertyInput {
                                     <Button
                                         icon='fa-regular fa-copy'
                                         onClick={copy}
-                                        value={(
-                                            this.props.value as _LocalTime
-                                        ).toString()}
+                                        value={(this.props.value as _LocalTime).toString()}
                                     />
                                 )}
                             </ClipboardContext.Consumer>
@@ -1178,9 +1017,7 @@ class PropertyLocalDateTimeInput extends APropertyInput {
     dateRef = React.createRef<HTMLInputElement>();
 
     handleChange = () => {
-        const valid =
-            this.dateRef.current.valueAsDate !== null &&
-            this.timeRef.current.valueAsDate !== null;
+        const valid = this.dateRef.current.valueAsDate !== null && this.timeRef.current.valueAsDate !== null;
         this.props.onValueChange(
             this.props.name,
             valid
@@ -1194,20 +1031,14 @@ class PropertyLocalDateTimeInput extends APropertyInput {
                       this.nanosecondsRef.current.valueAsNumber
                   )
                 : null,
-            [
-                this.dateRef.current.value,
-                this.timeRef.current.value,
-                this.nanosecondsRef.current.value,
-            ]
+            [this.dateRef.current.value, this.timeRef.current.value, this.nanosecondsRef.current.value]
         );
         this.setState({ valid: valid });
     };
 
     componentDidMount() {
         this.setState({
-            valid:
-                this.dateRef.current.valueAsDate !== null &&
-                this.timeRef.current.valueAsDate !== null,
+            valid: this.dateRef.current.valueAsDate !== null && this.timeRef.current.valueAsDate !== null,
         });
     }
 
@@ -1240,9 +1071,7 @@ class PropertyLocalDateTimeInput extends APropertyInput {
                                     <Button
                                         icon='fa-regular fa-copy'
                                         onClick={copy}
-                                        value={(
-                                            this.props.value as _LocalDateTime
-                                        ).toString()}
+                                        value={(this.props.value as _LocalDateTime).toString()}
                                     />
                                 )}
                             </ClipboardContext.Consumer>
@@ -1275,10 +1104,7 @@ class PropertyDurationInput extends APropertyInput {
                 />
                 <ClipboardContext.Consumer>
                     {copy => (
-                        <span
-                            className='icon is-right is-clickable'
-                            onClick={copy}
-                        >
+                        <span className='icon is-right is-clickable' onClick={copy}>
                             <i className='fa-regular fa-copy' />
                         </span>
                     )}
@@ -1324,11 +1150,7 @@ class PropertyPointInput extends APropertyInput {
                       this.yRef.current.value,
                       this.zRef.current.value,
                   ]
-                : [
-                      this.sridRef.current.value,
-                      this.xRef.current.value,
-                      this.yRef.current.value,
-                  ]
+                : [this.sridRef.current.value, this.xRef.current.value, this.yRef.current.value]
         );
     };
 
@@ -1385,8 +1207,7 @@ class PropertyPointInput extends APropertyInput {
                     </div>
                     <div
                         className={
-                            'control is-expanded has-icons-left ' +
-                            (this.props.temp.length === 4 ? '' : 'is-hidden')
+                            'control is-expanded has-icons-left ' + (this.props.temp.length === 4 ? '' : 'is-hidden')
                         }
                     >
                         <input
@@ -1408,9 +1229,7 @@ class PropertyPointInput extends APropertyInput {
                                 <Button
                                     icon='fa-regular fa-copy'
                                     onClick={copy}
-                                    value={(
-                                        this.props.value as _Point
-                                    ).toString()}
+                                    value={(this.props.value as _Point).toString()}
                                 />
                             )}
                         </ClipboardContext.Consumer>

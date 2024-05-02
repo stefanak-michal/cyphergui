@@ -1,7 +1,4 @@
-import {
-    Node as _Node,
-    Relationship as _Relationship,
-} from 'neo4j-driver-lite';
+import { Node as _Node, Relationship as _Relationship } from 'neo4j-driver-lite';
 import { EPropertyType } from './enums';
 
 export class t_StashQuery {
@@ -15,11 +12,7 @@ export class t_StashQuery {
 
 export type t_StashValue = _Node | _Relationship | t_StashQuery;
 
-export type t_ToastFn = (
-    message: string,
-    color?: string,
-    delay?: number
-) => void;
+export type t_ToastFn = (message: string, color?: string, delay?: number) => void;
 
 export type t_StorageStashEntry = {
     database: string;

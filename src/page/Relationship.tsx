@@ -1,9 +1,6 @@
 import * as React from 'react';
 import { IPageProps, IStashManager } from '../utils/interfaces';
-import {
-    Node as _Node,
-    Relationship as _Relationship,
-} from 'neo4j-driver-lite';
+import { Node as _Node, Relationship as _Relationship } from 'neo4j-driver-lite';
 import { EPage, EPropertyType } from '../utils/enums';
 import { Button } from '../components/form';
 import db from '../db';
@@ -13,12 +10,7 @@ import { settings } from '../layout/Settings';
 import InlineNode from '../components/InlineNode';
 import PropertiesForm from '../components/PropertiesForm';
 import { t_FormProperty, t_FormValue } from '../utils/types';
-import {
-    getPropertyAsTemp,
-    cypherPrintProperties,
-    resolvePropertyType,
-    sanitizeFormValues,
-} from '../utils/fn';
+import { getPropertyAsTemp, cypherPrintProperties, resolvePropertyType, sanitizeFormValues } from '../utils/fn';
 
 interface IRelationshipProps extends IPageProps {
     database: string;
@@ -43,10 +35,7 @@ interface IRelationshipState {
 /**
  * Edit relationship by ID
  */
-class Relationship extends React.Component<
-    IRelationshipProps,
-    IRelationshipState
-> {
+class Relationship extends React.Component<IRelationshipProps, IRelationshipState> {
     state: IRelationshipState = {
         rel: null,
         start: null,
@@ -66,9 +55,7 @@ class Relationship extends React.Component<
     requestData = () => {
         if (this.create) return;
         db.query(
-            'MATCH (a)-[r]->(b) WHERE ' +
-                db.fnId('r') +
-                ' = $id RETURN r, a, b',
+            'MATCH (a)-[r]->(b) WHERE ' + db.fnId('r') + ' = $id RETURN r, a, b',
             {
                 id: this.props.id,
             },
@@ -81,38 +68,29 @@ class Relationship extends React.Component<
                 }
 
                 const rel: _Relationship = response.records[0].get('r');
-                let props: t_FormProperty[] = [];
+                const props: t_FormProperty[] = [];
                 const t = new Date().getTime();
-                for (let key in rel.properties) {
+                for (const key in rel.properties) {
                     const type = resolvePropertyType(rel.properties[key]);
                     if (type === EPropertyType.List) {
-                        const subtype = resolvePropertyType(
-                            rel.properties[key][0]
-                        );
-                        rel.properties[key] = (rel.properties[key] as []).map(
-                            p => {
-                                return {
-                                    value: p,
-                                    type: subtype,
-                                    temp: getPropertyAsTemp(subtype, p),
-                                } as t_FormValue;
-                            }
-                        );
+                        const subtype = resolvePropertyType(rel.properties[key][0]);
+                        rel.properties[key] = (rel.properties[key] as []).map(p => {
+                            return {
+                                value: p,
+                                type: subtype,
+                                temp: getPropertyAsTemp(subtype, p),
+                            } as t_FormValue;
+                        });
                     }
                     if (type === EPropertyType.Map) {
                         const mapAsFormValue: t_FormValue[] = [];
-                        for (let k in rel.properties[key] as object) {
-                            const subtype = resolvePropertyType(
-                                rel.properties[key][k]
-                            );
+                        for (const k in rel.properties[key] as object) {
+                            const subtype = resolvePropertyType(rel.properties[key][k]);
                             mapAsFormValue.push({
                                 key: k,
                                 value: rel.properties[key][k],
                                 type: subtype,
-                                temp: getPropertyAsTemp(
-                                    subtype,
-                                    rel.properties[key][k]
-                                ),
+                                temp: getPropertyAsTemp(subtype, rel.properties[key][k]),
                             } as t_FormValue);
                         }
                         rel.properties[key] = mapAsFormValue;
@@ -125,9 +103,7 @@ class Relationship extends React.Component<
                         temp: getPropertyAsTemp(type, rel.properties[key]),
                     });
                 }
-                props.sort((a, b) =>
-                    a.name.toLowerCase().localeCompare(b.name.toLowerCase())
-                );
+                props.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
                 this.setState({
                     rel: rel,
                     start: response.records[0].get('a') as _Node,
@@ -147,15 +123,9 @@ class Relationship extends React.Component<
      * Check if node still exists when switching on this tab
      */
     componentDidUpdate(prevProps: Readonly<IRelationshipProps>) {
-        if (
-            !this.create &&
-            this.props.active &&
-            this.props.active !== prevProps.active
-        ) {
+        if (!this.create && this.props.active && this.props.active !== prevProps.active) {
             db.query(
-                'MATCH ()-[r]->() WHERE ' +
-                    db.fnId('r') +
-                    ' = $id RETURN COUNT(r) AS c',
+                'MATCH ()-[r]->() WHERE ' + db.fnId('r') + ' = $id RETURN COUNT(r) AS c',
                 {
                     id: this.props.id,
                 },
@@ -172,21 +142,13 @@ class Relationship extends React.Component<
     }
 
     handleTypeOpenModal = () => {
-        db.query(
-            'MATCH ()-[r]->() RETURN collect(DISTINCT type(r)) AS c',
-            {},
-            this.props.database
-        )
+        db.query('MATCH ()-[r]->() RETURN collect(DISTINCT type(r)) AS c', {}, this.props.database)
             .then(response => {
                 this.setState({
-                    typeModal: (
-                        response.records[0].get('c') as string[]
-                    ).filter(t => this.state.type !== t),
+                    typeModal: (response.records[0].get('c') as string[]).filter(t => this.state.type !== t),
                 });
             })
-            .catch(err =>
-                this.setState({ error: '[' + err.name + '] ' + err.message })
-            );
+            .catch(err => this.setState({ error: '[' + err.name + '] ' + err.message }));
     };
 
     handleTypeSelect = (type: string) => {
@@ -204,9 +166,7 @@ class Relationship extends React.Component<
         let value: string = e.currentTarget.value;
 
         if (settings().forceNamingRecommendations) {
-            value = value
-                .replace(/^[^a-zA-Z]*/, '')
-                .replace(/[a-z]/, x => x.toUpperCase());
+            value = value.replace(/^[^a-zA-Z]*/, '').replace(/[a-z]/, x => x.toUpperCase());
         }
 
         this.setState({ typeModalInput: value });
@@ -239,59 +199,39 @@ class Relationship extends React.Component<
         db.query(
             query,
             {
-                id: this.state.rel
-                    ? db.hasElementId
-                        ? this.state.rel.elementId
-                        : this.state.rel.identity
-                    : null,
-                a: db.hasElementId
-                    ? this.state.start.elementId
-                    : this.state.start.identity,
-                b: db.hasElementId
-                    ? this.state.end.elementId
-                    : this.state.end.identity,
+                id: this.state.rel ? (db.hasElementId ? this.state.rel.elementId : this.state.rel.identity) : null,
+                a: db.hasElementId ? this.state.start.elementId : this.state.start.identity,
+                b: db.hasElementId ? this.state.end.elementId : this.state.end.identity,
                 p: props,
             },
             this.props.database
         )
             .then(response => {
                 if (response.summary.counters.containsUpdates()) {
-                    this.props.toast(
-                        this.create
-                            ? 'Relationship created'
-                            : 'Relationship updated'
-                    );
+                    this.props.toast(this.create ? 'Relationship created' : 'Relationship updated');
                 }
                 if (settings().closeEditAfterExecuteSuccess) {
                     this.props.tabManager.close(this.props.tabId);
                 } else if (this.create) {
                     const rel = response.records[0].get('r');
-                    this.props.tabManager.setChanged(
-                        this.props.tabId,
-                        false,
-                        () => {
-                            this.props.tabManager.add(
-                                { prefix: 'Rel', i: rel.identity },
-                                'fa-solid fa-pen-to-square',
-                                EPage.Rel,
-                                {
-                                    id: db.getId(rel),
-                                    database: this.props.database,
-                                }
-                            );
-                            this.props.tabManager.close(this.props.tabId);
-                        }
-                    );
+                    this.props.tabManager.setChanged(this.props.tabId, false, () => {
+                        this.props.tabManager.add(
+                            { prefix: 'Rel', i: rel.identity },
+                            'fa-solid fa-pen-to-square',
+                            EPage.Rel,
+                            {
+                                id: db.getId(rel),
+                                database: this.props.database,
+                            }
+                        );
+                        this.props.tabManager.close(this.props.tabId);
+                    });
                 }
             })
-            .catch(err =>
-                this.setState({ error: '[' + err.name + '] ' + err.message })
-            );
+            .catch(err => this.setState({ error: '[' + err.name + '] ' + err.message }));
     };
 
-    generateQuery = (
-        printable: boolean = false
-    ): { query: string; props: object } => {
+    generateQuery = (printable: boolean = false): { query: string; props: object } => {
         const props = sanitizeFormValues(this.state.properties);
         let query: string = '';
         const quoteId = (id: number | string): string => {
@@ -304,41 +244,20 @@ class Relationship extends React.Component<
                 'MATCH (a) WHERE ' +
                 db.fnId('a') +
                 ' = ' +
-                (this.state.start
-                    ? printable
-                        ? quoteId(db.getId(this.state.start))
-                        : '$a'
-                    : '');
+                (this.state.start ? (printable ? quoteId(db.getId(this.state.start)) : '$a') : '');
             query +=
                 ' MATCH (b) WHERE ' +
                 db.fnId('b') +
                 ' = ' +
-                (this.state.end
-                    ? printable
-                        ? quoteId(db.getId(this.state.end))
-                        : '$b'
-                    : '');
+                (this.state.end ? (printable ? quoteId(db.getId(this.state.end)) : '$b') : '');
             query += ' CREATE (a)-[r:' + this.state.type + ']->(b)';
         } else {
-            const newStart =
-                db.getId(this.state.rel, 'startNodeElementId', 'start') !==
-                db.getId(this.state.start);
-            const newEnd =
-                db.getId(this.state.rel, 'endNodeElementId', 'end') !==
-                db.getId(this.state.end);
-            const willDelete =
-                newStart || newEnd || this.state.rel.type !== this.state.type;
+            const newStart = db.getId(this.state.rel, 'startNodeElementId', 'start') !== db.getId(this.state.start);
+            const newEnd = db.getId(this.state.rel, 'endNodeElementId', 'end') !== db.getId(this.state.end);
+            const willDelete = newStart || newEnd || this.state.rel.type !== this.state.type;
 
-            query +=
-                'MATCH ' +
-                (newStart ? '()' : '(a)') +
-                '-[r]->' +
-                (newEnd ? '()' : '(b)');
-            query +=
-                ' WHERE ' +
-                db.fnId('r') +
-                ' = ' +
-                (printable ? quoteId(this.props.id) : '$id');
+            query += 'MATCH ' + (newStart ? '()' : '(a)') + '-[r]->' + (newEnd ? '()' : '(b)');
+            query += ' WHERE ' + db.fnId('r') + ' = ' + (printable ? quoteId(this.props.id) : '$id');
             if (newStart)
                 query +=
                     ' MATCH (a) WHERE ' +
@@ -347,20 +266,14 @@ class Relationship extends React.Component<
                     (printable ? quoteId(db.getId(this.state.start)) : '$a');
             if (newEnd)
                 query +=
-                    ' MATCH (b) WHERE ' +
-                    db.fnId('b') +
-                    ' = ' +
-                    (printable ? quoteId(db.getId(this.state.end)) : '$b');
+                    ' MATCH (b) WHERE ' + db.fnId('b') + ' = ' + (printable ? quoteId(db.getId(this.state.end)) : '$b');
             if (willDelete) query += ' DELETE r';
-            if (willDelete)
-                query +=
-                    ' WITH a, b CREATE (a)-[r:' + this.state.type + ']->(b)';
+            if (willDelete) query += ' WITH a, b CREATE (a)-[r:' + this.state.type + ']->(b)';
         }
 
         if (printable) {
             if (this.state.properties.length) {
-                query +=
-                    ' SET r = ' + cypherPrintProperties(this.state.properties);
+                query += ' SET r = ' + cypherPrintProperties(this.state.properties);
             }
         } else {
             query += ' SET r = $p RETURN r';
@@ -379,10 +292,8 @@ class Relationship extends React.Component<
         )
             .then(response => {
                 if (response.summary.counters.updates().nodesDeleted > 0) {
-                    this.props.tabManager.setChanged(
-                        this.props.tabId,
-                        false,
-                        () => this.props.tabManager.close(this.props.tabId)
+                    this.props.tabManager.setChanged(this.props.tabId, false, () =>
+                        this.props.tabManager.close(this.props.tabId)
                     );
                     this.props.toast('Relationship deleted');
                 }
@@ -406,11 +317,7 @@ class Relationship extends React.Component<
                         .map(p => p.key)
                         .sort()
                         .toString() ||
-                this.state.properties.some(
-                    p =>
-                        p.value.toString() !==
-                        this.state.rel.properties[p.key].toString()
-                )
+                this.state.properties.some(p => p.value.toString() !== this.state.rel.properties[p.key].toString())
         );
     };
 
@@ -430,11 +337,7 @@ class Relationship extends React.Component<
                 )}
 
                 {Array.isArray(this.state.typeModal) && (
-                    <Modal
-                        title='Set type'
-                        icon='fa-solid fa-tag'
-                        handleClose={this.handleTypeModalClose}
-                    >
+                    <Modal title='Set type' icon='fa-solid fa-tag' handleClose={this.handleTypeModalClose}>
                         <div className='buttons'>
                             {this.state.typeModal.map(label => (
                                 <Button
@@ -448,9 +351,7 @@ class Relationship extends React.Component<
                         <form
                             onSubmit={e => {
                                 e.preventDefault();
-                                this.handleTypeSelect(
-                                    this.state.typeModalInput
-                                );
+                                this.handleTypeSelect(this.state.typeModalInput);
                                 return true;
                             }}
                         >
@@ -468,10 +369,7 @@ class Relationship extends React.Component<
                                     />
                                 </div>
                                 <div className='control'>
-                                    <Button
-                                        icon='fa-solid fa-check'
-                                        type='submit'
-                                    />
+                                    <Button icon='fa-solid fa-check' type='submit' />
                                 </div>
                             </div>
                         </form>
@@ -500,9 +398,7 @@ class Relationship extends React.Component<
                                 );
                             }
                         }}
-                        handleClose={() =>
-                            this.setState({ selectNodeModal: null })
-                        }
+                        handleClose={() => this.setState({ selectNodeModal: null })}
                         database={this.props.database}
                     />
                 )}
@@ -512,29 +408,15 @@ class Relationship extends React.Component<
                         <ClipboardContext.Consumer>
                             {copy => (
                                 <div className='columns'>
-                                    <div
-                                        className={
-                                            'column ' +
-                                            (db.hasElementId
-                                                ? 'is-half-desktop'
-                                                : '')
-                                        }
-                                    >
+                                    <div className={'column ' + (db.hasElementId ? 'is-half-desktop' : '')}>
                                         <div className='field'>
-                                            <label className='label'>
-                                                identity
-                                            </label>
-                                            <div
-                                                className='control'
-                                                onClick={copy}
-                                            >
+                                            <label className='label'>identity</label>
+                                            <div className='control' onClick={copy}>
                                                 <input
                                                     className='input is-copyable'
                                                     readOnly
                                                     type='text'
-                                                    value={db.strInt(
-                                                        this.state.rel.identity
-                                                    )}
+                                                    value={db.strInt(this.state.rel.identity)}
                                                 />
                                             </div>
                                         </div>
@@ -542,21 +424,13 @@ class Relationship extends React.Component<
                                     {db.hasElementId && (
                                         <div className='column is-half-desktop'>
                                             <div className='field'>
-                                                <label className='label'>
-                                                    elementId
-                                                </label>
-                                                <div
-                                                    className='control'
-                                                    onClick={copy}
-                                                >
+                                                <label className='label'>elementId</label>
+                                                <div className='control' onClick={copy}>
                                                     <input
                                                         className='input is-copyable'
                                                         readOnly
                                                         type='text'
-                                                        value={
-                                                            this.state.rel
-                                                                .elementId
-                                                        }
+                                                        value={this.state.rel.elementId}
                                                     />
                                                 </div>
                                             </div>
@@ -584,8 +458,7 @@ class Relationship extends React.Component<
                                                 EPage.Type,
                                                 {
                                                     type: this.state.type,
-                                                    database:
-                                                        this.props.database,
+                                                    database: this.props.database,
                                                 }
                                             )
                                         }
@@ -594,10 +467,7 @@ class Relationship extends React.Component<
                                     </a>
                                 </span>
                             )}
-                            <Button
-                                icon='fa-solid fa-pen-clip'
-                                onClick={this.handleTypeOpenModal}
-                            />
+                            <Button icon='fa-solid fa-pen-clip' onClick={this.handleTypeOpenModal} />
                         </div>
                     </fieldset>
 
@@ -609,10 +479,7 @@ class Relationship extends React.Component<
                         <PropertiesForm
                             properties={this.state.properties}
                             updateProperties={properties => {
-                                this.setState(
-                                    { properties: properties },
-                                    this.markChanged
-                                );
+                                this.setState({ properties: properties }, this.markChanged);
                             }}
                         />
                     </fieldset>
@@ -624,18 +491,13 @@ class Relationship extends React.Component<
                         </legend>
                         <div className='is-flex is-align-items-center is-justify-content-flex-start mb-3 mb-last-none'>
                             {this.state.start && (
-                                <InlineNode
-                                    node={this.state.start}
-                                    tabManager={this.props.tabManager}
-                                />
+                                <InlineNode node={this.state.start} tabManager={this.props.tabManager} />
                             )}
                             <span className='ml-auto'>
                                 <Button
                                     icon='fa-solid fa-shuffle'
                                     text='Change'
-                                    onClick={() =>
-                                        this.setState({ selectNodeModal: 1 })
-                                    }
+                                    onClick={() => this.setState({ selectNodeModal: 1 })}
                                 />
                             </span>
                         </div>
@@ -647,19 +509,12 @@ class Relationship extends React.Component<
                             End node
                         </legend>
                         <div className='is-flex is-align-items-center is-justify-content-flex-start mb-3 mb-last-none'>
-                            {this.state.end && (
-                                <InlineNode
-                                    node={this.state.end}
-                                    tabManager={this.props.tabManager}
-                                />
-                            )}
+                            {this.state.end && <InlineNode node={this.state.end} tabManager={this.props.tabManager} />}
                             <span className='ml-auto'>
                                 <Button
                                     icon='fa-solid fa-shuffle'
                                     text='Change'
-                                    onClick={() =>
-                                        this.setState({ selectNodeModal: 2 })
-                                    }
+                                    onClick={() => this.setState({ selectNodeModal: 2 })}
                                 />
                             </span>
                         </div>
@@ -668,17 +523,11 @@ class Relationship extends React.Component<
                     <div className='mb-3' style={{ overflowY: 'auto' }}>
                         <span className='icon-text is-flex-wrap-nowrap'>
                             <span className='icon'>
-                                <i
-                                    className='fa-solid fa-terminal'
-                                    aria-hidden='true'
-                                />
+                                <i className='fa-solid fa-terminal' aria-hidden='true' />
                             </span>
                             <ClipboardContext.Consumer>
                                 {copy => (
-                                    <span
-                                        className='is-family-code is-pre-wrap is-copyable'
-                                        onClick={copy}
-                                    >
+                                    <span className='is-family-code is-pre-wrap is-copyable' onClick={copy}>
                                         {this.generateQuery(true).query}
                                     </span>
                                 )}
@@ -693,46 +542,24 @@ class Relationship extends React.Component<
                                 <button
                                     className='delete'
                                     aria-label='delete'
-                                    onClick={() =>
-                                        this.setState({ error: null })
-                                    }
+                                    onClick={() => this.setState({ error: null })}
                                 />
                             </div>
-                            <div className='message-body'>
-                                {this.state.error}
-                            </div>
+                            <div className='message-body'>{this.state.error}</div>
                         </div>
                     )}
 
                     <div className='field'>
                         <div className='control buttons is-justify-content-flex-end'>
-                            <Button
-                                color='is-success'
-                                type='submit'
-                                icon='fa-solid fa-check'
-                                text='Execute'
-                            />
-                            {!this.create &&
-                                this.props.stashManager.button(
-                                    this.state.rel,
-                                    this.props.database
-                                )}
+                            <Button color='is-success' type='submit' icon='fa-solid fa-check' text='Execute' />
+                            {!this.create && this.props.stashManager.button(this.state.rel, this.props.database)}
                             {!this.create && (
-                                <Button
-                                    icon='fa-solid fa-refresh'
-                                    text='Reload'
-                                    onClick={this.requestData}
-                                />
+                                <Button icon='fa-solid fa-refresh' text='Reload' onClick={this.requestData} />
                             )}
                             <Button
                                 icon='fa-solid fa-xmark'
                                 text='Close'
-                                onClick={e =>
-                                    this.props.tabManager.close(
-                                        this.props.tabId,
-                                        e
-                                    )
-                                }
+                                onClick={e => this.props.tabManager.close(this.props.tabId, e)}
                             />
                             {!this.create && (
                                 <Button
@@ -761,7 +588,10 @@ class SelectNodeModal extends React.Component<
         handleClose: () => void;
         database: string;
     },
-    {}
+    {
+        id: string;
+        error: any;
+    }
 > {
     state = {
         id: '',
@@ -773,9 +603,7 @@ class SelectNodeModal extends React.Component<
         const isNum = /^\d+$/.test(this.state.id);
 
         db.query(
-            'MATCH (n) WHERE ' +
-                (isNum ? 'id(n)' : 'elementId(n)') +
-                ' = $id RETURN n',
+            'MATCH (n) WHERE ' + (isNum ? 'id(n)' : 'elementId(n)') + ' = $id RETURN n',
             {
                 id: isNum ? db.toInt(this.state.id) : this.state.id,
             },
@@ -801,43 +629,24 @@ class SelectNodeModal extends React.Component<
 
     render() {
         return (
-            <Modal
-                title='Select node'
-                icon='fa-regular fa-circle'
-                handleClose={this.props.handleClose}
-                backdrop={true}
-            >
+            <Modal title='Select node' icon='fa-regular fa-circle' handleClose={this.props.handleClose} backdrop={true}>
                 <label className='label'>Stashed nodes</label>
-                {this.props.stashManager
-                    .get()
-                    .filter(s => s.value instanceof _Node).length > 0 ? (
+                {this.props.stashManager.get().filter(s => s.value instanceof _Node).length > 0 ? (
                     <div className='buttons'>
                         {this.props.stashManager
                             .get()
-                            .filter(
-                                s =>
-                                    s.database === this.props.database &&
-                                    s.value instanceof _Node
-                            )
+                            .filter(s => s.database === this.props.database && s.value instanceof _Node)
                             .map(s => (
                                 <Button
                                     key={s.id}
                                     text={
                                         ((s.value as _Node).labels.length > 0
-                                            ? ':' +
-                                              (s.value as _Node).labels.join(
-                                                  ':'
-                                              ) +
-                                              ' '
+                                            ? ':' + (s.value as _Node).labels.join(':') + ' '
                                             : '') +
                                         '#' +
                                         db.strInt(s.value.identity)
                                     }
-                                    onClick={() =>
-                                        this.props.handleNodeSelect(
-                                            s.value as _Node
-                                        )
-                                    }
+                                    onClick={() => this.props.handleNodeSelect(s.value as _Node)}
                                 />
                             ))}
                     </div>
@@ -845,9 +654,7 @@ class SelectNodeModal extends React.Component<
                     <div className='has-text-grey-light mb-3'>none</div>
                 )}
                 <form onSubmit={this.handleSubmit}>
-                    <label className='label'>
-                        Or enter id {db.hasElementId ? 'or elementId' : ''}
-                    </label>
+                    <label className='label'>Or enter id {db.hasElementId ? 'or elementId' : ''}</label>
                     <div className='field is-grouped'>
                         <div className='control is-expanded'>
                             <input
@@ -856,9 +663,7 @@ class SelectNodeModal extends React.Component<
                                 className='input'
                                 type='text'
                                 value={this.state.id}
-                                onChange={(
-                                    e: React.ChangeEvent<HTMLInputElement>
-                                ) => {
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                     const target = e.currentTarget;
                                     this.setState({
                                         id: target.value,
@@ -871,11 +676,7 @@ class SelectNodeModal extends React.Component<
                             <Button icon='fa-solid fa-check' type='submit' />
                         </div>
                     </div>
-                    {this.state.error && (
-                        <div className='notification is-danger'>
-                            {this.state.error}
-                        </div>
-                    )}
+                    {this.state.error && <div className='notification is-danger'>{this.state.error}</div>}
                 </form>
             </Modal>
         );

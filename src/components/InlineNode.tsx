@@ -21,10 +21,7 @@ export default class InlineNode extends React.Component<{
                         label={label}
                         database={this.props.database || db.database}
                         tabManager={this.props.tabManager}
-                        size={
-                            'mr-1 ' +
-                            (!!this.props.small ? 'is-small' : 'is-medium')
-                        }
+                        size={'mr-1 ' + (this.props.small ? 'is-small' : 'is-medium')}
                     />
                 ))}
                 <Button
@@ -40,7 +37,7 @@ export default class InlineNode extends React.Component<{
                         )
                     }
                     icon='fa-solid fa-pen-clip'
-                    color={!!this.props.small ? 'is-small' : ''}
+                    color={this.props.small ? 'is-small' : ''}
                     text={'#' + db.strInt(this.props.node.identity)}
                 />
                 <PropertiesModalContext.Consumer>
@@ -48,9 +45,7 @@ export default class InlineNode extends React.Component<{
                         <Button
                             icon='fa-solid fa-rectangle-list'
                             onClick={() => fn(this.props.node.properties)}
-                            color={
-                                'ml-1 ' + (!!this.props.small ? 'is-small' : '')
-                            }
+                            color={'ml-1 ' + (this.props.small ? 'is-small' : '')}
                             title='Properties'
                         />
                     )}

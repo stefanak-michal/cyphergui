@@ -39,9 +39,7 @@ class Tab extends React.Component<ITabProps> {
                     {this.props.title !== 'Start' && this.state.delete && (
                         <button
                             className='delete is-small ml-3'
-                            onClick={e =>
-                                this.props.handleRemove(this.props.id, e)
-                            }
+                            onClick={e => this.props.handleRemove(this.props.id, e)}
                         />
                     )}
                 </a>

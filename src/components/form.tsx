@@ -95,13 +95,9 @@ export class Textarea extends React.Component<
             this.ref.current.style.height = '0px';
             const computed = window.getComputedStyle(this.ref.current);
             this.ref.current.style.height =
-                Math.ceil(
-                    parseFloat(computed.getPropertyValue('border-top-width'))
-                ) +
+                Math.ceil(parseFloat(computed.getPropertyValue('border-top-width'))) +
                 this.ref.current.scrollHeight +
-                Math.ceil(
-                    parseFloat(computed.getPropertyValue('border-bottom-width'))
-                ) +
+                Math.ceil(parseFloat(computed.getPropertyValue('border-bottom-width'))) +
                 'px';
         }
     };
@@ -109,8 +105,8 @@ export class Textarea extends React.Component<
     highlight = () => {
         if (this.props.highlight) {
             let text = this.ref.current.value;
-            for (let color in this.props.highlight) {
-                for (let keyword of this.props.highlight[color]) {
+            for (const color in this.props.highlight) {
+                for (const keyword of this.props.highlight[color]) {
                     text = text.replace(
                         new RegExp('(?<!>)\\b' + keyword + '\\b(?!<)', 'gi'),
                         `<mark style="${color[0] === '#' ? 'color: ' + color : ''};">$&</mark>`
@@ -125,16 +121,8 @@ export class Textarea extends React.Component<
         return (
             <>
                 {this.props.highlight && (
-                    <div
-                        className={
-                            'highlight-backdrop textarea ' +
-                            (this.props.color || '')
-                        }
-                    >
-                        <div
-                            className='highlights'
-                            ref={this.highlightRef}
-                        ></div>
+                    <div className={'highlight-backdrop textarea ' + (this.props.color || '')}>
+                        <div className='highlights' ref={this.highlightRef}></div>
                     </div>
                 )}
 
@@ -197,21 +185,12 @@ export class LabelButton extends React.Component<{
             <Button
                 color={'tag is-link is-rounded px-2 ' + (this.props.size || '')}
                 onClick={() =>
-                    this.props.tabManager.add(
-                        this.props.label,
-                        'fa-regular fa-circle',
-                        EPage.Label,
-                        {
-                            label: this.props.label,
-                            database: this.props.database,
-                        }
-                    )
+                    this.props.tabManager.add(this.props.label, 'fa-regular fa-circle', EPage.Label, {
+                        label: this.props.label,
+                        database: this.props.database,
+                    })
                 }
-                text={
-                    this.props.label.startsWith('*')
-                        ? '*'
-                        : ':' + this.props.label
-                }
+                text={this.props.label.startsWith('*') ? '*' : ':' + this.props.label}
             />
         );
     }
@@ -226,23 +205,14 @@ export class TypeButton extends React.Component<{
     render() {
         return (
             <Button
-                color={
-                    'tag is-info is-rounded px-2 has-text-white ' +
-                    (this.props.size || '')
-                }
+                color={'tag is-info is-rounded px-2 has-text-white ' + (this.props.size || '')}
                 onClick={() =>
-                    this.props.tabManager.add(
-                        this.props.type,
-                        'fa-solid fa-arrow-right-long',
-                        EPage.Type,
-                        { type: this.props.type, database: this.props.database }
-                    )
+                    this.props.tabManager.add(this.props.type, 'fa-solid fa-arrow-right-long', EPage.Type, {
+                        type: this.props.type,
+                        database: this.props.database,
+                    })
                 }
-                text={
-                    this.props.type.startsWith('*')
-                        ? '*'
-                        : ':' + this.props.type
-                }
+                text={this.props.type.startsWith('*') ? '*' : ':' + this.props.type}
             />
         );
     }

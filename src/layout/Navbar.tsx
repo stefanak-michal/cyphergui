@@ -50,26 +50,16 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
 
     render() {
         return (
-            <nav
-                className='navbar'
-                role='navigation'
-                aria-label='main navigation'
-            >
+            <nav className='navbar' role='navigation' aria-label='main navigation'>
                 <div className='navbar-brand'>
                     <span className='navbar-item'>
-                        <img
-                            src={this.props.darkMode ? logo_dark : logo}
-                            alt='cypherGUI'
-                        />
+                        <img src={this.props.darkMode ? logo_dark : logo} alt='cypherGUI' />
                     </span>
 
                     <a
                         href='#'
                         role='button'
-                        className={
-                            'navbar-burger ' +
-                            (this.state.open ? 'is-active' : '')
-                        }
+                        className={'navbar-burger ' + (this.state.open ? 'is-active' : '')}
                         aria-label='menu'
                         aria-expanded='false'
                         data-target='basicNavbar'
@@ -81,26 +71,17 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
                     </a>
                 </div>
 
-                <div
-                    id='basicNavbar'
-                    className={
-                        'navbar-menu ' + (this.state.open ? 'is-active' : '')
-                    }
-                >
+                <div id='basicNavbar' className={'navbar-menu ' + (this.state.open ? 'is-active' : '')}>
                     <div className='navbar-start'>
                         {this.state.databases.length > 1 && (
                             <div className='navbar-item has-dropdown is-hoverable'>
-                                <a className='navbar-link'>
-                                    {this.state.activeDb}
-                                </a>
+                                <a className='navbar-link'>{this.state.activeDb}</a>
                                 <div className='navbar-dropdown'>
                                     {this.state.databases.map(name => (
                                         <a
                                             key={'navbar-item-' + name}
                                             className={
-                                                (this.state.activeDb === name
-                                                    ? 'is-active'
-                                                    : '') + ' navbar-item'
+                                                (this.state.activeDb === name ? 'is-active' : '') + ' navbar-item'
                                             }
                                             onClick={() => {
                                                 db.database = name;
@@ -141,14 +122,8 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
                                         )
                                     }
                                 />
-                                <Button
-                                    icon='fa-solid fa-gears'
-                                    onClick={this.props.handleOpenSettings}
-                                />
-                                <Button
-                                    onClick={this.props.handleLogout}
-                                    text='Log out'
-                                />
+                                <Button icon='fa-solid fa-gears' onClick={this.props.handleOpenSettings} />
+                                <Button onClick={this.props.handleLogout} text='Log out' />
                             </div>
                         </div>
                     </div>

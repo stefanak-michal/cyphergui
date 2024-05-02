@@ -1,7 +1,4 @@
-import {
-    Node as _Node,
-    Relationship as _Relationship,
-} from 'neo4j-driver-lite';
+import { Node as _Node, Relationship as _Relationship } from 'neo4j-driver-lite';
 import * as React from 'react';
 import { IStyle } from '../Graph';
 import { printProperty } from '../../../utils/fn';
@@ -24,7 +21,7 @@ interface ISidebarProps {
     database: string;
 }
 
-class SidebarContent extends React.Component<ISidebarProps, {}> {
+class SidebarContent extends React.Component<ISidebarProps, null> {
     isColorDark = (color: string): boolean => {
         color = color.replace('#', '');
         const rgb = parseInt(color, 16); // convert rrggbb to decimal
@@ -34,29 +31,22 @@ class SidebarContent extends React.Component<ISidebarProps, {}> {
         return 0.2126 * r + 0.7152 * g + 0.0722 * b < 175; // per ITU-R BT.709
     };
 
-    labelButton = (
-        label: string,
-        modal: boolean = true
-    ): React.ReactElement => {
+    labelButton = (label: string, modal: boolean = true): React.ReactElement => {
         return (
             <button
                 className={
                     'button tag is-rounded px-2 is-medium ' +
-                    (this.isColorDark(this.props.nodeStyles[label].color)
-                        ? 'has-text-white'
-                        : 'has-text-black')
+                    (this.isColorDark(this.props.nodeStyles[label].color) ? 'has-text-white' : 'has-text-black')
                 }
                 key={label}
                 style={{ backgroundColor: this.props.nodeStyles[label].color }}
                 onClick={() =>
                     modal
                         ? this.props.labelClick(label)
-                        : this.props.tabManager.add(
-                              label,
-                              'fa-regular fa-circle',
-                              EPage.Label,
-                              { label: label, database: this.props.database }
-                          )
+                        : this.props.tabManager.add(label, 'fa-regular fa-circle', EPage.Label, {
+                              label: label,
+                              database: this.props.database,
+                          })
                 }
             >
                 :{label} {modal ? '(' + this.props.labels[label] + ')' : ''}
@@ -69,21 +59,17 @@ class SidebarContent extends React.Component<ISidebarProps, {}> {
             <button
                 className={
                     'button tag is-rounded px-2 is-medium ' +
-                    (this.isColorDark(this.props.edgeStyles[type].color)
-                        ? 'has-text-white'
-                        : '')
+                    (this.isColorDark(this.props.edgeStyles[type].color) ? 'has-text-white' : '')
                 }
                 key={type}
                 style={{ backgroundColor: this.props.edgeStyles[type].color }}
                 onClick={() =>
                     modal
                         ? this.props.typeClick(type)
-                        : this.props.tabManager.add(
-                              type,
-                              'fa-solid fa-arrow-right-long',
-                              EPage.Type,
-                              { type: type, database: this.props.database }
-                          )
+                        : this.props.tabManager.add(type, 'fa-solid fa-arrow-right-long', EPage.Type, {
+                              type: type,
+                              database: this.props.database,
+                          })
                 }
             >
                 :{type} {modal ? '(' + this.props.types[type] + ')' : ''}
@@ -99,22 +85,16 @@ class SidebarContent extends React.Component<ISidebarProps, {}> {
                         <>
                             <p className='subtitle is-5 mb-1'>Node Labels</p>
                             <span className='buttons'>
-                                {Object.keys(this.props.labels).map(label =>
-                                    this.labelButton(label)
-                                )}
+                                {Object.keys(this.props.labels).map(label => this.labelButton(label))}
                             </span>
                         </>
                     )}
 
                     {Object.keys(this.props.types).length > 0 && (
                         <>
-                            <p className='subtitle is-5 mb-1'>
-                                Relationship Types
-                            </p>
+                            <p className='subtitle is-5 mb-1'>Relationship Types</p>
                             <span className='buttons'>
-                                {Object.keys(this.props.types).map(type =>
-                                    this.typeButton(type)
-                                )}
+                                {Object.keys(this.props.types).map(type => this.typeButton(type))}
                             </span>
                         </>
                     )}
@@ -144,40 +124,25 @@ class SidebarContent extends React.Component<ISidebarProps, {}> {
                                         )
                                     }
                                     icon='fa-solid fa-pen-clip'
-                                    text={
-                                        '#' +
-                                        db.strInt(this.props.detail.identity)
-                                    }
+                                    text={'#' + db.strInt(this.props.detail.identity)}
                                 />
-                                {this.props.stashManager.button(
-                                    this.props.detail,
-                                    this.props.database
-                                )}
+                                {this.props.stashManager.button(this.props.detail, this.props.database)}
                             </div>
 
                             <div className='buttons mb-0'>
-                                {(this.props.detail as _Node).labels.map(
-                                    label => this.labelButton(label, false)
-                                )}
+                                {(this.props.detail as _Node).labels.map(label => this.labelButton(label, false))}
                             </div>
 
                             {db.hasElementId && (
                                 <>
-                                    <p className='subtitle is-5 mt-3 mb-1'>
-                                        ElementId
-                                    </p>
-                                    <span
-                                        className='is-copyable'
-                                        onClick={copy}
-                                    >
+                                    <p className='subtitle is-5 mt-3 mb-1'>ElementId</p>
+                                    <span className='is-copyable' onClick={copy}>
                                         {this.props.detail.elementId}
                                     </span>
                                 </>
                             )}
 
-                            <p className='subtitle is-5 mt-3 mb-1'>
-                                Properties
-                            </p>
+                            <p className='subtitle is-5 mt-3 mb-1'>Properties</p>
                             <table className='table is-bordered is-striped is-narrow is-hoverable'>
                                 <thead>
                                     <tr>
@@ -186,19 +151,11 @@ class SidebarContent extends React.Component<ISidebarProps, {}> {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {Object.keys(
-                                        this.props.detail.properties
-                                    ).map(key => (
+                                    {Object.keys(this.props.detail.properties).map(key => (
                                         <tr key={key}>
                                             <td>{key}</td>
-                                            <td
-                                                className='is-copyable'
-                                                onClick={copy}
-                                            >
-                                                {printProperty(
-                                                    this.props.detail
-                                                        .properties[key]
-                                                )}
+                                            <td className='is-copyable' onClick={copy}>
+                                                {printProperty(this.props.detail.properties[key])}
                                             </td>
                                         </tr>
                                     ))}
@@ -232,41 +189,25 @@ class SidebarContent extends React.Component<ISidebarProps, {}> {
                                         )
                                     }
                                     icon='fa-solid fa-pen-clip'
-                                    text={
-                                        '#' +
-                                        db.strInt(this.props.detail.identity)
-                                    }
+                                    text={'#' + db.strInt(this.props.detail.identity)}
                                 />
-                                {this.props.stashManager.button(
-                                    this.props.detail,
-                                    this.props.database
-                                )}
+                                {this.props.stashManager.button(this.props.detail, this.props.database)}
                             </div>
 
                             <div className='buttons mb-0'>
-                                {this.typeButton(
-                                    (this.props.detail as _Relationship).type,
-                                    false
-                                )}
+                                {this.typeButton((this.props.detail as _Relationship).type, false)}
                             </div>
 
                             {db.hasElementId && (
                                 <>
-                                    <p className='subtitle is-5 mt-3 mb-1'>
-                                        ElementId
-                                    </p>
-                                    <span
-                                        className='is-copyable'
-                                        onClick={copy}
-                                    >
+                                    <p className='subtitle is-5 mt-3 mb-1'>ElementId</p>
+                                    <span className='is-copyable' onClick={copy}>
                                         {this.props.detail.elementId}
                                     </span>
                                 </>
                             )}
 
-                            <p className='subtitle is-5 mt-3 mb-1'>
-                                Properties
-                            </p>
+                            <p className='subtitle is-5 mt-3 mb-1'>Properties</p>
                             <table className='table is-bordered is-striped is-narrow is-hoverable'>
                                 <thead>
                                     <tr>
@@ -275,19 +216,11 @@ class SidebarContent extends React.Component<ISidebarProps, {}> {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {Object.keys(
-                                        this.props.detail.properties
-                                    ).map(key => (
+                                    {Object.keys(this.props.detail.properties).map(key => (
                                         <tr key={key}>
                                             <td>{key}</td>
-                                            <td
-                                                className='is-copyable'
-                                                onClick={copy}
-                                            >
-                                                {printProperty(
-                                                    this.props.detail
-                                                        .properties[key]
-                                                )}
+                                            <td className='is-copyable' onClick={copy}>
+                                                {printProperty(this.props.detail.properties[key])}
                                             </td>
                                         </tr>
                                     ))}

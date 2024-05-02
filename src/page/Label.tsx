@@ -46,19 +46,13 @@ class Label extends React.Component<ILabelProps, ILabelState> {
     };
 
     requestData = () => {
-        const checkId = this.state.search.length
-            ? /^\d+$/.test(this.state.search)
-            : false;
+        const checkId = this.state.search.length ? /^\d+$/.test(this.state.search) : false;
 
-        let query: string =
-            'MATCH (' +
-            (this.props.label.startsWith('*') ? 'n' : 'n:' + this.props.label) +
-            ')';
+        let query: string = 'MATCH (' + (this.props.label.startsWith('*') ? 'n' : 'n:' + this.props.label) + ')';
         if (this.state.search.length) {
             switch (db.ecosystem) {
                 case Ecosystem.Neo4j:
-                    query +=
-                        ' WHERE any(prop IN keys(n) WHERE toStringOrNull(n[prop]) STARTS WITH $search)';
+                    query += ' WHERE any(prop IN keys(n) WHERE toStringOrNull(n[prop]) STARTS WITH $search)';
                     break;
                 case Ecosystem.Memgraph:
                     query +=
@@ -80,17 +74,12 @@ class Label extends React.Component<ILabelProps, ILabelState> {
         )
             .then(response1 => {
                 const cnt: number = db.fromInt(response1.records[0].get('cnt'));
-                const page: number = Math.min(
-                    this.state.page,
-                    Math.ceil(cnt / this.perPage)
-                );
+                const page: number = Math.min(this.state.page, Math.ceil(cnt / this.perPage));
 
                 db.query(
                     query +
                         ' RETURN n ' +
-                        (this.state.sort.length
-                            ? 'ORDER BY ' + this.state.sort.join(', ')
-                            : '') +
+                        (this.state.sort.length ? 'ORDER BY ' + this.state.sort.join(', ') : '') +
                         ' SKIP $skip LIMIT $limit',
                     {
                         skip: db.toInt(Math.max(page - 1, 0) * this.perPage),
@@ -102,9 +91,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                 )
                     .then(response2 => {
                         this.setState({
-                            rows: response2.records.map(record =>
-                                record.get('n')
-                            ),
+                            rows: response2.records.map(record => record.get('n')),
                             total: cnt,
                             page: page,
                             loading: false,
@@ -130,8 +117,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
     }
 
     componentDidUpdate(prevProps: Readonly<ILabelProps>) {
-        if (prevProps.active !== this.props.active && this.props.active)
-            this.requestData();
+        if (prevProps.active !== this.props.active && this.props.active) this.requestData();
     }
 
     handleChangePage = (page: number) => {
@@ -145,11 +131,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
 
     handleDeleteModalConfirm = (id: number | string, detach: boolean) => {
         db.query(
-            'MATCH (n) WHERE ' +
-                db.fnId() +
-                ' = $id ' +
-                (detach ? 'DETACH ' : '') +
-                'DELETE n',
+            'MATCH (n) WHERE ' + db.fnId() + ' = $id ' + (detach ? 'DETACH ' : '') + 'DELETE n',
             {
                 id: id,
             },
@@ -171,9 +153,9 @@ class Label extends React.Component<ILabelProps, ILabelState> {
 
     handleSetSort = (value: string) => {
         this.setState(state => {
-            let i = state.sort.indexOf(value),
+            const i = state.sort.indexOf(value),
                 j = state.sort.indexOf(value + ' DESC');
-            let copy = [...state.sort];
+            const copy = [...state.sort];
 
             if (i !== -1) {
                 copy[i] = value + ' DESC';
@@ -208,9 +190,9 @@ class Label extends React.Component<ILabelProps, ILabelState> {
     };
 
     render() {
-        let keys = [];
-        for (let row of this.state.rows) {
-            for (let k in row.properties) {
+        const keys = [];
+        for (const row of this.state.rows) {
+            for (const k in row.properties) {
                 if (!keys.includes(k)) {
                     keys.push(k);
                 }
@@ -224,8 +206,8 @@ class Label extends React.Component<ILabelProps, ILabelState> {
         keys.sort();
 
         const additionalLabels = (() => {
-            for (let row of this.state.rows) {
-                for (let label of row.labels) {
+            for (const row of this.state.rows) {
+                for (const label of row.labels) {
                     if (label !== this.props.label) {
                         return true;
                     }
@@ -234,10 +216,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
             return false;
         })();
 
-        let printQuery: string =
-            'MATCH (' +
-            (this.props.label.startsWith('*') ? 'n' : 'n:' + this.props.label) +
-            ')';
+        let printQuery: string = 'MATCH (' + (this.props.label.startsWith('*') ? 'n' : 'n:' + this.props.label) + ')';
         if (this.state.search.length) {
             switch (db.ecosystem) {
                 case Ecosystem.Neo4j:
@@ -255,14 +234,11 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                 default:
                     return;
             }
-            if (/^\d+$/.test(this.state.search))
-                printQuery += ' OR id(n) = ' + this.state.search;
+            if (/^\d+$/.test(this.state.search)) printQuery += ' OR id(n) = ' + this.state.search;
         }
         printQuery +=
             ' RETURN n' +
-            (this.state.sort.length
-                ? ' ORDER BY ' + this.state.sort.join(', ')
-                : '') +
+            (this.state.sort.length ? ' ORDER BY ' + this.state.sort.join(', ') : '') +
             ' SKIP ' +
             Math.max(this.state.page - 1, 0) * this.perPage +
             ' LIMIT ' +
@@ -296,17 +272,11 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                 <div className='mb-3' style={{ overflowY: 'auto' }}>
                     <span className='icon-text is-flex-wrap-nowrap'>
                         <span className='icon'>
-                            <i
-                                className='fa-solid fa-terminal'
-                                aria-hidden='true'
-                            />
+                            <i className='fa-solid fa-terminal' aria-hidden='true' />
                         </span>
                         <ClipboardContext.Consumer>
                             {copy => (
-                                <span
-                                    className='is-family-code is-pre-wrap is-copyable'
-                                    onClick={copy}
-                                >
+                                <span className='is-family-code is-pre-wrap is-copyable' onClick={copy}>
                                     {printQuery}
                                 </span>
                             )}
@@ -327,10 +297,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                                 {
                                     id: null,
                                     database: this.props.database,
-                                    label:
-                                        this.props.label === '*'
-                                            ? ''
-                                            : this.props.label,
+                                    label: this.props.label === '*' ? '' : this.props.label,
                                 },
                                 new Date().getTime().toString()
                             )
@@ -364,17 +331,14 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                             type='text'
                             placeholder='Search'
                             value={this.state.search}
-                            onChange={(
-                                e: React.ChangeEvent<HTMLInputElement>
-                            ) => this.handleSearch(e.currentTarget.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                this.handleSearch(e.currentTarget.value)
+                            }
                         />
                         <span className='icon is-left'>
                             <i className='fas fa-search' aria-hidden='true' />
                         </span>
-                        <span
-                            className='icon is-right is-clickable'
-                            onClick={() => this.handleSearch()}
-                        >
+                        <span className='icon is-right is-clickable' onClick={() => this.handleSearch()}>
                             <i className='fa-solid fa-xmark' />
                         </span>
                     </div>
@@ -384,67 +348,30 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                     <table className='table is-bordered is-striped is-narrow is-hoverable'>
                         <thead>
                             <tr>
-                                <th
-                                    colSpan={
-                                        settings().tableViewShowElementId &&
-                                        db.hasElementId
-                                            ? 3
-                                            : 2
-                                    }
-                                >
-                                    Node
-                                </th>
-                                {additionalLabels && (
-                                    <th rowSpan={2}>Additional labels</th>
-                                )}
-                                {keys.length > 0 ? (
-                                    <th colSpan={keys.length}>properties</th>
-                                ) : (
-                                    ''
-                                )}
+                                <th colSpan={settings().tableViewShowElementId && db.hasElementId ? 3 : 2}>Node</th>
+                                {additionalLabels && <th rowSpan={2}>Additional labels</th>}
+                                {keys.length > 0 ? <th colSpan={keys.length}>properties</th> : ''}
                             </tr>
                             <tr>
-                                <th
-                                    className='wspace-nowrap is-clickable'
-                                    onClick={() => this.handleSetSort('id(n)')}
-                                >
-                                    id{' '}
-                                    <TableSortIcon
-                                        sort='id(n)'
-                                        current={this.state.sort}
-                                    />
+                                <th className='wspace-nowrap is-clickable' onClick={() => this.handleSetSort('id(n)')}>
+                                    id <TableSortIcon sort='id(n)' current={this.state.sort} />
                                 </th>
-                                {settings().tableViewShowElementId &&
-                                    db.hasElementId && (
-                                        <th
-                                            className='wspace-nowrap is-clickable'
-                                            onClick={() =>
-                                                this.handleSetSort(
-                                                    'elementId(n)'
-                                                )
-                                            }
-                                        >
-                                            elementId{' '}
-                                            <TableSortIcon
-                                                sort='elementId(n)'
-                                                current={this.state.sort}
-                                            />
-                                        </th>
-                                    )}
+                                {settings().tableViewShowElementId && db.hasElementId && (
+                                    <th
+                                        className='wspace-nowrap is-clickable'
+                                        onClick={() => this.handleSetSort('elementId(n)')}
+                                    >
+                                        elementId <TableSortIcon sort='elementId(n)' current={this.state.sort} />
+                                    </th>
+                                )}
                                 <th></th>
                                 {keys.map(key => (
                                     <th
                                         key={'th-' + key}
                                         className='wspace-nowrap is-clickable'
-                                        onClick={() =>
-                                            this.handleSetSort('n.' + key)
-                                        }
+                                        onClick={() => this.handleSetSort('n.' + key)}
                                     >
-                                        {key}{' '}
-                                        <TableSortIcon
-                                            sort={'n.' + key}
-                                            current={this.state.sort}
-                                        />
+                                        {key} <TableSortIcon sort={'n.' + key} current={this.state.sort} />
                                     </th>
                                 ))}
                             </tr>
@@ -464,8 +391,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                                                     EPage.Node,
                                                     {
                                                         id: db.getId(row),
-                                                        database:
-                                                            this.props.database,
+                                                        database: this.props.database,
                                                     }
                                                 )
                                             }
@@ -473,18 +399,12 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                                             text={'#' + db.strInt(row.identity)}
                                         />
                                     </td>
-                                    {settings().tableViewShowElementId &&
-                                        db.hasElementId && (
-                                            <td className='wspace-nowrap'>
-                                                {row.elementId}
-                                            </td>
-                                        )}
+                                    {settings().tableViewShowElementId && db.hasElementId && (
+                                        <td className='wspace-nowrap'>{row.elementId}</td>
+                                    )}
                                     <td>
                                         <div className='buttons is-flex-wrap-nowrap'>
-                                            {this.props.stashManager.button(
-                                                row,
-                                                this.props.database
-                                            )}
+                                            {this.props.stashManager.button(row, this.props.database)}
                                             <Button
                                                 icon='fa-regular fa-trash-can'
                                                 color='is-danger is-outlined'
@@ -501,23 +421,13 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                                         <td>
                                             <span className='buttons'>
                                                 {row.labels
-                                                    .filter(
-                                                        value =>
-                                                            value !==
-                                                            this.props.label
-                                                    )
+                                                    .filter(value => value !== this.props.label)
                                                     .map(label => (
                                                         <LabelButton
                                                             key={label}
                                                             label={label}
-                                                            database={
-                                                                this.props
-                                                                    .database
-                                                            }
-                                                            tabManager={
-                                                                this.props
-                                                                    .tabManager
-                                                            }
+                                                            database={this.props.database}
+                                                            tabManager={this.props.tabManager}
                                                         />
                                                     ))}
                                             </span>
@@ -525,10 +435,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                                     )}
                                     {keys.map(key => (
                                         <td key={'td-' + key}>
-                                            {key in row.properties &&
-                                                printProperty(
-                                                    row.properties[key]
-                                                )}
+                                            {key in row.properties && printProperty(row.properties[key])}
                                         </td>
                                     ))}
                                 </tr>

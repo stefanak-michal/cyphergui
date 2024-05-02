@@ -18,8 +18,7 @@ class App extends React.Component<null, IAppState> {
     };
 
     componentDidMount() {
-        if (this.state.darkMode)
-            document.documentElement.className = 'theme-dark';
+        if (this.state.darkMode) document.documentElement.className = 'theme-dark';
     }
 
     handleLogin = () => {
@@ -43,9 +42,7 @@ class App extends React.Component<null, IAppState> {
             },
             () => {
                 setSetting('darkMode', this.state.darkMode);
-                document.documentElement.className = this.state.darkMode
-                    ? 'theme-dark'
-                    : '';
+                document.documentElement.className = this.state.darkMode ? 'theme-dark' : '';
             }
         );
     };
@@ -55,23 +52,16 @@ class App extends React.Component<null, IAppState> {
             <>
                 <ThemeSwitchContext.Provider value={this.themeSwitch}>
                     {this.state.logged ? (
-                        <Logged
-                            handleLogout={this.handleLogout}
-                            darkMode={this.state.darkMode}
-                        />
+                        <Logged handleLogout={this.handleLogout} darkMode={this.state.darkMode} />
                     ) : (
-                        <Login
-                            handleLogin={this.handleLogin}
-                            darkMode={this.state.darkMode}
-                        />
+                        <Login handleLogin={this.handleLogin} darkMode={this.state.darkMode} />
                     )}
                 </ThemeSwitchContext.Provider>
 
                 <footer className='footer page-footer'>
                     <div className='content has-text-centered'>
                         <p>
-                            <b>cypherGUI</b> by Michal Stefanak. Awarded author
-                            of PHP Bolt driver.
+                            <b>cypherGUI</b> by Michal Stefanak. Awarded author of PHP Bolt driver.
                         </p>
                         <div className='buttons is-justify-content-center mt-2'>
                             <a

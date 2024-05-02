@@ -14,10 +14,7 @@ export interface ITabManager {
     ) => string;
     close: (id: string, e?: React.PointerEvent) => void;
     setActive: (id: string) => void;
-    generateName: (
-        prefix: string,
-        i?: Integer | string | number | null
-    ) => string;
+    generateName: (prefix: string, i?: Integer | string | number | null) => string;
     setChanged: (id: string, changed: boolean, callback?: () => void) => void;
 }
 
@@ -35,11 +32,7 @@ export interface IStashManager {
     remove: (id: number) => void;
     indexOf: (value: t_StashValue, stashed?: IStashEntry[]) => number;
     empty: () => void;
-    button: (
-        value: t_StashValue,
-        database: string,
-        color?: string
-    ) => React.ReactElement;
+    button: (value: t_StashValue, database: string, color?: string) => React.ReactElement;
     get: () => IStashEntry[];
 }
 

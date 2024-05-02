@@ -8,7 +8,7 @@ export default class Pagination extends React.Component<{
     render() {
         if (this.props.pages === 1) return;
 
-        let links = [];
+        const links = [];
         if (this.props.page >= 4) {
             links.push(1, 'e', this.props.page - 1);
         } else {
@@ -20,16 +20,11 @@ export default class Pagination extends React.Component<{
         if (this.props.page <= this.props.pages - 3) {
             links.push(this.props.page + 1, 'e', this.props.pages);
         } else {
-            for (let i = this.props.page + 1; i <= this.props.pages; i++)
-                links.push(i);
+            for (let i = this.props.page + 1; i <= this.props.pages; i++) links.push(i);
         }
 
         return (
-            <nav
-                className='pagination is-centered'
-                role='navigation'
-                aria-label='pagination'
-            >
+            <nav className='pagination is-centered' role='navigation' aria-label='pagination'>
                 <button
                     className='pagination-previous button'
                     disabled={this.props.page === 1}
@@ -51,26 +46,15 @@ export default class Pagination extends React.Component<{
                 <ul className='pagination-list'>
                     {links.map((value, i) => (
                         <li key={'li' + i}>
-                            {value === 'e' && (
-                                <span className='pagination-ellipsis'>
-                                    &hellip;
-                                </span>
-                            )}
+                            {value === 'e' && <span className='pagination-ellipsis'>&hellip;</span>}
                             {typeof value === 'number' && (
                                 <button
                                     className={
-                                        'button pagination-link ' +
-                                        (this.props.page === value
-                                            ? 'is-current'
-                                            : '')
+                                        'button pagination-link ' + (this.props.page === value ? 'is-current' : '')
                                     }
                                     onClick={() => this.props.action(value)}
                                     aria-label={'Goto page ' + value}
-                                    aria-current={
-                                        this.props.page === value
-                                            ? 'page'
-                                            : false
-                                    }
+                                    aria-current={this.props.page === value ? 'page' : false}
                                 >
                                     {value}
                                 </button>

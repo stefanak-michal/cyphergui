@@ -3,13 +3,7 @@ import { Button, Textarea } from '../components/form';
 import { IPageProps } from '../utils/interfaces';
 import db from '../db';
 import { ClipboardContext } from '../utils/contexts';
-import {
-    Node as _Node,
-    Path as _Path,
-    Record,
-    Relationship as _Relationship,
-    ResultSummary,
-} from 'neo4j-driver-lite';
+import { Node as _Node, Path as _Path, Record, Relationship as _Relationship, ResultSummary } from 'neo4j-driver-lite';
 import { Ecosystem, EPage, EQueryView } from '../utils/enums';
 import { t_StashQuery } from '../utils/types';
 import Table from './query/Table';
@@ -61,18 +55,14 @@ class Query extends React.Component<IQueryProps, IQueryState> {
         if (Array.isArray(value)) {
             value.forEach(this.setShowTableSize);
         } else if (value !== null && typeof value === 'object') {
-            if (
-                value instanceof _Node ||
-                value instanceof _Relationship ||
-                value instanceof _Path
-            )
+            if (value instanceof _Node || value instanceof _Relationship || value instanceof _Path)
                 this.showTableSize = true;
             else this.setShowTableSize(Object.values(value));
         }
     };
 
     handleSubmit = (e: React.FormEvent) => {
-        if (!!e) e.preventDefault();
+        if (e) e.preventDefault();
         this.showTableSize = false;
         this.setState(
             {
@@ -84,32 +74,20 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                 db.query(this.state.query, {}, db.database)
                     .then(response => {
                         //check create/delete database
-                        if (
-                            /\s*(CREATE|DROP)\s+(COMPOSITE\s+)?DATABASE/i.test(
-                                this.state.query
-                            )
-                        ) {
+                        if (/\s*(CREATE|DROP)\s+(COMPOSITE\s+)?DATABASE/i.test(this.state.query)) {
                             db.query('SHOW DATABASES')
                                 .then(response => {
                                     db.databases = response.records
-                                        .filter(
-                                            row =>
-                                                !row.has('type') ||
-                                                row.get('type') !== 'system'
-                                        )
+                                        .filter(row => !row.has('type') || row.get('type') !== 'system')
                                         .map(row =>
-                                            db.ecosystem === Ecosystem.Memgraph
-                                                ? row.get('Name')
-                                                : row.get('name')
+                                            db.ecosystem === Ecosystem.Memgraph ? row.get('Name') : row.get('name')
                                         );
                                 })
                                 .catch(() => {});
                         }
 
                         const keys: Set<string> = new Set();
-                        response.records.forEach(r =>
-                            r.keys.forEach(keys.add, keys)
-                        );
+                        response.records.forEach(r => r.keys.forEach(keys.add, keys));
 
                         this.setShowTableSize(response.records);
                         this.setState(state => {
@@ -118,10 +96,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                                 rows: response.records,
                                 error: null,
                                 loading: false,
-                                view:
-                                    response.records.length === 0
-                                        ? EQueryView.Summary
-                                        : state.view,
+                                view: response.records.length === 0 ? EQueryView.Summary : state.view,
                                 keys: Array.from(keys),
                                 database: db.database,
                             };
@@ -162,9 +137,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                                 required
                                 name='query'
                                 value={this.state.query}
-                                onChange={(
-                                    e: React.ChangeEvent<HTMLTextAreaElement>
-                                ) => {
+                                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
                                     this.setState({
                                         query: e.currentTarget.value,
                                     });
@@ -179,8 +152,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                                 color='is-family-code is-pre-wrap'
                                 focus={true}
                                 onKeyDown={(e: React.KeyboardEvent) => {
-                                    if (e.key === 'Enter' && e.ctrlKey)
-                                        this.handleSubmit(null);
+                                    if (e.key === 'Enter' && e.ctrlKey) this.handleSubmit(null);
                                 }}
                                 highlight={{
                                     mark: [
@@ -201,33 +173,9 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                                         'UNWIND',
                                         'WITH',
                                     ],
-                                    '#995800': [
-                                        'LIMIT',
-                                        'ORDER',
-                                        'SKIP',
-                                        'WHERE',
-                                        'YIELD',
-                                    ],
-                                    '#c07817': [
-                                        'ASC',
-                                        'ASCENDING',
-                                        'ASSERT',
-                                        'BY',
-                                        'CSV',
-                                        'DESC',
-                                        'DESCENDING',
-                                        'ON',
-                                    ],
-                                    '#1732c0': [
-                                        'ALL',
-                                        'CASE',
-                                        'COUNT',
-                                        'ELSE',
-                                        'END',
-                                        'EXISTS',
-                                        'THEN',
-                                        'WHEN',
-                                    ],
+                                    '#995800': ['LIMIT', 'ORDER', 'SKIP', 'WHERE', 'YIELD'],
+                                    '#c07817': ['ASC', 'ASCENDING', 'ASSERT', 'BY', 'CSV', 'DESC', 'DESCENDING', 'ON'],
+                                    '#1732c0': ['ALL', 'CASE', 'COUNT', 'ELSE', 'END', 'EXISTS', 'THEN', 'WHEN'],
                                     '#1683b3': [
                                         'AND',
                                         'AS',
@@ -251,27 +199,16 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                                         'KEY',
                                         'UNIQUE',
                                     ],
-                                    '#ba1919': [
-                                        'INDEX',
-                                        'JOIN',
-                                        'SCAN',
-                                        'USING',
-                                    ],
+                                    '#ba1919': ['INDEX', 'JOIN', 'SCAN', 'USING'],
                                     '#0f00b4': ['false', 'null', 'true'],
                                 }}
                             />
                             <span className='icon is-left'>
-                                <i
-                                    className='fa-solid fa-terminal'
-                                    aria-hidden='true'
-                                />
+                                <i className='fa-solid fa-terminal' aria-hidden='true' />
                             </span>
                             <ClipboardContext.Consumer>
                                 {copy => (
-                                    <span
-                                        className='icon is-right is-clickable'
-                                        onClick={copy}
-                                    >
+                                    <span className='icon is-right is-clickable' onClick={copy}>
                                         <i className='fa-regular fa-copy' />
                                     </span>
                                 )}
@@ -281,10 +218,7 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                     <div className='field'>
                         <div className='buttons is-justify-content-flex-end'>
                             <Button
-                                color={
-                                    'is-success ' +
-                                    (this.state.loading ? 'is-loading' : '')
-                                }
+                                color={'is-success ' + (this.state.loading ? 'is-loading' : '')}
                                 type='submit'
                                 icon='fa-solid fa-check'
                                 text='Execute'
@@ -303,22 +237,11 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                                     <i className='fa-solid fa-book' />
                                 </span>
                             </a>
-                            {this.props.stashManager.button(
-                                new t_StashQuery(
-                                    this.props.tabId,
-                                    this.state.query
-                                ),
-                                ''
-                            )}
+                            {this.props.stashManager.button(new t_StashQuery(this.props.tabId, this.state.query), '')}
                             <Button
                                 icon='fa-solid fa-xmark'
                                 text='Close'
-                                onClick={e =>
-                                    this.props.tabManager.close(
-                                        this.props.tabId,
-                                        e
-                                    )
-                                }
+                                onClick={e => this.props.tabManager.close(this.props.tabId, e)}
                             />
                         </div>
                     </div>
@@ -347,113 +270,74 @@ class Query extends React.Component<IQueryProps, IQueryState> {
                         <span>
                             <Button
                                 text='Table'
-                                color={
-                                    this.state.view === EQueryView.Table
-                                        ? 'is-link is-light is-active'
-                                        : ''
-                                }
+                                color={this.state.view === EQueryView.Table ? 'is-link is-light is-active' : ''}
                                 icon='fa-solid fa-table'
-                                onClick={() =>
-                                    this.changeView(EQueryView.Table)
-                                }
+                                onClick={() => this.changeView(EQueryView.Table)}
                             />
                             <Button
                                 text='JSON'
-                                color={
-                                    this.state.view === EQueryView.JSON
-                                        ? 'is-link is-light is-active'
-                                        : ''
-                                }
+                                color={this.state.view === EQueryView.JSON ? 'is-link is-light is-active' : ''}
                                 icon='fa-brands fa-js'
                                 onClick={() => this.changeView(EQueryView.JSON)}
                             />
                             <Button
                                 text='Graph'
-                                color={
-                                    this.state.view === EQueryView.Graph
-                                        ? 'is-link is-light is-active'
-                                        : ''
-                                }
+                                color={this.state.view === EQueryView.Graph ? 'is-link is-light is-active' : ''}
                                 icon='fa-solid fa-circle-nodes'
-                                onClick={() =>
-                                    this.changeView(EQueryView.Graph)
-                                }
+                                onClick={() => this.changeView(EQueryView.Graph)}
                             />
                             <Button
                                 text='Summary'
-                                color={
-                                    this.state.view === EQueryView.Summary
-                                        ? 'is-link is-light is-active'
-                                        : ''
-                                }
+                                color={this.state.view === EQueryView.Summary ? 'is-link is-light is-active' : ''}
                                 icon='fa-solid fa-gauge-high'
-                                onClick={() =>
-                                    this.changeView(EQueryView.Summary)
-                                }
+                                onClick={() => this.changeView(EQueryView.Summary)}
                             />
                         </span>
-                        {this.state.view === EQueryView.Table &&
-                            this.showTableSize && (
-                                <span className='ml-3'>
-                                    <Button
-                                        color={
-                                            this.state.tableSize === 1
-                                                ? 'is-link is-light is-active'
-                                                : ''
-                                        }
-                                        icon='fa-solid fa-arrows-up-down is-size-7'
-                                        onClick={() => this.setTableSize(1)}
-                                    >
-                                        <span className='is-size-7'>Small</span>
-                                    </Button>
-                                    <Button
-                                        text='Medium'
-                                        color={
-                                            this.state.tableSize === 2
-                                                ? 'is-link is-light is-active'
-                                                : ''
-                                        }
-                                        icon='fa-solid fa-arrows-up-down'
-                                        onClick={() => this.setTableSize(2)}
-                                    />
-                                </span>
-                            )}
+                        {this.state.view === EQueryView.Table && this.showTableSize && (
+                            <span className='ml-3'>
+                                <Button
+                                    color={this.state.tableSize === 1 ? 'is-link is-light is-active' : ''}
+                                    icon='fa-solid fa-arrows-up-down is-size-7'
+                                    onClick={() => this.setTableSize(1)}
+                                >
+                                    <span className='is-size-7'>Small</span>
+                                </Button>
+                                <Button
+                                    text='Medium'
+                                    color={this.state.tableSize === 2 ? 'is-link is-light is-active' : ''}
+                                    icon='fa-solid fa-arrows-up-down'
+                                    onClick={() => this.setTableSize(2)}
+                                />
+                            </span>
+                        )}
                     </div>
                 </div>
 
-                {this.state.view === EQueryView.Table &&
-                    this.state.rows.length > 0 && (
-                        <Table
-                            keys={this.state.keys}
-                            rows={this.state.rows}
-                            tableSize={this.state.tableSize}
-                            tabManager={this.props.tabManager}
-                        />
-                    )}
-
-                {this.state.view === EQueryView.Graph &&
-                    this.state.rows.length > 0 && (
-                        <Graph
-                            rows={this.state.rows}
-                            tabManager={this.props.tabManager}
-                            stashManager={this.props.stashManager}
-                            database={this.state.database}
-                        />
-                    )}
-
-                {this.state.view === EQueryView.JSON &&
-                    this.state.rows.length > 0 && (
-                        <Json rows={this.state.rows} />
-                    )}
-
-                {this.state.view === EQueryView.Summary &&
-                    this.state.summary && (
-                        <Summary summary={this.state.summary} />
-                    )}
-
-                {this.state.rows.length === 0 && !this.state.summary && (
-                    <div className='block'>No result</div>
+                {this.state.view === EQueryView.Table && this.state.rows.length > 0 && (
+                    <Table
+                        keys={this.state.keys}
+                        rows={this.state.rows}
+                        tableSize={this.state.tableSize}
+                        tabManager={this.props.tabManager}
+                    />
                 )}
+
+                {this.state.view === EQueryView.Graph && this.state.rows.length > 0 && (
+                    <Graph
+                        rows={this.state.rows}
+                        tabManager={this.props.tabManager}
+                        stashManager={this.props.stashManager}
+                        database={this.state.database}
+                    />
+                )}
+
+                {this.state.view === EQueryView.JSON && this.state.rows.length > 0 && <Json rows={this.state.rows} />}
+
+                {this.state.view === EQueryView.Summary && this.state.summary && (
+                    <Summary summary={this.state.summary} />
+                )}
+
+                {this.state.rows.length === 0 && !this.state.summary && <div className='block'>No result</div>}
             </>
         );
     }

@@ -17,10 +17,7 @@ class History extends React.Component<IHistoryProps, IHistoryState> {
         logs: db.logs,
     };
 
-    componentDidUpdate(
-        prevProps: Readonly<IHistoryProps>,
-        prevState: Readonly<IHistoryState>
-    ) {
+    componentDidUpdate(prevProps: Readonly<IHistoryProps>, prevState: Readonly<IHistoryState>) {
         if (prevState.logs != db.logs) {
             this.setState({
                 logs: db.logs,
@@ -68,21 +65,13 @@ class History extends React.Component<IHistoryProps, IHistoryState> {
                                     .map(log => {
                                         return (
                                             <tr>
-                                                <td>
-                                                    {this.printDate(log.date)}
-                                                </td>
+                                                <td>{this.printDate(log.date)}</td>
                                                 <td
                                                     className={
                                                         'has-text-weight-bold ' +
-                                                        (log.status
-                                                            ? 'has-text-success'
-                                                            : 'has-text-danger')
+                                                        (log.status ? 'has-text-success' : 'has-text-danger')
                                                     }
-                                                    title={
-                                                        log.status
-                                                            ? 'Success'
-                                                            : 'Error'
-                                                    }
+                                                    title={log.status ? 'Success' : 'Error'}
                                                 >
                                                     {log.status ? 'S' : 'E'}
                                                 </td>
@@ -96,13 +85,8 @@ class History extends React.Component<IHistoryProps, IHistoryState> {
                                                 </td>
                                                 <td>
                                                     <div className='control has-icons-right'>
-                                                        <pre>
-                                                            {toJSON(log.params)}
-                                                        </pre>
-                                                        <span
-                                                            className='icon is-right is-clickable'
-                                                            onClick={copy}
-                                                        >
+                                                        <pre>{toJSON(log.params)}</pre>
+                                                        <span className='icon is-right is-clickable' onClick={copy}>
                                                             <i className='fa-regular fa-copy' />
                                                         </span>
                                                     </div>

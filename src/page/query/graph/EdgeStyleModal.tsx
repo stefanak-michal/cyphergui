@@ -7,15 +7,11 @@ interface IEdgeStyleModalProps {
     type: string;
     currentSettings: IEdgeStyle;
     handleClose: () => void;
-    handleStyleSet: (
-        type: string,
-        property: string,
-        value: string | number
-    ) => void;
+    handleStyleSet: (type: string, property: string, value: string | number) => void;
     labelFields: string[]; //list of available options for visible label
 }
 
-class EdgeStyleModal extends React.Component<IEdgeStyleModalProps, {}> {
+class EdgeStyleModal extends React.Component<IEdgeStyleModalProps, null> {
     render() {
         return (
             <Modal
@@ -24,35 +20,15 @@ class EdgeStyleModal extends React.Component<IEdgeStyleModalProps, {}> {
                 handleClose={this.props.handleClose}
                 buttons={
                     <>
-                        <Button
-                            text='Close'
-                            icon='fa-solid fa-xmark'
-                            onClick={this.props.handleClose}
-                        />
+                        <Button text='Close' icon='fa-solid fa-xmark' onClick={this.props.handleClose} />
                         <Button
                             text='Default values'
                             icon='fa-solid fa-rotate-right'
                             onClick={() => {
-                                this.props.handleStyleSet(
-                                    this.props.type,
-                                    'color',
-                                    '#ababab'
-                                );
-                                this.props.handleStyleSet(
-                                    this.props.type,
-                                    'width',
-                                    0.3
-                                );
-                                this.props.handleStyleSet(
-                                    this.props.type,
-                                    'fontSize',
-                                    4
-                                );
-                                this.props.handleStyleSet(
-                                    this.props.type,
-                                    'label',
-                                    '#label'
-                                );
+                                this.props.handleStyleSet(this.props.type, 'color', '#ababab');
+                                this.props.handleStyleSet(this.props.type, 'width', 0.3);
+                                this.props.handleStyleSet(this.props.type, 'fontSize', 4);
+                                this.props.handleStyleSet(this.props.type, 'label', '#label');
                             }}
                             color='is-warning'
                         />
@@ -66,13 +42,7 @@ class EdgeStyleModal extends React.Component<IEdgeStyleModalProps, {}> {
                             type='color'
                             value={this.props.currentSettings.color as string}
                             className='input'
-                            onChange={e =>
-                                this.props.handleStyleSet(
-                                    this.props.type,
-                                    'color',
-                                    e.currentTarget.value
-                                )
-                            }
+                            onChange={e => this.props.handleStyleSet(this.props.type, 'color', e.currentTarget.value)}
                         />
                     </div>
                 </div>
@@ -87,11 +57,7 @@ class EdgeStyleModal extends React.Component<IEdgeStyleModalProps, {}> {
                             step='.1'
                             value={this.props.currentSettings.width ?? 0.3}
                             onChange={e =>
-                                this.props.handleStyleSet(
-                                    this.props.type,
-                                    'width',
-                                    e.currentTarget.valueAsNumber
-                                )
+                                this.props.handleStyleSet(this.props.type, 'width', e.currentTarget.valueAsNumber)
                             }
                         />
                     </div>
@@ -107,11 +73,7 @@ class EdgeStyleModal extends React.Component<IEdgeStyleModalProps, {}> {
                             step='1'
                             value={this.props.currentSettings.fontSize ?? 4}
                             onChange={e =>
-                                this.props.handleStyleSet(
-                                    this.props.type,
-                                    'fontSize',
-                                    e.currentTarget.valueAsNumber
-                                )
+                                this.props.handleStyleSet(this.props.type, 'fontSize', e.currentTarget.valueAsNumber)
                             }
                         />
                     </div>
@@ -123,55 +85,27 @@ class EdgeStyleModal extends React.Component<IEdgeStyleModalProps, {}> {
                         <Button
                             text='<id>'
                             key='#id'
-                            color={
-                                this.props.currentSettings.label === '#id'
-                                    ? 'is-active'
-                                    : ''
-                            }
-                            onClick={() =>
-                                this.props.handleStyleSet(
-                                    this.props.type,
-                                    'label',
-                                    '#id'
-                                )
-                            }
+                            color={this.props.currentSettings.label === '#id' ? 'is-active' : ''}
+                            onClick={() => this.props.handleStyleSet(this.props.type, 'label', '#id')}
                         />
                         <Button
                             text='<label>'
                             key='#label'
                             color={
-                                typeof this.props.currentSettings.label ===
-                                    'undefined' ||
+                                typeof this.props.currentSettings.label === 'undefined' ||
                                 this.props.currentSettings.label === '#label'
                                     ? 'is-active'
                                     : ''
                             }
-                            onClick={() =>
-                                this.props.handleStyleSet(
-                                    this.props.type,
-                                    'label',
-                                    '#label'
-                                )
-                            }
+                            onClick={() => this.props.handleStyleSet(this.props.type, 'label', '#label')}
                         />
                         {this.props.labelFields.length > 0 &&
                             this.props.labelFields.map(label => (
                                 <Button
                                     key={label}
                                     text={label}
-                                    color={
-                                        this.props.currentSettings.label ===
-                                        label
-                                            ? 'is-active'
-                                            : ''
-                                    }
-                                    onClick={() =>
-                                        this.props.handleStyleSet(
-                                            this.props.type,
-                                            'label',
-                                            label
-                                        )
-                                    }
+                                    color={this.props.currentSettings.label === label ? 'is-active' : ''}
+                                    onClick={() => this.props.handleStyleSet(this.props.type, 'label', label)}
                                 />
                             ))}
                     </div>

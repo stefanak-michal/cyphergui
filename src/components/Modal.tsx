@@ -15,16 +15,9 @@ export default class Modal extends React.Component<{
     render() {
         return (
             <div className='modal is-active'>
-                <div
-                    className='modal-background'
-                    onClick={this.props.backdrop && this.props.handleClose}
-                ></div>
+                <div className='modal-background' onClick={this.props.backdrop && this.props.handleClose}></div>
                 <div className='modal-card'>
-                    <header
-                        className={
-                            'modal-card-head ' + (this.props.color || 'is-dark')
-                        }
-                    >
+                    <header className={'modal-card-head ' + (this.props.color || 'is-dark')}>
                         <p className='modal-card-title'>
                             {this.props.icon && (
                                 <span className='icon mr-3'>
@@ -33,17 +26,9 @@ export default class Modal extends React.Component<{
                             )}
                             {this.props.title}
                         </p>
-                        <button
-                            className='delete'
-                            aria-label='close'
-                            onClick={this.props.handleClose}
-                        />
+                        <button className='delete' aria-label='close' onClick={this.props.handleClose} />
                     </header>
-                    {this.props.children && (
-                        <section className='modal-card-body'>
-                            {this.props.children}
-                        </section>
-                    )}
+                    {this.props.children && <section className='modal-card-body'>{this.props.children}</section>}
                     {this.props.buttons && (
                         <footer className='modal-card-foot is-justify-content-flex-end buttons'>
                             {this.props.buttons}
@@ -77,23 +62,14 @@ export class CloseConfirmModal extends React.Component<
                             onClick={this.props.handleConfirm}
                             color='is-warning'
                         />
-                        <Button
-                            text="Don't close"
-                            icon='fa-solid fa-xmark'
-                            onClick={this.props.handleClose}
-                        />
+                        <Button text="Don't close" icon='fa-solid fa-xmark' onClick={this.props.handleClose} />
                     </>
                 }
             >
-                <p>
-                    You have unsaved changes. By closing this tab you will lose
-                    them.
-                </p>
+                <p>You have unsaved changes. By closing this tab you will lose them.</p>
                 <p className='mt-5'>
                     <i className='fa-solid fa-info'></i>
-                    <i className='ml-2'>
-                        You can disable this confirmation dialog in settings.
-                    </i>
+                    <i className='ml-2'>You can disable this confirmation dialog in settings.</i>
                 </p>
             </Modal>
         );
@@ -133,11 +109,7 @@ export class DeleteModal extends React.Component<
                             onClick={this.handleConfirm}
                             color='is-danger'
                         />
-                        <Button
-                            text='Cancel'
-                            icon='fa-solid fa-xmark'
-                            onClick={this.props.handleClose}
-                        />
+                        <Button text='Cancel' icon='fa-solid fa-xmark' onClick={this.props.handleClose} />
                     </>
                 }
             >
@@ -145,9 +117,7 @@ export class DeleteModal extends React.Component<
                     <div className='mb-3'>
                         <Checkbox
                             name='detachDelete'
-                            onChange={(
-                                e: React.ChangeEvent<HTMLInputElement>
-                            ) =>
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                 this.setState({
                                     detach: e.currentTarget.checked,
                                 })
@@ -163,10 +133,7 @@ export class DeleteModal extends React.Component<
     }
 }
 
-export class PropertiesModal extends React.Component<
-    { properties: object; handleClose: () => void },
-    {}
-> {
+export class PropertiesModal extends React.Component<{ properties: object; handleClose: () => void }, null> {
     render() {
         return (
             <Modal
@@ -179,10 +146,7 @@ export class PropertiesModal extends React.Component<
                     <pre>{toJSON(this.props.properties)}</pre>
                     <ClipboardContext.Consumer>
                         {copy => (
-                            <span
-                                className='icon is-right is-clickable'
-                                onClick={copy}
-                            >
+                            <span className='icon is-right is-clickable' onClick={copy}>
                                 <i className='fa-regular fa-copy' />
                             </span>
                         )}

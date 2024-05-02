@@ -46,7 +46,7 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
     "format": "npx prettier . --write",
-    "lint": "npx eslint src --fix-dry-run"
+    "lint": "npx eslint src"
   },
   "browserslist": {
     "production": [
@@ -67,6 +67,7 @@
     "proseWrap": "preserve",
     "jsxSingleQuote": true,
     "arrowParens": "avoid",
+    "printWidth": 120,
     "overrides": [
       {
         "files": [

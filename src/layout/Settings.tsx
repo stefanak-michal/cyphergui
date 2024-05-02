@@ -9,20 +9,14 @@ interface ISettingsState {
     settings: ISettings;
 }
 
-class Settings extends React.Component<
-    { handleClose: () => void },
-    ISettingsState
-> {
+class Settings extends React.Component<{ handleClose: () => void }, ISettingsState> {
     state: ISettingsState = {
         settings: settings(),
     };
 
-    handleChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-    ) => {
+    handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const target = e.currentTarget;
-        const value =
-            target instanceof HTMLInputElement ? target.checked : target.value;
+        const value = target instanceof HTMLInputElement ? target.checked : target.value;
         this.setState(() => {
             setSetting(target.name, value);
             return { settings: settings() };
@@ -35,13 +29,7 @@ class Settings extends React.Component<
                 title='Settings'
                 icon='fa-solid fa-gears'
                 handleClose={this.props.handleClose}
-                buttons={
-                    <Button
-                        text='Close'
-                        icon='fa-solid fa-xmark'
-                        onClick={this.props.handleClose}
-                    />
-                }
+                buttons={<Button text='Close' icon='fa-solid fa-xmark' onClick={this.props.handleClose} />}
             >
                 {db.hasElementId && (
                     <div className='mb-3'>
@@ -59,9 +47,7 @@ class Settings extends React.Component<
                         name='closeEditAfterExecuteSuccess'
                         onChange={this.handleChange}
                         label='Close create/edit tab after successful execute'
-                        checked={
-                            this.state.settings.closeEditAfterExecuteSuccess
-                        }
+                        checked={this.state.settings.closeEditAfterExecuteSuccess}
                         color='is-link'
                     />
                 </div>
@@ -91,9 +77,7 @@ class Settings extends React.Component<
                                 name='darkMode'
                                 onChange={e => {
                                     themeSwitch();
-                                    this.handleChange(
-                                        e as React.ChangeEvent<HTMLInputElement>
-                                    );
+                                    this.handleChange(e as React.ChangeEvent<HTMLInputElement>);
                                 }}
                                 label='Dark mode'
                                 checked={this.state.settings.darkMode}
@@ -103,25 +87,15 @@ class Settings extends React.Component<
                     </ThemeSwitchContext.Consumer>
                 </div>
                 <div className='field'>
-                    <label className='label'>
-                        Method when printing out temporal values
-                    </label>
+                    <label className='label'>Method when printing out temporal values</label>
                     <div className='control'>
                         <div className='select is-fullwidth'>
                             <select
                                 name='temporalValueToStringFunction'
-                                value={
-                                    this.state.settings
-                                        .temporalValueToStringFunction
-                                }
+                                value={this.state.settings.temporalValueToStringFunction}
                                 onChange={this.handleChange}
                             >
-                                {[
-                                    'toISOString',
-                                    'toUTCString',
-                                    'toJSON',
-                                    'toString',
-                                ].map(fn => (
+                                {['toISOString', 'toUTCString', 'toJSON', 'toString'].map(fn => (
                                     <option key={fn} value={fn}>
                                         {fn}
                                     </option>
@@ -144,18 +118,14 @@ export function settings(): ISettings {
         closeEditAfterExecuteSuccess: true,
         forceNamingRecommendations: true,
         temporalValueToStringFunction: 'toString',
-        darkMode:
-            window.matchMedia &&
-            window.matchMedia('(prefers-color-scheme: dark)').matches,
+        darkMode: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches,
         confirmCloseUnsavedChanges: true,
-        ...(localStorage.getItem('settings')
-            ? JSON.parse(localStorage.getItem('settings'))
-            : {}),
+        ...(localStorage.getItem('settings') ? JSON.parse(localStorage.getItem('settings')) : {}),
     };
 }
 
 export function setSetting(name: string, value: any) {
-    let s = settings();
+    const s = settings();
     s[name] = value;
     localStorage.setItem('settings', JSON.stringify(s));
 }

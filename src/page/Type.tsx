@@ -46,19 +46,13 @@ class Type extends React.Component<ITypeProps, ITypeState> {
     };
 
     requestData = () => {
-        const checkId = this.state.search.length
-            ? /^\d+$/.test(this.state.search)
-            : false;
+        const checkId = this.state.search.length ? /^\d+$/.test(this.state.search) : false;
 
-        let query: string =
-            'MATCH (a)-[' +
-            (this.props.type.startsWith('*') ? 'r' : 'r:' + this.props.type) +
-            ']->(b)';
+        let query: string = 'MATCH (a)-[' + (this.props.type.startsWith('*') ? 'r' : 'r:' + this.props.type) + ']->(b)';
         if (this.state.search.length) {
             switch (db.ecosystem) {
                 case Ecosystem.Neo4j:
-                    query +=
-                        ' WHERE any(prop IN keys(r) WHERE toStringOrNull(r[prop]) STARTS WITH $search)';
+                    query += ' WHERE any(prop IN keys(r) WHERE toStringOrNull(r[prop]) STARTS WITH $search)';
                     break;
                 case Ecosystem.Memgraph:
                     query +=
@@ -67,8 +61,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                 default:
                     return;
             }
-            if (checkId)
-                query += ' OR id(r) = $id OR id(a) = $id OR id(b) = $id';
+            if (checkId) query += ' OR id(r) = $id OR id(a) = $id OR id(b) = $id';
         }
 
         db.query(
@@ -81,17 +74,12 @@ class Type extends React.Component<ITypeProps, ITypeState> {
         )
             .then(response1 => {
                 const cnt: number = db.fromInt(response1.records[0].get('cnt'));
-                const page: number = Math.min(
-                    this.state.page,
-                    Math.ceil(cnt / this.perPage)
-                );
+                const page: number = Math.min(this.state.page, Math.ceil(cnt / this.perPage));
 
                 db.query(
                     query +
                         ' RETURN r ' +
-                        (this.state.sort.length
-                            ? 'ORDER BY ' + this.state.sort.join(', ')
-                            : '') +
+                        (this.state.sort.length ? 'ORDER BY ' + this.state.sort.join(', ') : '') +
                         ' SKIP $skip LIMIT $limit',
                     {
                         skip: db.toInt(Math.max(page - 1, 0) * this.perPage),
@@ -103,9 +91,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                 )
                     .then(response2 => {
                         this.setState({
-                            rows: response2.records.map(record =>
-                                record.get('r')
-                            ),
+                            rows: response2.records.map(record => record.get('r')),
                             total: cnt,
                             page: page,
                             loading: false,
@@ -131,8 +117,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
     }
 
     componentDidUpdate(prevProps: Readonly<IPageProps>) {
-        if (prevProps.active !== this.props.active && this.props.active)
-            this.requestData();
+        if (prevProps.active !== this.props.active && this.props.active) this.requestData();
     }
 
     handleChangePage = (page: number) => {
@@ -174,9 +159,9 @@ class Type extends React.Component<ITypeProps, ITypeState> {
 
     handleSetSort = (value: string) => {
         this.setState(state => {
-            let i = state.sort.indexOf(value),
+            const i = state.sort.indexOf(value),
                 j = state.sort.indexOf(value + ' DESC');
-            let copy = [...state.sort];
+            const copy = [...state.sort];
 
             if (i !== -1) {
                 copy[i] = value + ' DESC';
@@ -211,9 +196,9 @@ class Type extends React.Component<ITypeProps, ITypeState> {
     };
 
     render() {
-        let keys = [];
-        for (let row of this.state.rows) {
-            for (let k in row.properties) {
+        const keys = [];
+        for (const row of this.state.rows) {
+            for (const k in row.properties) {
                 if (!keys.includes(k)) {
                     keys.push(k);
                 }
@@ -227,9 +212,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
         keys.sort();
 
         let printQuery: string =
-            'MATCH (a)-[' +
-            (this.props.type.startsWith('*') ? 'r' : 'r:' + this.props.type) +
-            ']->(b)';
+            'MATCH (a)-[' + (this.props.type.startsWith('*') ? 'r' : 'r:' + this.props.type) + ']->(b)';
         if (this.state.search.length) {
             switch (db.ecosystem) {
                 case Ecosystem.Neo4j:
@@ -258,9 +241,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
         }
         printQuery +=
             ' RETURN n' +
-            (this.state.sort.length
-                ? ' ORDER BY ' + this.state.sort.join(', ')
-                : '') +
+            (this.state.sort.length ? ' ORDER BY ' + this.state.sort.join(', ') : '') +
             ' SKIP ' +
             Math.max(this.state.page - 1, 0) * this.perPage +
             ' LIMIT ' +
@@ -280,11 +261,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                     <div className='message is-danger'>
                         <div className='message-header'>
                             <p>Error</p>
-                            <button
-                                className='delete'
-                                aria-label='delete'
-                                onClick={this.handleClearError}
-                            />
+                            <button className='delete' aria-label='delete' onClick={this.handleClearError} />
                         </div>
                         <div className='message-body'>{this.state.error}</div>
                     </div>
@@ -293,17 +270,11 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                 <div className='mb-3' style={{ overflowY: 'auto' }}>
                     <span className='icon-text is-flex-wrap-nowrap'>
                         <span className='icon'>
-                            <i
-                                className='fa-solid fa-terminal'
-                                aria-hidden='true'
-                            />
+                            <i className='fa-solid fa-terminal' aria-hidden='true' />
                         </span>
                         <ClipboardContext.Consumer>
                             {copy => (
-                                <span
-                                    className='is-family-code is-pre-wrap is-copyable'
-                                    onClick={copy}
-                                >
+                                <span className='is-family-code is-pre-wrap is-copyable' onClick={copy}>
                                     {printQuery}
                                 </span>
                             )}
@@ -324,9 +295,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                 {
                                     id: null,
                                     database: this.props.database,
-                                    type: this.props.type.startsWith('*')
-                                        ? ''
-                                        : this.props.type,
+                                    type: this.props.type.startsWith('*') ? '' : this.props.type,
                                 }
                             )
                         }
@@ -359,17 +328,14 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                             type='text'
                             placeholder='Search'
                             value={this.state.search}
-                            onChange={(
-                                e: React.ChangeEvent<HTMLInputElement>
-                            ) => this.handleSearch(e.currentTarget.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                this.handleSearch(e.currentTarget.value)
+                            }
                         />
                         <span className='icon is-left'>
                             <i className='fas fa-search' aria-hidden='true' />
                         </span>
-                        <span
-                            className='icon is-right is-clickable'
-                            onClick={() => this.handleSearch()}
-                        >
+                        <span className='icon is-right is-clickable' onClick={() => this.handleSearch()}>
                             <i className='fa-solid fa-xmark' />
                         </span>
                     </div>
@@ -379,44 +345,15 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                     <table className='table is-bordered is-striped is-narrow is-hoverable'>
                         <thead>
                             <tr>
-                                <th
-                                    colSpan={
-                                        settings().tableViewShowElementId &&
-                                        db.hasElementId
-                                            ? 3
-                                            : 2
-                                    }
-                                >
+                                <th colSpan={settings().tableViewShowElementId && db.hasElementId ? 3 : 2}>
                                     Relationship
                                 </th>
-                                {this.props.type.startsWith('*') && (
-                                    <th rowSpan={2}>Type</th>
-                                )}
-                                {keys.length > 0 ? (
-                                    <th colSpan={keys.length}>properties</th>
-                                ) : (
-                                    ''
-                                )}
-                                <th
-                                    colSpan={
-                                        settings().tableViewShowElementId &&
-                                        db.hasElementId
-                                            ? 2
-                                            : 1
-                                    }
-                                >
+                                {this.props.type.startsWith('*') && <th rowSpan={2}>Type</th>}
+                                {keys.length > 0 ? <th colSpan={keys.length}>properties</th> : ''}
+                                <th colSpan={settings().tableViewShowElementId && db.hasElementId ? 2 : 1}>
                                     Start node
                                 </th>
-                                <th
-                                    colSpan={
-                                        settings().tableViewShowElementId &&
-                                        db.hasElementId
-                                            ? 2
-                                            : 1
-                                    }
-                                >
-                                    End node
-                                </th>
+                                <th colSpan={settings().tableViewShowElementId && db.hasElementId ? 2 : 1}>End node</th>
                             </tr>
                             <tr>
                                 <th
@@ -424,101 +361,50 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                     className='wspace-nowrap is-clickable'
                                     onClick={() => this.handleSetSort('id(r)')}
                                 >
-                                    id{' '}
-                                    <TableSortIcon
-                                        sort='id(r)'
-                                        current={this.state.sort}
-                                    />
+                                    id <TableSortIcon sort='id(r)' current={this.state.sort} />
                                 </th>
-                                {settings().tableViewShowElementId &&
-                                    db.hasElementId && (
-                                        <th
-                                            rowSpan={2}
-                                            className='wspace-nowrap is-clickable'
-                                            onClick={() =>
-                                                this.handleSetSort(
-                                                    'elementId(r)'
-                                                )
-                                            }
-                                        >
-                                            elementId{' '}
-                                            <TableSortIcon
-                                                sort='elementId(r)'
-                                                current={this.state.sort}
-                                            />
-                                        </th>
-                                    )}
+                                {settings().tableViewShowElementId && db.hasElementId && (
+                                    <th
+                                        rowSpan={2}
+                                        className='wspace-nowrap is-clickable'
+                                        onClick={() => this.handleSetSort('elementId(r)')}
+                                    >
+                                        elementId <TableSortIcon sort='elementId(r)' current={this.state.sort} />
+                                    </th>
+                                )}
                                 <th></th>
                                 {keys.map(key => (
                                     <th
                                         key={'th-' + key}
                                         className='wspace-nowrap is-clickable'
-                                        onClick={() =>
-                                            this.handleSetSort('r.' + key)
-                                        }
+                                        onClick={() => this.handleSetSort('r.' + key)}
                                     >
-                                        {key}{' '}
-                                        <TableSortIcon
-                                            sort={'r.' + key}
-                                            current={this.state.sort}
-                                        />
+                                        {key} <TableSortIcon sort={'r.' + key} current={this.state.sort} />
                                     </th>
                                 ))}
 
-                                <th
-                                    className='wspace-nowrap is-clickable'
-                                    onClick={() => this.handleSetSort('id(a)')}
-                                >
-                                    id{' '}
-                                    <TableSortIcon
-                                        sort={'id(a)'}
-                                        current={this.state.sort}
-                                    />
+                                <th className='wspace-nowrap is-clickable' onClick={() => this.handleSetSort('id(a)')}>
+                                    id <TableSortIcon sort={'id(a)'} current={this.state.sort} />
                                 </th>
-                                {settings().tableViewShowElementId &&
-                                    db.hasElementId && (
-                                        <th
-                                            className='wspace-nowrap is-clickable'
-                                            onClick={() =>
-                                                this.handleSetSort(
-                                                    'elementId(a)'
-                                                )
-                                            }
-                                        >
-                                            elementId{' '}
-                                            <TableSortIcon
-                                                sort={'elementId(a)'}
-                                                current={this.state.sort}
-                                            />
-                                        </th>
-                                    )}
-                                <th
-                                    className='wspace-nowrap is-clickable'
-                                    onClick={() => this.handleSetSort('id(b)')}
-                                >
-                                    id{' '}
-                                    <TableSortIcon
-                                        sort={'id(b)'}
-                                        current={this.state.sort}
-                                    />
+                                {settings().tableViewShowElementId && db.hasElementId && (
+                                    <th
+                                        className='wspace-nowrap is-clickable'
+                                        onClick={() => this.handleSetSort('elementId(a)')}
+                                    >
+                                        elementId <TableSortIcon sort={'elementId(a)'} current={this.state.sort} />
+                                    </th>
+                                )}
+                                <th className='wspace-nowrap is-clickable' onClick={() => this.handleSetSort('id(b)')}>
+                                    id <TableSortIcon sort={'id(b)'} current={this.state.sort} />
                                 </th>
-                                {settings().tableViewShowElementId &&
-                                    db.hasElementId && (
-                                        <th
-                                            className='wspace-nowrap is-clickable'
-                                            onClick={() =>
-                                                this.handleSetSort(
-                                                    'elementId(b)'
-                                                )
-                                            }
-                                        >
-                                            elementId{' '}
-                                            <TableSortIcon
-                                                sort={'elementId(b)'}
-                                                current={this.state.sort}
-                                            />
-                                        </th>
-                                    )}
+                                {settings().tableViewShowElementId && db.hasElementId && (
+                                    <th
+                                        className='wspace-nowrap is-clickable'
+                                        onClick={() => this.handleSetSort('elementId(b)')}
+                                    >
+                                        elementId <TableSortIcon sort={'elementId(b)'} current={this.state.sort} />
+                                    </th>
+                                )}
                             </tr>
                         </thead>
                         <tbody>
@@ -536,8 +422,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                                     EPage.Rel,
                                                     {
                                                         id: db.getId(row),
-                                                        database:
-                                                            this.props.database,
+                                                        database: this.props.database,
                                                     }
                                                 )
                                             }
@@ -545,18 +430,12 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                             text={'#' + db.strInt(row.identity)}
                                         />
                                     </td>
-                                    {settings().tableViewShowElementId &&
-                                        db.hasElementId && (
-                                            <td className='wspace-nowrap'>
-                                                {row.elementId}
-                                            </td>
-                                        )}
+                                    {settings().tableViewShowElementId && db.hasElementId && (
+                                        <td className='wspace-nowrap'>{row.elementId}</td>
+                                    )}
                                     <td>
                                         <div className='is-flex-wrap-nowrap buttons'>
-                                            {this.props.stashManager.button(
-                                                row,
-                                                this.props.database
-                                            )}
+                                            {this.props.stashManager.button(row, this.props.database)}
                                             <Button
                                                 icon='fa-regular fa-trash-can'
                                                 color='is-danger is-outlined'
@@ -574,18 +453,13 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                             <TypeButton
                                                 type={row.type}
                                                 database={this.props.database}
-                                                tabManager={
-                                                    this.props.tabManager
-                                                }
+                                                tabManager={this.props.tabManager}
                                             />
                                         </td>
                                     )}
                                     {keys.map(key => (
                                         <td key={'td-' + key}>
-                                            {key in row.properties &&
-                                                printProperty(
-                                                    row.properties[key]
-                                                )}
+                                            {key in row.properties && printProperty(row.properties[key])}
                                         </td>
                                     ))}
 
@@ -600,13 +474,8 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                                     'fa-solid fa-pen-to-square',
                                                     EPage.Node,
                                                     {
-                                                        id: db.getId(
-                                                            row,
-                                                            'startNodeElementId',
-                                                            'start'
-                                                        ),
-                                                        database:
-                                                            this.props.database,
+                                                        id: db.getId(row, 'startNodeElementId', 'start'),
+                                                        database: this.props.database,
                                                     }
                                                 )
                                             }
@@ -614,12 +483,9 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                             text={'#' + db.strInt(row.start)}
                                         />
                                     </td>
-                                    {settings().tableViewShowElementId &&
-                                        db.hasElementId && (
-                                            <td className='wspace-nowrap'>
-                                                {row.startNodeElementId}
-                                            </td>
-                                        )}
+                                    {settings().tableViewShowElementId && db.hasElementId && (
+                                        <td className='wspace-nowrap'>{row.startNodeElementId}</td>
+                                    )}
                                     <td>
                                         <Button
                                             onClick={() =>
@@ -631,13 +497,8 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                                     'fa-solid fa-pen-to-square',
                                                     EPage.Node,
                                                     {
-                                                        id: db.getId(
-                                                            row,
-                                                            'endNodeElementId',
-                                                            'end'
-                                                        ),
-                                                        database:
-                                                            this.props.database,
+                                                        id: db.getId(row, 'endNodeElementId', 'end'),
+                                                        database: this.props.database,
                                                     }
                                                 )
                                             }
@@ -645,12 +506,9 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                                             text={'#' + db.strInt(row.end)}
                                         />
                                     </td>
-                                    {settings().tableViewShowElementId &&
-                                        db.hasElementId && (
-                                            <td className='wspace-nowrap'>
-                                                {row.endNodeElementId}
-                                            </td>
-                                        )}
+                                    {settings().tableViewShowElementId && db.hasElementId && (
+                                        <td className='wspace-nowrap'>{row.endNodeElementId}</td>
+                                    )}
                                 </tr>
                             ))}
                         </tbody>

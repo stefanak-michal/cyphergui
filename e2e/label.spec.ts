@@ -11,8 +11,8 @@ test('Table view', async ({ page }) => {
     await expect(containerLocator(page)).toHaveScreenshot({
         mask: [
             //hide ids and elementIds
-            containerLocator(page, 'table tbody tr td:nth-child(2)'),
-            containerLocator(page, 'table tbody tr td:nth-child(1) button span:not(.icon)'),
+            containerLocator(page, 'table tbody').getByRole('button', { name: /^#\d+$/ }),
+            containerLocator(page, 'table tbody').getByRole('cell', { name: /^\d+:[a-z0-9\-]+:\d+$/ })
         ],
     });
 });
@@ -24,8 +24,8 @@ test('Table view pagination', async ({ page }) => {
     await expect(containerLocator(page)).toHaveScreenshot({
         mask: [
             //hide ids and elementIds
-            containerLocator(page, 'table tbody tr td:nth-child(2)'),
-            containerLocator(page, 'table tbody tr td:nth-child(1) button span:not(.icon)'),
+            containerLocator(page, 'table tbody').getByRole('button', { name: /^#\d+$/ }),
+            containerLocator(page, 'table tbody').getByRole('cell', { name: /^\d+:[a-z0-9\-]+:\d+$/ })
         ],
     });
     await containerLocator(page, '.pagination button.pagination-next').click();
@@ -82,8 +82,8 @@ test('Table sort', async ({ page }) => {
     await expect(containerLocator(page)).toHaveScreenshot({
         mask: [
             //hide ids and elementIds
-            containerLocator(page, 'table tbody tr td:nth-child(2)'),
-            containerLocator(page, 'table tbody tr td:nth-child(1) button span:not(.icon)'),
+            containerLocator(page, 'table tbody').getByRole('button', { name: /^#\d+$/ }),
+            containerLocator(page, 'table tbody').getByRole('cell', { name: /^\d+:[a-z0-9\-]+:\d+$/ })
         ],
     });
     await containerLocator(page).getByRole('cell', { name: 'name' }).click();
@@ -91,8 +91,8 @@ test('Table sort', async ({ page }) => {
     await expect(containerLocator(page)).toHaveScreenshot({
         mask: [
             //hide ids and elementIds
-            containerLocator(page, 'table tbody tr td:nth-child(2)'),
-            containerLocator(page, 'table tbody tr td:nth-child(1) button span:not(.icon)'),
+            containerLocator(page, 'table tbody').getByRole('button', { name: /^#\d+$/ }),
+            containerLocator(page, 'table tbody').getByRole('cell', { name: /^\d+:[a-z0-9\-]+:\d+$/ })
         ],
     });
 });

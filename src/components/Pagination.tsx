@@ -6,7 +6,7 @@ export default class Pagination extends React.Component<{
     action: (i: number) => void;
 }> {
     render() {
-        if (this.props.pages === 1) return;
+        if (this.props.pages <= 1) return undefined;
 
         const links = [];
         if (this.props.page >= 4) {

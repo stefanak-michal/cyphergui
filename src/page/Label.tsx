@@ -93,7 +93,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                         this.setState({
                             rows: response2.records.map(record => record.get('n')),
                             total: cnt,
-                            page: page,
+                            page: Math.max(page, 1),
                             loading: false,
                         });
                     })

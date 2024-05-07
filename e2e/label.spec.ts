@@ -8,13 +8,30 @@ test.beforeEach('Go to', async ({ page }) => {
 });
 
 test('Table view', async ({ page }) => {
-    await expect(page).toHaveScreenshot({
+    await expect(containerLocator(page)).toHaveScreenshot({
         mask: [
             //hide ids and elementIds
             containerLocator(page, 'table tbody tr td:nth-child(2)'),
             containerLocator(page, 'table tbody tr td:nth-child(1) button span:not(.icon)'),
         ],
     });
+});
+
+test('Table view pagination', async ({ page }) => {
+    await expect(containerLocator(page, '.pagination button.pagination-previous')).toBeDisabled();
+    await containerLocator(page, '.pagination').getByRole('button', { name: '2' }).click();
+    await expect(containerLocator(page, '.pagination button.pagination-previous')).toBeEnabled();
+    await expect(containerLocator(page)).toHaveScreenshot({
+        mask: [
+            //hide ids and elementIds
+            containerLocator(page, 'table tbody tr td:nth-child(2)'),
+            containerLocator(page, 'table tbody tr td:nth-child(1) button span:not(.icon)'),
+        ],
+    });
+    await containerLocator(page, '.pagination button.pagination-next').click();
+    await expect(containerLocator(page, '.pagination').getByRole('button', { name: '3' })).toHaveClass(/is-current/);
+    await containerLocator(page, '.pagination').getByRole('button', { name: '9' }).click();
+    await expect(containerLocator(page, '.pagination button.pagination-next')).toBeDisabled();
 });
 
 test('Create node btn', async ({ page }) => {
@@ -33,7 +50,10 @@ test('Search input', async ({ page }) => {
 });
 
 test('Node btn', async ({ page }) => {
-    await containerLocator(page).getByRole('row', { name: 'Keanu Reeves' }).getByRole('button', { name: /#\d+/ }).click();
+    await containerLocator(page)
+        .getByRole('row', { name: 'Keanu Reeves' })
+        .getByRole('button', { name: /#\d+/ })
+        .click();
     await expect(page.locator('.tabs .is-active')).toHaveText(/Node#\d+/);
 });
 
@@ -55,6 +75,24 @@ test('Delete node btn', async ({ page }) => {
 test('Label tag btn', async ({ page }) => {
     await containerLocator(page).getByRole('button', { name: ':Person' }).first().click();
     await checkActiveTab(page, 'Person');
-})
+});
 
-// table sort
+test('Table sort', async ({ page }) => {
+    await containerLocator(page).getByRole('cell', { name: 'born' }).click();
+    await expect(containerLocator(page)).toHaveScreenshot({
+        mask: [
+            //hide ids and elementIds
+            containerLocator(page, 'table tbody tr td:nth-child(2)'),
+            containerLocator(page, 'table tbody tr td:nth-child(1) button span:not(.icon)'),
+        ],
+    });
+    await containerLocator(page).getByRole('cell', { name: 'name' }).click();
+    await containerLocator(page).getByRole('cell', { name: 'name' }).click();
+    await expect(containerLocator(page)).toHaveScreenshot({
+        mask: [
+            //hide ids and elementIds
+            containerLocator(page, 'table tbody tr td:nth-child(2)'),
+            containerLocator(page, 'table tbody tr td:nth-child(1) button span:not(.icon)'),
+        ],
+    });
+});

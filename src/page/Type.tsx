@@ -93,7 +93,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                         this.setState({
                             rows: response2.records.map(record => record.get('r')),
                             total: cnt,
-                            page: page,
+                            page: Math.max(page, 1),
                             loading: false,
                         });
                     })

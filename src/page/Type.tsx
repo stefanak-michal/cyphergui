@@ -325,7 +325,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                     >
                         <input
                             className='input'
-                            type='text'
+                            type='search'
                             placeholder='Search'
                             value={this.state.search}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -335,7 +335,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                         <span className='icon is-left'>
                             <i className='fas fa-search' aria-hidden='true' />
                         </span>
-                        <span className='icon is-right is-clickable' onClick={() => this.handleSearch()}>
+                        <span className='icon is-right is-clickable' onClick={() => this.handleSearch()} aria-label='search-clear'>
                             <i className='fa-solid fa-xmark' />
                         </span>
                     </div>

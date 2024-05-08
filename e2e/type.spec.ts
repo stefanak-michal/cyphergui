@@ -19,6 +19,23 @@ test('Table view', async ({ page }) => {
     });
 });
 
+test('Table view pagination', async ({ page }) => {
+    await expect(containerLocator(page).getByLabel('Goto previous page')).toBeDisabled();
+    await containerLocator(page).getByLabel('Goto page 2').click();
+    await expect(containerLocator(page).getByLabel('Goto previous page')).toBeEnabled();
+    await expect(containerLocator(page)).toHaveScreenshot({
+        mask: [
+            //hide ids and elementIds
+            containerLocator(page, 'table tbody').getByRole('button', { name: /^#\d+$/ }),
+            containerLocator(page, 'table tbody').getByRole('cell', { name: /^\d+:[a-z0-9\-]+:\d+$/ })
+        ],
+    });
+    await containerLocator(page).getByLabel('Goto next page').click();
+    await expect(containerLocator(page).getByLabel('Goto page 3')).toHaveAttribute('aria-current', 'page');
+    await containerLocator(page).getByLabel('pagination').getByRole('button', { name: /\d+/ }).last().click();
+    await expect(containerLocator(page).getByLabel('Goto next page')).toBeDisabled();
+});
+
 test('Create relationship btn', async ({ page }) => {
     await containerLocator(page).getByRole('button', { name: 'Create relationship' }).click();
     await checkActiveTab(page, /New relationship#\d+/);
@@ -29,13 +46,20 @@ test('View as graph btn', async ({ page }) => {
     await checkActiveTab(page, /Query#\d+/);
 });
 
+test('Search input', async ({ page }) => {
+    await containerLocator(page).getByRole('searchbox').fill('2');
+    expect(await containerLocator(page, 'table tbody tr').count()).toBeLessThan(20);
+    await containerLocator(page).getByLabel('search-clear').click();
+    await expect(containerLocator(page, 'table tbody tr')).toHaveCount(20);
+});
+
 test('Relationship btn', async ({ page }) => {
     await containerLocator(page)
         .getByRole('row', { name: '[Neo]' })
         .getByRole('button', { name: /#\d+/ })
         .first()
         .click();
-    await expect(page.locator('.tabs .is-active')).toHaveText(/Rel#\d+/);
+    await checkActiveTab(page, /Rel#\d+/);
 });
 
 test('Node btn', async ({ page }) => {
@@ -44,7 +68,7 @@ test('Node btn', async ({ page }) => {
         .getByRole('button', { name: /#\d+/ })
         .last()
         .click();
-    await expect(page.locator('.tabs .is-active')).toHaveText(/Node#\d+/);
+    await checkActiveTab(page, /Node#\d+/);
 });
 
 test('Add to stash btn', async ({ page }) => {

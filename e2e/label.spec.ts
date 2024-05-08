@@ -18,9 +18,9 @@ test('Table view', async ({ page }) => {
 });
 
 test('Table view pagination', async ({ page }) => {
-    await expect(containerLocator(page, '.pagination button.pagination-previous')).toBeDisabled();
-    await containerLocator(page, '.pagination').getByRole('button', { name: '2' }).click();
-    await expect(containerLocator(page, '.pagination button.pagination-previous')).toBeEnabled();
+    await expect(containerLocator(page).getByLabel('Goto previous page')).toBeDisabled();
+    await containerLocator(page).getByLabel('Goto page 2').click();
+    await expect(containerLocator(page).getByLabel('Goto previous page')).toBeEnabled();
     await expect(containerLocator(page)).toHaveScreenshot({
         mask: [
             //hide ids and elementIds
@@ -28,10 +28,10 @@ test('Table view pagination', async ({ page }) => {
             containerLocator(page, 'table tbody').getByRole('cell', { name: /^\d+:[a-z0-9\-]+:\d+$/ })
         ],
     });
-    await containerLocator(page, '.pagination button.pagination-next').click();
-    await expect(containerLocator(page, '.pagination').getByRole('button', { name: '3' })).toHaveClass(/is-current/);
-    await containerLocator(page, '.pagination').getByRole('button', { name: '9' }).click();
-    await expect(containerLocator(page, '.pagination button.pagination-next')).toBeDisabled();
+    await containerLocator(page).getByLabel('Goto next page').click();
+    await expect(containerLocator(page).getByLabel('Goto page 3')).toHaveAttribute('aria-current', 'page');
+    await containerLocator(page).getByLabel('pagination').getByRole('button', { name: /\d+/ }).last().click();
+    await expect(containerLocator(page).getByLabel('pagination').getByLabel('Goto next page')).toBeDisabled();
 });
 
 test('Create node btn', async ({ page }) => {
@@ -45,8 +45,10 @@ test('View as graph btn', async ({ page }) => {
 });
 
 test('Search input', async ({ page }) => {
-    await containerLocator(page).getByPlaceholder('Search').fill('Hugo');
+    await containerLocator(page).getByRole('searchbox').fill('Hugo');
     await expect(containerLocator(page, 'table tbody tr')).toHaveCount(1);
+    await containerLocator(page).getByLabel('search-clear').click();
+    await expect(containerLocator(page, 'table tbody tr')).toHaveCount(20);
 });
 
 test('Node btn', async ({ page }) => {
@@ -54,7 +56,7 @@ test('Node btn', async ({ page }) => {
         .getByRole('row', { name: 'Keanu Reeves' })
         .getByRole('button', { name: /#\d+/ })
         .click();
-    await expect(page.locator('.tabs .is-active')).toHaveText(/Node#\d+/);
+    await checkActiveTab(page, /Node#\d+/);
 });
 
 test('Add to stash btn', async ({ page }) => {

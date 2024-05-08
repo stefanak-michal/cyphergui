@@ -47,8 +47,6 @@ test('View as graph btn', async ({ page }) => {
 test('Search input', async ({ page }) => {
     await containerLocator(page).getByRole('searchbox').fill('Hugo');
     await expect(containerLocator(page, 'table tbody tr')).toHaveCount(1);
-    await containerLocator(page).getByLabel('search-clear').click();
-    await expect(containerLocator(page, 'table tbody tr')).toHaveCount(20);
 });
 
 test('Node btn', async ({ page }) => {

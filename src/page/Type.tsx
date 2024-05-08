@@ -319,7 +319,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                     />
                     <div
                         className={
-                            'control has-icons-left has-icons-right is-align-self-flex-start ' +
+                            'control has-icons-left is-align-self-flex-start ' +
                             (this.state.loading ? 'border-progress' : '')
                         }
                     >
@@ -334,9 +334,6 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                         />
                         <span className='icon is-left'>
                             <i className='fas fa-search' aria-hidden='true' />
-                        </span>
-                        <span className='icon is-right is-clickable' onClick={() => this.handleSearch()} aria-label='search-clear'>
-                            <i className='fa-solid fa-xmark' />
                         </span>
                     </div>
                 </div>

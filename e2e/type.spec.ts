@@ -48,9 +48,7 @@ test('View as graph btn', async ({ page }) => {
 
 test('Search input', async ({ page }) => {
     await containerLocator(page).getByRole('searchbox').fill('2');
-    expect(await containerLocator(page, 'table tbody tr').count()).toBeLessThan(20);
-    await containerLocator(page).getByLabel('search-clear').click();
-    await expect(containerLocator(page, 'table tbody tr')).toHaveCount(20);
+    await expect(containerLocator(page, 'table tbody tr')).toHaveCount(3);
 });
 
 test('Relationship btn', async ({ page }) => {

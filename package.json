@@ -46,8 +46,9 @@
     "format": "npx prettier . --write",
     "prettier-check": "npx prettier . --check",
     "lint": "npx eslint src",
-    "playwright": "npx playwright test",
-    "playwright-ui": "npx playwright test --ui"
+    "playwright:read-only": "npx playwright test --grep @read-only",
+    "playwright:read-write": "npx playwright test --grep-invert @read-only",
+    "playwright:ui": "npx playwright test --ui"
   },
   "browserslist": {
     "production": [

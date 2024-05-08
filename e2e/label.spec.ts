@@ -11,7 +11,7 @@ test('Table view', async ({ page }) => {
     await expect(containerLocator(page)).toHaveScreenshot({
         mask: [
             //hide ids and elementIds
-            containerLocator(page, 'table tbody').getByRole('button', { name: /^#\d+$/ }),
+            containerLocator(page, 'table tbody').getByRole('button').getByText(/^#\d+$/),
             containerLocator(page, 'table tbody').getByRole('cell', { name: /^\d+:[a-z0-9\-]+:\d+$/ })
         ],
     });
@@ -24,7 +24,7 @@ test('Table view pagination', async ({ page }) => {
     await expect(containerLocator(page)).toHaveScreenshot({
         mask: [
             //hide ids and elementIds
-            containerLocator(page, 'table tbody').getByRole('button', { name: /^#\d+$/ }),
+            containerLocator(page, 'table tbody').getByRole('button').getByText(/^#\d+$/),
             containerLocator(page, 'table tbody').getByRole('cell', { name: /^\d+:[a-z0-9\-]+:\d+$/ })
         ],
     });
@@ -82,7 +82,7 @@ test('Table sort', async ({ page }) => {
     await expect(containerLocator(page)).toHaveScreenshot({
         mask: [
             //hide ids and elementIds
-            containerLocator(page, 'table tbody').getByRole('button', { name: /^#\d+$/ }),
+            containerLocator(page, 'table tbody').getByRole('button').getByText(/^#\d+$/),
             containerLocator(page, 'table tbody').getByRole('cell', { name: /^\d+:[a-z0-9\-]+:\d+$/ })
         ],
     });
@@ -91,7 +91,7 @@ test('Table sort', async ({ page }) => {
     await expect(containerLocator(page)).toHaveScreenshot({
         mask: [
             //hide ids and elementIds
-            containerLocator(page, 'table tbody').getByRole('button', { name: /^#\d+$/ }),
+            containerLocator(page, 'table tbody').getByRole('button').getByText(/^#\d+$/),
             containerLocator(page, 'table tbody').getByRole('cell', { name: /^\d+:[a-z0-9\-]+:\d+$/ })
         ],
     });

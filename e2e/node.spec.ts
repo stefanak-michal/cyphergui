@@ -32,7 +32,7 @@ test.describe('Node tab 1', { tag: '@read-only' }, () => {
         await containerLocator(page).getByTitle('Add to stash').click();
         await expect(containerLocator(page).getByTitle('Remove from stash')).toHaveCount(1);
 
-        const id = await containerLocator(page).getByLabel('identity').inputValue()
+        const id = await containerLocator(page).getByLabel('identity').inputValue();
         await checkStashEntry(page, ':Person', id);
 
         await containerLocator(page).getByTitle('Remove from stash').click();
@@ -77,18 +77,24 @@ test.describe('Node tab 1', { tag: '@read-only' }, () => {
     test('Remove label', async ({ page }) => {
         await containerLocator(page).getByRole('group', { name: 'Labels' }).getByRole('button').first().click();
         await expect(containerLocator(page).getByRole('group', { name: 'Labels' })).toHaveScreenshot();
-    })
+    });
 
     test('Add existing label', async ({ page }) => {
-        await containerLocator(page).getByRole('group', { name: 'Labels' }).getByRole('button', { name: '+', exact: true }).click();
+        await containerLocator(page)
+            .getByRole('group', { name: 'Labels' })
+            .getByRole('button', { name: '+', exact: true })
+            .click();
         await expect(modalLocator(page)).toHaveScreenshot();
         await modalLocator(page).getByRole('button', { name: 'Movie' }).click();
         await expect(modalLocator(page)).toHaveCount(0);
         await expect(containerLocator(page).getByRole('group', { name: 'Labels' })).toHaveScreenshot();
-    })
+    });
 
-    test ('Add new label', async ({ page }) => {
-        await containerLocator(page).getByRole('group', { name: 'Labels' }).getByRole('button', { name: '+', exact: true }).click();
+    test('Add new label', async ({ page }) => {
+        await containerLocator(page)
+            .getByRole('group', { name: 'Labels' })
+            .getByRole('button', { name: '+', exact: true })
+            .click();
         await modalLocator(page).getByRole('textbox').fill('Test');
         await modalLocator(page).locator('button[type="submit"]').click();
         await expect(containerLocator(page).getByRole('group', { name: 'Labels' })).toHaveScreenshot();
@@ -112,21 +118,27 @@ test.describe('Node tab 1', { tag: '@read-only' }, () => {
         test('Type click', async ({ page }) => {
             await containerLocator(page)
                 .getByRole('group', { name: 'Relationships' })
-                .getByRole('button', { name: ':ACTED_IN' }).first().click();
+                .getByRole('button', { name: ':ACTED_IN' })
+                .first()
+                .click();
             await checkActiveTab(page, 'ACTED_IN');
         });
 
         test('Rel edit click', async ({ page }) => {
             await containerLocator(page)
                 .getByRole('group', { name: 'Relationships' })
-                .getByRole('button', { name: /#\d+/ }).first().click();
+                .getByRole('button', { name: /#\d+/ })
+                .first()
+                .click();
             await checkActiveTab(page, /Rel#\d+/);
         });
 
         test('Rel properties click', async ({ page }) => {
             await containerLocator(page)
                 .getByRole('group', { name: 'Relationships' })
-                .getByRole('button').nth(2).click();
+                .getByRole('button')
+                .nth(2)
+                .click();
             await expect(modalLocator(page)).toHaveScreenshot();
             await modalLocator(page).getByRole('button').click();
             await expect(modalLocator(page)).toHaveCount(0);
@@ -135,21 +147,27 @@ test.describe('Node tab 1', { tag: '@read-only' }, () => {
         test('Label click', async ({ page }) => {
             await containerLocator(page)
                 .getByRole('group', { name: 'Relationships' })
-                .getByRole('button', { name: ':MOVIE' }).first().click();
+                .getByRole('button', { name: ':MOVIE' })
+                .first()
+                .click();
             await checkActiveTab(page, 'Movie');
         });
 
         test('Node edit click', async ({ page }) => {
             await containerLocator(page)
                 .getByRole('group', { name: 'Relationships' })
-                .getByRole('button', { name: /#\d+/ }).nth(1).click();
+                .getByRole('button', { name: /#\d+/ })
+                .nth(1)
+                .click();
             await checkActiveTab(page, /Node#\d+/);
         });
 
         test('Node properties click', async ({ page }) => {
             await containerLocator(page)
                 .getByRole('group', { name: 'Relationships' })
-                .getByRole('button').nth(5).click();
+                .getByRole('button')
+                .nth(5)
+                .click();
             await expect(modalLocator(page)).toHaveScreenshot();
             await modalLocator(page).getByRole('button').click();
             await expect(modalLocator(page)).toHaveCount(0);

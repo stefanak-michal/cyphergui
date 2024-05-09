@@ -46,6 +46,6 @@ export default defineConfig({
     },
     expect: {
         /* Timeout for each assertion */
-        timeout: 15000
-    }
+        timeout: 15000,
+    },
 });

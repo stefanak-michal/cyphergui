@@ -131,7 +131,9 @@ class Login extends React.Component<ILoginProps, ILoginState> {
 
                         <form id='login' className='mt-6 box' onSubmit={this.handleSubmit}>
                             <div className='field'>
-                                <label className='label' htmlFor='input-url'>URL</label>
+                                <label className='label' htmlFor='input-url'>
+                                    URL
+                                </label>
                                 <div className='control'>
                                     <input
                                         id='input-url'
@@ -175,7 +177,9 @@ class Login extends React.Component<ILoginProps, ILoginState> {
                             )}
 
                             <div className='field'>
-                                <label className='label' htmlFor='input-username'>Username</label>
+                                <label className='label' htmlFor='input-username'>
+                                    Username
+                                </label>
                                 <div className='control'>
                                     <input
                                         id='input-username'
@@ -190,7 +194,9 @@ class Login extends React.Component<ILoginProps, ILoginState> {
                             </div>
 
                             <div className='field'>
-                                <label className='label' htmlFor='input-password'>Password</label>
+                                <label className='label' htmlFor='input-password'>
+                                    Password
+                                </label>
                                 <div className='control'>
                                     <input
                                         id='input-password'

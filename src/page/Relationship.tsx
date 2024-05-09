@@ -410,10 +410,12 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                                 <div className='columns'>
                                     <div className={'column ' + (db.hasElementId ? 'is-half-desktop' : '')}>
                                         <div className='field'>
-                                            <label className='label' htmlFor="rel-identity">identity</label>
+                                            <label className='label' htmlFor='rel-identity'>
+                                                identity
+                                            </label>
                                             <div className='control' onClick={copy}>
                                                 <input
-                                                    id="rel-identity"
+                                                    id='rel-identity'
                                                     className='input is-copyable'
                                                     readOnly
                                                     type='text'
@@ -425,10 +427,12 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                                     {db.hasElementId && (
                                         <div className='column is-half-desktop'>
                                             <div className='field'>
-                                                <label className='label' htmlFor="rel-elementId">elementId</label>
+                                                <label className='label' htmlFor='rel-elementId'>
+                                                    elementId
+                                                </label>
                                                 <div className='control' onClick={copy}>
                                                     <input
-                                                        id="rel-elementId"
+                                                        id='rel-elementId'
                                                         className='input is-copyable'
                                                         readOnly
                                                         type='text'

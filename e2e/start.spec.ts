@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures/login";
+import { test, expect } from './fixtures/login';
 import { containerLocator } from './helpers';
 
 test('Start', async ({ page }) => {
@@ -14,9 +14,5 @@ test('Start', async ({ page }) => {
         ':FOLLOWS',
         ':REVIEWED',
     ]);
-    await expect(containerLocator(page, 'button.is-primary')).toContainText([
-        'Create node',
-        'Create relationship',
-    ]);
+    await expect(containerLocator(page, 'button.is-primary')).toContainText(['Create node', 'Create relationship']);
 });
-

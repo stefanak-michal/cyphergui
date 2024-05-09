@@ -370,10 +370,12 @@ class Node extends React.Component<INodeProps, INodeState> {
                                 <div className='columns'>
                                     <div className={'column ' + (db.hasElementId ? 'is-half-desktop' : '')}>
                                         <div className='field'>
-                                            <label className='label' htmlFor="node-identity">identity</label>
+                                            <label className='label' htmlFor='node-identity'>
+                                                identity
+                                            </label>
                                             <div className='control' onClick={copy}>
                                                 <input
-                                                    id="node-identity"
+                                                    id='node-identity'
                                                     className='input is-copyable'
                                                     readOnly
                                                     type='text'
@@ -385,10 +387,12 @@ class Node extends React.Component<INodeProps, INodeState> {
                                     {db.hasElementId && (
                                         <div className='column is-half-desktop'>
                                             <div className='field'>
-                                                <label className='label' htmlFor="node-elementId">elementId</label>
+                                                <label className='label' htmlFor='node-elementId'>
+                                                    elementId
+                                                </label>
                                                 <div className='control' onClick={copy}>
                                                     <input
-                                                        id="node-elementId"
+                                                        id='node-elementId'
                                                         className='input is-copyable'
                                                         readOnly
                                                         type='text'

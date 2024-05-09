@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures/login";
+import { test, expect } from './fixtures/login';
 import { checkActiveTab, checkStashEntry, containerLocator, modalLocator } from './helpers';
 
 test.describe('Type tab', { tag: '@read-only' }, () => {
@@ -14,8 +14,10 @@ test.describe('Type tab', { tag: '@read-only' }, () => {
         await expect(containerLocator(page)).toHaveScreenshot({
             mask: [
                 //hide ids and elementIds
-                containerLocator(page, 'table tbody').getByRole('button').getByText(/^#\d+$/),
-                containerLocator(page, 'table tbody').getByRole('cell', { name: /^\d+:[a-z0-9\-]+:\d+$/ })
+                containerLocator(page, 'table tbody')
+                    .getByRole('button')
+                    .getByText(/^#\d+$/),
+                containerLocator(page, 'table tbody').getByRole('cell', { name: /^\d+:[a-z0-9\-]+:\d+$/ }),
             ],
         });
     });
@@ -27,8 +29,10 @@ test.describe('Type tab', { tag: '@read-only' }, () => {
         await expect(containerLocator(page)).toHaveScreenshot({
             mask: [
                 //hide ids and elementIds
-                containerLocator(page, 'table tbody').getByRole('button').getByText(/^#\d+$/),
-                containerLocator(page, 'table tbody').getByRole('cell', { name: /^\d+:[a-z0-9\-]+:\d+$/ })
+                containerLocator(page, 'table tbody')
+                    .getByRole('button')
+                    .getByText(/^#\d+$/),
+                containerLocator(page, 'table tbody').getByRole('cell', { name: /^\d+:[a-z0-9\-]+:\d+$/ }),
             ],
         });
         await containerLocator(page).getByLabel('Goto next page').click();
@@ -74,7 +78,7 @@ test.describe('Type tab', { tag: '@read-only' }, () => {
         await containerLocator(page).getByTitle('Add to stash').first().click();
         await expect(containerLocator(page).getByTitle('Remove from stash')).toHaveCount(1);
 
-        const id = await containerLocator(page).getByRole('button', { name: /#\d+/ }).first().textContent()
+        const id = await containerLocator(page).getByRole('button', { name: /#\d+/ }).first().textContent();
         const type = await containerLocator(page).getByRole('button', { name: /:\w+/ }).first().textContent();
         await checkStashEntry(page, type, id);
 
@@ -99,8 +103,10 @@ test.describe('Type tab', { tag: '@read-only' }, () => {
         await expect(containerLocator(page)).toHaveScreenshot({
             mask: [
                 //hide ids and elementIds
-                containerLocator(page, 'table tbody').getByRole('button').getByText(/^#\d+$/),
-                containerLocator(page, 'table tbody').getByRole('cell', { name: /^\d+:[a-z0-9\-]+:\d+$/ })
+                containerLocator(page, 'table tbody')
+                    .getByRole('button')
+                    .getByText(/^#\d+$/),
+                containerLocator(page, 'table tbody').getByRole('cell', { name: /^\d+:[a-z0-9\-]+:\d+$/ }),
             ],
         });
     });

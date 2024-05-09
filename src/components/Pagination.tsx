@@ -29,7 +29,7 @@ export default class Pagination extends React.Component<{
                     className='pagination-previous button'
                     disabled={this.props.page === 1}
                     onClick={() => this.props.action(this.props.page - 1)}
-                    aria-label="Goto previous page"
+                    aria-label='Goto previous page'
                 >
                     <span className='icon'>
                         <i className='fa-solid fa-chevron-left' />
@@ -39,7 +39,7 @@ export default class Pagination extends React.Component<{
                     className='pagination-next button'
                     disabled={this.props.page === this.props.pages}
                     onClick={() => this.props.action(this.props.page + 1)}
-                    aria-label="Goto next page"
+                    aria-label='Goto next page'
                 >
                     <span className='icon'>
                         <i className='fa-solid fa-chevron-right' />

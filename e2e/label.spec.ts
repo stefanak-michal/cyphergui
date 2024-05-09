@@ -66,7 +66,7 @@ test.describe('Label tab', { tag: '@read-only' }, () => {
         await containerLocator(page).getByTitle('Add to stash').first().click();
         await expect(containerLocator(page).getByTitle('Remove from stash')).toHaveCount(1);
 
-        const id = await containerLocator(page).getByRole('button', { name: /#\d+/ }).first().textContent()
+        const id = await containerLocator(page).getByRole('button', { name: /#\d+/ }).first().textContent();
         const label = await containerLocator(page).getByRole('button', { name: /:\w+/ }).first().textContent();
         await checkStashEntry(page, label, id);
 

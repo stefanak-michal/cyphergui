@@ -94,6 +94,7 @@ class History extends React.Component<IHistoryProps, IHistoryState> {
                                                 <td>
                                                     <Button
                                                         icon='fa-solid fa-terminal'
+                                                        title='Open in query tab'
                                                         onClick={() =>
                                                             this.props.tabManager.add(
                                                                 {

@@ -114,6 +114,7 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
                                 />
                                 <Button
                                     icon='fa-solid fa-clock-rotate-left'
+                                    title='Open history'
                                     onClick={() =>
                                         this.props.tabManager.add(
                                             'History',
@@ -122,7 +123,11 @@ class Navbar extends React.Component<INavbarProps, INavbarState> {
                                         )
                                     }
                                 />
-                                <Button icon='fa-solid fa-gears' onClick={this.props.handleOpenSettings} />
+                                <Button
+                                    icon='fa-solid fa-gears'
+                                    onClick={this.props.handleOpenSettings}
+                                    title='Open settings'
+                                />
                                 <Button onClick={this.props.handleLogout} text='Log out' />
                             </div>
                         </div>

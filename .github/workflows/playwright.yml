@@ -41,8 +41,9 @@ jobs:
 #        run: npx playwright install --with-deps chromium
       - name: Run Playwright tests
         run: npm run playwright:read-only
-#        env:
-#          URL: 'ws://thingsdb:9270'
+        env:
+          DB_USERNAME: 'neo4j'
+          DB_PASSWORD: 'nothing123'
 
   neo4j-read-write:
     timeout-minutes: 60
@@ -75,8 +76,9 @@ jobs:
       #        run: npx playwright install --with-deps chromium
       - name: Run Playwright tests
         run: npm run playwright:read-write
-#        env:
-#          URL: 'ws://thingsdb:9270'
+        env:
+          DB_USERNAME: 'neo4j'
+          DB_PASSWORD: 'nothing123'
 
   neo4j-multidatabase:
     timeout-minutes: 60
@@ -107,8 +109,9 @@ jobs:
         run: npm ci
       - name: Run Playwright tests
         run: npm run playwright:multidatabase
-#        env:
-#          URL: 'ws://thingsdb:9270'
+        env:
+          DB_USERNAME: 'neo4j'
+          DB_PASSWORD: 'nothing123'
 
   memgraph:
     timeout-minutes: 60

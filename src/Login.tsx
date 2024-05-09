@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button, Checkbox, Input } from './components/form';
+import { Button, Checkbox } from './components/form';
 import db from './db';
 import { Driver } from 'neo4j-driver-lite';
 import logo from './assets/logo.png';
@@ -130,7 +130,20 @@ class Login extends React.Component<ILoginProps, ILoginState> {
                         </h1>
 
                         <form id='login' className='mt-6 box' onSubmit={this.handleSubmit}>
-                            <Input label='URL' name='url' onChange={this.handleInputChange} value={this.state.url} />
+                            <div className='field'>
+                                <label className='label' htmlFor='input-url'>URL</label>
+                                <div className='control'>
+                                    <input
+                                        id='input-url'
+                                        className='input'
+                                        name='url'
+                                        type='text'
+                                        onChange={this.handleInputChange}
+                                        value={this.state.url}
+                                    />
+                                </div>
+                            </div>
+
                             {this.state.mixedContentInfo && (
                                 <div className='notification is-warning my-3'>
                                     <i className='fa-solid fa-triangle-exclamation mr-1'></i>
@@ -160,14 +173,35 @@ class Login extends React.Component<ILoginProps, ILoginState> {
                                     .
                                 </div>
                             )}
-                            <Input
-                                label='Username'
-                                name='username'
-                                onChange={this.handleInputChange}
-                                value={this.state.username}
-                                focus={true}
-                            />
-                            <Input label='Password' name='password' type='password' onChange={this.handleInputChange} />
+
+                            <div className='field'>
+                                <label className='label' htmlFor='input-username'>Username</label>
+                                <div className='control'>
+                                    <input
+                                        id='input-username'
+                                        className='input'
+                                        name='username'
+                                        type='text'
+                                        onChange={this.handleInputChange}
+                                        value={this.state.username}
+                                        autoFocus={true}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className='field'>
+                                <label className='label' htmlFor='input-password'>Password</label>
+                                <div className='control'>
+                                    <input
+                                        id='input-password'
+                                        className='input'
+                                        name='password'
+                                        type='password'
+                                        onChange={this.handleInputChange}
+                                    />
+                                </div>
+                            </div>
+
                             <Checkbox
                                 name='remember'
                                 label='Remember (not secure)'

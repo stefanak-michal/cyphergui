@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures/login';
-import { checkActiveTab, checkErrorMessage, containerLocator } from './helpers';
+import { checkActiveTab, checkErrorMessage, containerLocator, modalLocator } from './helpers';
 
 test.describe('Node tab 1', { tag: '@read-only' }, () => {
     test.beforeEach('Go to', async ({ page }) => {
@@ -57,8 +57,9 @@ test.describe('Node tab 1', { tag: '@read-only' }, () => {
 
     test('Delete btn', async ({ page }) => {
         await containerLocator(page).getByRole('button', { name: 'Delete' }).click();
-        await expect(containerLocator(page, '.modal .modal-card')).toHaveScreenshot();
-        await containerLocator(page, '.modal').getByRole('button', { name: 'Confirm' }).click();
+        await expect(modalLocator(page)).toHaveScreenshot();
+        await modalLocator(page).getByRole('button', { name: 'Confirm' }).click();
+        await expect(modalLocator(page)).toHaveCount(0);
         await checkErrorMessage(page, 'Cannot delete node');
     });
 
@@ -67,20 +68,65 @@ test.describe('Node tab 1', { tag: '@read-only' }, () => {
         await checkActiveTab(page, 'Person');
     });
 
-    //relationship group:
-    // label and rel click, node edit click, rel edit click, props modal click
+    test.describe('Relationship group', () => {
+        test('Show all btn', async ({ page }) => {
+            await containerLocator(page)
+                .getByRole('group', { name: 'Relationships' })
+                .getByRole('button', { name: 'Show all' })
+                .click();
+            await expect(containerLocator(page).getByRole('group', { name: 'Relationships' })).toHaveScreenshot({
+                mask: [
+                    containerLocator(page)
+                        .getByRole('button')
+                        .getByText(/^#\d+$/),
+                ],
+            });
+        });
 
-    test('Show all relationships', async ({ page }) => {
-        await containerLocator(page)
-            .getByRole('group', { name: 'Relationships' })
-            .getByRole('button', { name: 'Show all' })
-            .click();
-        await expect(containerLocator(page).getByRole('group', { name: 'Relationships' })).toHaveScreenshot({
-            mask: [
-                containerLocator(page)
-                    .getByRole('button')
-                    .getByText(/^#\d+$/),
-            ],
+        test('Type click', async ({ page }) => {
+            await containerLocator(page)
+                .getByRole('group', { name: 'Relationships' })
+                .getByRole('button', { name: ':ACTED_IN' }).first().click();
+            await checkActiveTab(page, 'ACTED_IN');
+        });
+
+        test('Rel edit click', async ({ page }) => {
+            await containerLocator(page)
+                .getByRole('group', { name: 'Relationships' })
+                .getByRole('button', { name: /#\d+/ }).first().click();
+            await checkActiveTab(page, /Rel#\d+/);
+        });
+
+        test('Rel properties click', async ({ page }) => {
+            await containerLocator(page)
+                .getByRole('group', { name: 'Relationships' })
+                .getByRole('button').nth(2).click();
+            await expect(modalLocator(page)).toHaveScreenshot();
+            await modalLocator(page).getByRole('button').click();
+            await expect(modalLocator(page)).toHaveCount(0);
+        });
+
+        test('Label click', async ({ page }) => {
+            await containerLocator(page)
+                .getByRole('group', { name: 'Relationships' })
+                .getByRole('button', { name: ':MOVIE' }).first().click();
+            await checkActiveTab(page, 'Movie');
+        });
+
+        test('Node edit click', async ({ page }) => {
+            await containerLocator(page)
+                .getByRole('group', { name: 'Relationships' })
+                .getByRole('button', { name: /#\d+/ }).nth(1).click();
+            await checkActiveTab(page, /Node#\d+/);
+        });
+
+        test('Node properties click', async ({ page }) => {
+            await containerLocator(page)
+                .getByRole('group', { name: 'Relationships' })
+                .getByRole('button').nth(5).click();
+            await expect(modalLocator(page)).toHaveScreenshot();
+            await modalLocator(page).getByRole('button').click();
+            await expect(modalLocator(page)).toHaveCount(0);
         });
     });
 
@@ -94,20 +140,18 @@ test.describe('Node tab 1', { tag: '@read-only' }, () => {
         });
 
         test('Close', async ({ page }) => {
-            const modal = page.locator('.modal .modal-card').locator('visible=true');
-            await expect(modal).toHaveScreenshot();
-            await modal.getByRole('button', { name: 'Close anyway' }).click();
+            await expect(modalLocator(page)).toHaveScreenshot();
+            await modalLocator(page).getByRole('button', { name: 'Close anyway' }).click();
             await checkActiveTab(page, 'Person');
         });
 
         test('Cancel', async ({ page }) => {
-            const modal = page.locator('.modal .modal-card').locator('visible=true');
-            await modal.getByRole('button', { name: "Don't close" }).click();
+            await modalLocator(page).getByRole('button', { name: "Don't close" }).click();
             await checkActiveTab(page, /Node#\d+/);
         });
     });
 });
 
-test.describe('Node tab 2', () => {
-    //read-write tests
+test.describe('Node tab 2', { tag: '@read-write' }, () => {
+    //todo read-write tests
 });

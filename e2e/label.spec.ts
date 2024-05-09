@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures/login';
-import { checkActiveTab, checkErrorMessage, containerLocator } from './helpers';
+import { checkActiveTab, checkErrorMessage, containerLocator, modalLocator } from './helpers';
 
 test.describe('Label tab', { tag: '@read-only' }, () => {
     test.beforeEach('Go to', async ({ page }) => {
@@ -69,8 +69,9 @@ test.describe('Label tab', { tag: '@read-only' }, () => {
 
     test('Delete node btn', async ({ page }) => {
         await containerLocator(page).getByTitle('Delete').first().click();
-        await expect(containerLocator(page, '.modal .modal-card')).toHaveScreenshot();
-        await containerLocator(page, '.modal').getByRole('button', { name: 'Confirm' }).click();
+        await expect(modalLocator(page)).toHaveScreenshot();
+        await modalLocator(page).getByRole('button', { name: 'Confirm' }).click();
+        await expect(modalLocator(page)).toHaveCount(0);
         await checkErrorMessage(page, 'Cannot delete node');
     });
 

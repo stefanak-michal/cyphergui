@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures/login";
-import { checkActiveTab, containerLocator } from './helpers';
+import { checkActiveTab, containerLocator, modalLocator } from './helpers';
 
 test.describe('Type tab', { tag: '@read-only' }, () => {
     test.beforeEach('Go to', async ({ page }) => {
@@ -77,8 +77,9 @@ test.describe('Type tab', { tag: '@read-only' }, () => {
 
     test('Delete relationship btn', async ({ page }) => {
         await containerLocator(page).getByTitle('Delete').first().click();
-        await expect(containerLocator(page, '.modal .modal-card')).toHaveScreenshot();
-        await containerLocator(page, '.modal').getByRole('button', { name: 'Cancel' }).click();
+        await expect(modalLocator(page)).toHaveScreenshot();
+        await modalLocator(page).getByRole('button', { name: 'Cancel' }).click();
+        await expect(modalLocator(page)).toHaveCount(0);
     });
 
     test('Label tag btn', async ({ page }) => {

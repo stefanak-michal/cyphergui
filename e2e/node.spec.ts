@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures/login';
-import { checkActiveTab, checkErrorMessage, containerLocator, modalLocator } from './helpers';
+import { checkActiveTab, checkErrorMessage, checkStashEntry, containerLocator, modalLocator } from './helpers';
 
 test.describe('Node tab 1', { tag: '@read-only' }, () => {
     test.beforeEach('Go to', async ({ page }) => {
@@ -31,6 +31,8 @@ test.describe('Node tab 1', { tag: '@read-only' }, () => {
     test('Add to stash btn', async ({ page }) => {
         await containerLocator(page).getByTitle('Add to stash').click();
         await expect(containerLocator(page).getByTitle('Remove from stash')).toHaveCount(1);
+        const id = await containerLocator(page).getByLabel('identity').inputValue()
+        await checkStashEntry(page, ':Person', id);
     });
 
     test('Reload btn', async ({ page }) => {

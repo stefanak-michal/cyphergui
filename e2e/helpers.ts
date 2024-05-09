@@ -19,12 +19,12 @@ export async function checkErrorMessage(page: Page, text: string) {
     await expect(containerLocator(page, '.message')).toHaveCount(0);
 }
 
-export async function checkStashEntry(page: Page, labelType: string, id: string) {
+export async function checkStashEntry(page: Page, labelType: string, id: string, expectedAmount: number = 1) {
     if (labelType[0] !== ':') labelType = ':' + labelType;
     if (id[0] !== '#') id = '#' + id;
     await page.locator('.stash > .panel-heading').click();
     await expect( page.locator('.stash > .panel-body')).toBeInViewport();
-    await expect(page.locator('.stash .panel-block').getByText(labelType + id)).toHaveCount(1);
+    await expect(page.locator('.stash .panel-block').getByText(labelType + id)).toHaveCount(expectedAmount);
     await page.locator('.stash > .panel-heading').click();
     await expect( page.locator('.stash > .panel-body')).not.toBeInViewport();
 }

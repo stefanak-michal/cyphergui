@@ -31,8 +31,12 @@ test.describe('Node tab 1', { tag: '@read-only' }, () => {
     test('Add to stash btn', async ({ page }) => {
         await containerLocator(page).getByTitle('Add to stash').click();
         await expect(containerLocator(page).getByTitle('Remove from stash')).toHaveCount(1);
+
         const id = await containerLocator(page).getByLabel('identity').inputValue()
         await checkStashEntry(page, ':Person', id);
+
+        await containerLocator(page).getByTitle('Remove from stash').click();
+        await checkStashEntry(page, ':Person', id, 0);
     });
 
     test('Reload btn', async ({ page }) => {

@@ -74,6 +74,26 @@ test.describe('Node tab 1', { tag: '@read-only' }, () => {
         await checkActiveTab(page, 'Person');
     });
 
+    test('Remove label', async ({ page }) => {
+        await containerLocator(page).getByRole('group', { name: 'Labels' }).getByRole('button').first().click();
+        await expect(containerLocator(page).getByRole('group', { name: 'Labels' })).toHaveScreenshot();
+    })
+
+    test('Add existing label', async ({ page }) => {
+        await containerLocator(page).getByRole('group', { name: 'Labels' }).getByRole('button', { name: '+', exact: true }).click();
+        await expect(modalLocator(page)).toHaveScreenshot();
+        await modalLocator(page).getByRole('button', { name: 'Movie' }).click();
+        await expect(modalLocator(page)).toHaveCount(0);
+        await expect(containerLocator(page).getByRole('group', { name: 'Labels' })).toHaveScreenshot();
+    })
+
+    test ('Add new label', async ({ page }) => {
+        await containerLocator(page).getByRole('group', { name: 'Labels' }).getByRole('button', { name: '+', exact: true }).click();
+        await modalLocator(page).getByRole('textbox').fill('Test');
+        await modalLocator(page).locator('button[type="submit"]').click();
+        await expect(containerLocator(page).getByRole('group', { name: 'Labels' })).toHaveScreenshot();
+    });
+
     test.describe('Relationship group', () => {
         test('Show all btn', async ({ page }) => {
             await containerLocator(page)

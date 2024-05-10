@@ -210,7 +210,7 @@ class Login extends React.Component<ILoginProps, ILoginState> {
 
                             <Checkbox
                                 name='remember'
-                                label='Remember (not secure)'
+                                label='Remember me (not secure)'
                                 checked={this.state.remember}
                                 color='is-primary'
                                 onChange={() =>

@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures/login';
-import { checkActiveTab, checkStashEntry, containerLocator, modalLocator } from './helpers';
+import { checkActiveTab, checkNotification, checkStashEntry, containerLocator, modalLocator } from './helpers';
 
 test.describe('Type tab', { tag: '@read-only' }, () => {
     test.beforeEach('Go to', async ({ page }) => {
@@ -39,6 +39,18 @@ test.describe('Type tab', { tag: '@read-only' }, () => {
         await expect(containerLocator(page).getByLabel('Goto page 3')).toHaveAttribute('aria-current', 'page');
         await containerLocator(page).getByLabel('pagination').getByRole('button', { name: /\d+/ }).last().click();
         await expect(containerLocator(page).getByLabel('Goto next page')).toBeDisabled();
+    });
+
+    test('Copy query', async ({ page }) => {
+        await containerLocator(page)
+            .getByText(/^MATCH /)
+            .click();
+        expect(await page.evaluate('navigator.clipboard.readText();')).toEqual(
+            await containerLocator(page)
+                .getByText(/^MATCH /)
+                .textContent()
+        );
+        await checkNotification(page);
     });
 
     test('Create relationship btn', async ({ page }) => {

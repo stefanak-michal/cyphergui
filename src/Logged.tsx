@@ -473,7 +473,7 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
                     <Stash stashed={this.state.stashed} tabManager={this.tabManager} stashManager={this.stashManager} />
                 </PropertiesModalContext.Provider>
 
-                <section className='notifications'>
+                <section className='notifications' aria-label='notifications'>
                     {this.state.toasts.map(toast => (
                         <div
                             key={toast.key}

@@ -35,6 +35,7 @@ export default defineConfig({
                     height: 1800,
                     width: 1280,
                 },
+                permissions: ['clipboard-read', 'clipboard-write'],
             },
         },
     ],

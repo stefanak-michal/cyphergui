@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures/login';
-import { checkActiveTab, checkStashEntry, containerLocator, modalLocator } from './helpers';
+import { checkActiveTab, checkNotification, checkStashEntry, containerLocator, modalLocator } from './helpers';
 
 test.describe('Relationship tab', { tag: '@read-only' }, () => {
     test.beforeEach('Go to', async ({ page }) => {
@@ -39,61 +39,106 @@ test.describe('Relationship tab', { tag: '@read-only' }, () => {
         });
     });
 
-    test('Add to stash btn', async ({ page }) => {
-        await containerLocator(page).getByTitle('Add to stash').click();
-        await expect(containerLocator(page).getByTitle('Remove from stash')).toHaveCount(1);
+    test.describe('Buttons', () => {
+        test('Add to stash', async ({ page }) => {
+            await containerLocator(page).getByTitle('Add to stash').click();
+            await expect(containerLocator(page).getByTitle('Remove from stash')).toHaveCount(1);
 
-        const id = await containerLocator(page).getByLabel('identity').inputValue();
-        await checkStashEntry(page, ':ACTED_IN', id);
+            const id = await containerLocator(page).getByLabel('identity').inputValue();
+            await checkStashEntry(page, ':ACTED_IN', id);
 
-        await containerLocator(page).getByTitle('Remove from stash').click();
-        await checkStashEntry(page, ':ACTED_IN', id, 0);
+            await containerLocator(page).getByTitle('Remove from stash').click();
+            await checkStashEntry(page, ':ACTED_IN', id, 0);
+        });
+
+        test('Reload', async ({ page }) => {
+            await containerLocator(page).getByRole('group', { name: 'Properties' }).getByText('Neo').fill('Neo 123');
+            await containerLocator(page).getByRole('button', { name: 'Reload' }).click();
+            await expect(
+                containerLocator(page).getByRole('group', { name: 'Properties' }).getByText('Neo')
+            ).toHaveValue('Neo');
+        });
+
+        test('Execute', async ({ page }) => {
+            await containerLocator(page).getByRole('button', { name: 'Execute' }).click();
+            await checkNotification(page, 'Relationship updated');
+            await checkActiveTab(page, 'ACTED_IN');
+        });
+
+        test('Close', async ({ page }) => {
+            await containerLocator(page).getByRole('button', { name: 'Close' }).click();
+            await checkActiveTab(page, 'ACTED_IN');
+        });
+
+        test('Delete', async ({ page }) => {
+            await containerLocator(page).getByRole('button', { name: 'Delete' }).click();
+            await expect(modalLocator(page)).toHaveScreenshot();
+            await modalLocator(page).getByRole('button', { name: 'Cancel' }).click();
+            await expect(modalLocator(page)).toHaveCount(0);
+        });
     });
 
-    test('Reload btn', async ({ page }) => {
-        await containerLocator(page).getByRole('group', { name: 'Properties' }).getByText('Neo').fill('Neo 123');
-        await containerLocator(page).getByRole('button', { name: 'Reload' }).click();
-        await expect(containerLocator(page).getByRole('group', { name: 'Properties' }).getByText('Neo')).toHaveValue(
-            'Neo'
-        );
+    test.describe('Copy', () => {
+        test('identity', async ({ page }) => {
+            await containerLocator(page).getByLabel('identity').click();
+            expect(await page.evaluate('navigator.clipboard.readText();')).toEqual(
+                await containerLocator(page).getByLabel('identity').inputValue()
+            );
+            await checkNotification(page);
+        });
+
+        test('elementId', async ({ page }) => {
+            await containerLocator(page).getByLabel('elementId').click();
+            expect(await page.evaluate('navigator.clipboard.readText();')).toEqual(
+                await containerLocator(page).getByLabel('elementId').inputValue()
+            );
+            await checkNotification(page);
+        });
+
+        test('property value', async ({ page }) => {
+            await containerLocator(page)
+                .getByRole('group', { name: 'Properties' })
+                .locator('div')
+                .filter({ hasText: 'Neo' })
+                .locator('.is-clickable')
+                .click();
+            expect(await page.evaluate('navigator.clipboard.readText();')).toEqual('Neo');
+            await checkNotification(page);
+        });
+
+        test('query', async ({ page }) => {
+            await containerLocator(page)
+                .getByText(/^MATCH /)
+                .click();
+            expect(await page.evaluate('navigator.clipboard.readText();')).toEqual(
+                await containerLocator(page)
+                    .getByText(/^MATCH /)
+                    .textContent()
+            );
+            await checkNotification(page);
+        });
     });
 
-    test('Execute btn', async ({ page }) => {
-        await containerLocator(page).getByRole('button', { name: 'Execute' }).click();
-        await expect(page.locator('.notifications')).toHaveText('Relationship updated');
-        await checkActiveTab(page, 'ACTED_IN');
-    });
+    test.describe('Type', () => {
+        test('Own type click', async ({ page }) => {
+            await containerLocator(page).getByRole('group', { name: 'Type' }).locator('a').click();
+            await checkActiveTab(page, 'ACTED_IN');
+        });
 
-    test('Close btn', async ({ page }) => {
-        await containerLocator(page).getByRole('button', { name: 'Close' }).click();
-        await checkActiveTab(page, 'ACTED_IN');
-    });
+        test('Change type to existing', async ({ page }) => {
+            await containerLocator(page).getByRole('group', { name: 'Type' }).getByRole('button').click();
+            await expect(modalLocator(page)).toHaveScreenshot();
+            await modalLocator(page).getByRole('button', { name: 'DIRECTED' }).click();
+            await expect(modalLocator(page)).toHaveCount(0);
+            await expect(containerLocator(page).getByRole('group', { name: 'Type' })).toHaveScreenshot();
+        });
 
-    test('Delete btn', async ({ page }) => {
-        await containerLocator(page).getByRole('button', { name: 'Delete' }).click();
-        await expect(modalLocator(page)).toHaveScreenshot();
-        await modalLocator(page).getByRole('button', { name: 'Cancel' }).click();
-        await expect(modalLocator(page)).toHaveCount(0);
-    });
-
-    test('Own type click', async ({ page }) => {
-        await containerLocator(page).getByRole('group', { name: 'Type' }).locator('a').click();
-        await checkActiveTab(page, 'ACTED_IN');
-    });
-
-    test('Change type to existing', async ({ page }) => {
-        await containerLocator(page).getByRole('group', { name: 'Type' }).getByRole('button').click();
-        await expect(modalLocator(page)).toHaveScreenshot();
-        await modalLocator(page).getByRole('button', { name: 'DIRECTED' }).click();
-        await expect(modalLocator(page)).toHaveCount(0);
-        await expect(containerLocator(page).getByRole('group', { name: 'Type' })).toHaveScreenshot();
-    });
-
-    test('Change type to new', async ({ page }) => {
-        await containerLocator(page).getByRole('group', { name: 'Type' }).getByRole('button').click();
-        await modalLocator(page).getByRole('textbox').fill('TEST');
-        await modalLocator(page).locator('button[type="submit"]').click();
-        await expect(containerLocator(page).getByRole('group', { name: 'Type' })).toHaveScreenshot();
+        test('Change type to new', async ({ page }) => {
+            await containerLocator(page).getByRole('group', { name: 'Type' }).getByRole('button').click();
+            await modalLocator(page).getByRole('textbox').fill('TEST');
+            await modalLocator(page).locator('button[type="submit"]').click();
+            await expect(containerLocator(page).getByRole('group', { name: 'Type' })).toHaveScreenshot();
+        });
     });
 
     test.describe('Start node group', () => {

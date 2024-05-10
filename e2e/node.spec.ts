@@ -1,5 +1,12 @@
 import { test, expect } from './fixtures/login';
-import { checkActiveTab, checkErrorMessage, checkStashEntry, containerLocator, modalLocator } from './helpers';
+import {
+    checkActiveTab,
+    checkErrorMessage,
+    checkNotification,
+    checkStashEntry,
+    containerLocator,
+    modalLocator,
+} from './helpers';
 
 test.describe('Node tab 1', { tag: '@read-only' }, () => {
     test.beforeEach('Go to', async ({ page }) => {
@@ -28,76 +35,121 @@ test.describe('Node tab 1', { tag: '@read-only' }, () => {
         });
     });
 
-    test('Add to stash btn', async ({ page }) => {
-        await containerLocator(page).getByTitle('Add to stash').click();
-        await expect(containerLocator(page).getByTitle('Remove from stash')).toHaveCount(1);
+    test.describe('Buttons', () => {
+        test('Add to stash', async ({ page }) => {
+            await containerLocator(page).getByTitle('Add to stash').click();
+            await expect(containerLocator(page).getByTitle('Remove from stash')).toHaveCount(1);
 
-        const id = await containerLocator(page).getByLabel('identity').inputValue();
-        await checkStashEntry(page, ':Person', id);
+            const id = await containerLocator(page).getByLabel('identity').inputValue();
+            await checkStashEntry(page, ':Person', id);
 
-        await containerLocator(page).getByTitle('Remove from stash').click();
-        await checkStashEntry(page, ':Person', id, 0);
+            await containerLocator(page).getByTitle('Remove from stash').click();
+            await checkStashEntry(page, ':Person', id, 0);
+        });
+
+        test('Reload', async ({ page }) => {
+            await containerLocator(page)
+                .getByRole('group', { name: 'Properties' })
+                .getByText('Keanu Reeves')
+                .fill('Keanu Reeves 123');
+            await containerLocator(page).getByRole('button', { name: 'Reload' }).click();
+            await expect(
+                containerLocator(page).getByRole('group', { name: 'Properties' }).getByText('Keanu Reeves')
+            ).toHaveValue('Keanu Reeves');
+        });
+
+        test('Execute', async ({ page }) => {
+            await containerLocator(page).getByRole('button', { name: 'Execute' }).click();
+            await checkNotification(page, 'Node updated');
+            await checkActiveTab(page, 'Person');
+        });
+
+        test('Close', async ({ page }) => {
+            await containerLocator(page).getByRole('button', { name: 'Close' }).click();
+            await checkActiveTab(page, 'Person');
+        });
+
+        test('Delete', async ({ page }) => {
+            await containerLocator(page).getByRole('button', { name: 'Delete' }).click();
+            await expect(modalLocator(page)).toHaveScreenshot();
+            await modalLocator(page).getByRole('button', { name: 'Confirm' }).click();
+            await expect(modalLocator(page)).toHaveCount(0);
+            await checkErrorMessage(page, 'Cannot delete node');
+        });
     });
 
-    test('Reload btn', async ({ page }) => {
-        await containerLocator(page)
-            .getByRole('group', { name: 'Properties' })
-            .getByText('Keanu Reeves')
-            .fill('Keanu Reeves 123');
-        await containerLocator(page).getByRole('button', { name: 'Reload' }).click();
-        await expect(
-            containerLocator(page).getByRole('group', { name: 'Properties' }).getByText('Keanu Reeves')
-        ).toHaveValue('Keanu Reeves');
+    test.describe('Copy', () => {
+        test('identity', async ({ page }) => {
+            await containerLocator(page).getByLabel('identity').click();
+            expect(await page.evaluate('navigator.clipboard.readText();')).toEqual(
+                await containerLocator(page).getByLabel('identity').inputValue()
+            );
+            await checkNotification(page);
+        });
+
+        test('elementId', async ({ page }) => {
+            await containerLocator(page).getByLabel('elementId').click();
+            expect(await page.evaluate('navigator.clipboard.readText();')).toEqual(
+                await containerLocator(page).getByLabel('elementId').inputValue()
+            );
+            await checkNotification(page);
+        });
+
+        test('property value', async ({ page }) => {
+            await containerLocator(page)
+                .getByRole('group', { name: 'Properties' })
+                .locator('div')
+                .filter({ hasText: 'Keanu Reeves' })
+                .locator('.is-clickable')
+                .click();
+            expect(await page.evaluate('navigator.clipboard.readText();')).toEqual('Keanu Reeves');
+            await checkNotification(page);
+        });
+
+        test('query', async ({ page }) => {
+            await containerLocator(page)
+                .getByText(/^MATCH /)
+                .click();
+            expect(await page.evaluate('navigator.clipboard.readText();')).toEqual(
+                await containerLocator(page)
+                    .getByText(/^MATCH /)
+                    .textContent()
+            );
+            await checkNotification(page);
+        });
     });
 
-    test('Execute btn', async ({ page }) => {
-        await containerLocator(page).getByRole('button', { name: 'Execute' }).click();
-        await expect(page.locator('.notifications')).toHaveText('Node updated');
-        await checkActiveTab(page, 'Person');
-    });
+    test.describe('Labels', () => {
+        test('Own label click', async ({ page }) => {
+            await containerLocator(page).getByRole('group', { name: 'Labels' }).locator('a').click();
+            await checkActiveTab(page, 'Person');
+        });
 
-    test('Close btn', async ({ page }) => {
-        await containerLocator(page).getByRole('button', { name: 'Close' }).click();
-        await checkActiveTab(page, 'Person');
-    });
+        test('Remove label', async ({ page }) => {
+            await containerLocator(page).getByRole('group', { name: 'Labels' }).getByRole('button').first().click();
+            await expect(containerLocator(page).getByRole('group', { name: 'Labels' })).toHaveScreenshot();
+        });
 
-    test('Delete btn', async ({ page }) => {
-        await containerLocator(page).getByRole('button', { name: 'Delete' }).click();
-        await expect(modalLocator(page)).toHaveScreenshot();
-        await modalLocator(page).getByRole('button', { name: 'Confirm' }).click();
-        await expect(modalLocator(page)).toHaveCount(0);
-        await checkErrorMessage(page, 'Cannot delete node');
-    });
+        test('Add existing label', async ({ page }) => {
+            await containerLocator(page)
+                .getByRole('group', { name: 'Labels' })
+                .getByRole('button', { name: '+', exact: true })
+                .click();
+            await expect(modalLocator(page)).toHaveScreenshot();
+            await modalLocator(page).getByRole('button', { name: 'Movie' }).click();
+            await expect(modalLocator(page)).toHaveCount(0);
+            await expect(containerLocator(page).getByRole('group', { name: 'Labels' })).toHaveScreenshot();
+        });
 
-    test('Own label click', async ({ page }) => {
-        await containerLocator(page).getByRole('group', { name: 'Labels' }).locator('a').click();
-        await checkActiveTab(page, 'Person');
-    });
-
-    test('Remove label', async ({ page }) => {
-        await containerLocator(page).getByRole('group', { name: 'Labels' }).getByRole('button').first().click();
-        await expect(containerLocator(page).getByRole('group', { name: 'Labels' })).toHaveScreenshot();
-    });
-
-    test('Add existing label', async ({ page }) => {
-        await containerLocator(page)
-            .getByRole('group', { name: 'Labels' })
-            .getByRole('button', { name: '+', exact: true })
-            .click();
-        await expect(modalLocator(page)).toHaveScreenshot();
-        await modalLocator(page).getByRole('button', { name: 'Movie' }).click();
-        await expect(modalLocator(page)).toHaveCount(0);
-        await expect(containerLocator(page).getByRole('group', { name: 'Labels' })).toHaveScreenshot();
-    });
-
-    test('Add new label', async ({ page }) => {
-        await containerLocator(page)
-            .getByRole('group', { name: 'Labels' })
-            .getByRole('button', { name: '+', exact: true })
-            .click();
-        await modalLocator(page).getByRole('textbox').fill('Test');
-        await modalLocator(page).locator('button[type="submit"]').click();
-        await expect(containerLocator(page).getByRole('group', { name: 'Labels' })).toHaveScreenshot();
+        test('Add new label', async ({ page }) => {
+            await containerLocator(page)
+                .getByRole('group', { name: 'Labels' })
+                .getByRole('button', { name: '+', exact: true })
+                .click();
+            await modalLocator(page).getByRole('textbox').fill('Test');
+            await modalLocator(page).locator('button[type="submit"]').click();
+            await expect(containerLocator(page).getByRole('group', { name: 'Labels' })).toHaveScreenshot();
+        });
     });
 
     test.describe('Relationship group', () => {

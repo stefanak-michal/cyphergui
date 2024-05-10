@@ -25,12 +25,10 @@ export async function checkNotification(page: Page, text: string | RegExp = 'Cop
     await expect(page.getByRole('region', { name: 'notifications' })).toBeEmpty();
 }
 
-export async function checkStashEntry(page: Page, labelType: string, id: string, expectedAmount: number = 1) {
-    if (labelType[0] !== ':') labelType = ':' + labelType;
-    if (id[0] !== '#') id = '#' + id;
+export async function checkStashEntry(page: Page, text: string | RegExp, expectedAmount: number = 1) {
     await page.locator('.stash > .panel-heading').click();
     await expect(page.locator('.stash > .panel-body')).toBeInViewport();
-    await expect(page.locator('.stash .panel-block').getByText(labelType + id)).toHaveCount(expectedAmount);
+    await expect(page.locator('.stash .panel-block').getByText(text)).toHaveCount(expectedAmount);
     await page.locator('.stash > .panel-heading').click();
     await expect(page.locator('.stash > .panel-body')).not.toBeInViewport();
 }

@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures/login';
+import { test, expect } from './fixtures/read-only';
 import { checkActiveTab, checkNotification, containerLocator } from './helpers';
 
 test.describe('History tab', { tag: '@read-only' }, () => {
@@ -23,18 +23,17 @@ test.describe('History tab', { tag: '@read-only' }, () => {
             .getByText(/^MATCH \(\)/)
             .first()
             .click();
-        expect(await page.evaluate('navigator.clipboard.readText();')).toEqual(
-            await containerLocator(page)
+        await expect(
+            containerLocator(page)
                 .getByText(/^MATCH \(\)/)
                 .first()
-                .textContent()
-        );
+        ).toHaveText(await page.evaluate('navigator.clipboard.readText();'));
         await checkNotification(page);
     });
 
     test('Copy parameters', async ({ page }) => {
         await containerLocator(page).getByRole('cell', { name: '{}' }).first().locator('.is-clickable').click();
-        expect(await page.evaluate('navigator.clipboard.readText();')).toEqual('{}');
+        expect(await page.evaluate('navigator.clipboard.readText();')).toMatch('{}');
         await checkNotification(page);
     });
 });

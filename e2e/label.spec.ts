@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures/login';
+import { test, expect } from './fixtures/read-only';
 import {
     checkActiveTab,
     checkErrorMessage,
@@ -50,10 +50,8 @@ test.describe('Label tab', { tag: '@read-only' }, () => {
         await containerLocator(page)
             .getByText(/^MATCH /)
             .click();
-        expect(await page.evaluate('navigator.clipboard.readText();')).toEqual(
-            await containerLocator(page)
-                .getByText(/^MATCH /)
-                .textContent()
+        await expect(containerLocator(page).getByText(/^MATCH /)).toHaveText(
+            await page.evaluate('navigator.clipboard.readText();')
         );
         await checkNotification(page);
     });
@@ -87,10 +85,10 @@ test.describe('Label tab', { tag: '@read-only' }, () => {
 
         const id = await containerLocator(page).getByRole('button', { name: /#\d+/ }).first().textContent();
         const label = await containerLocator(page).getByRole('button', { name: /:\w+/ }).first().textContent();
-        await checkStashEntry(page, label, id);
+        await checkStashEntry(page, label + id);
 
         await containerLocator(page).getByTitle('Remove from stash').click();
-        await checkStashEntry(page, label, id, 0);
+        await checkStashEntry(page, label + id, 0);
     });
 
     test('Delete node btn', async ({ page }) => {

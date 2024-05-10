@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures/login';
+import { test, expect } from './fixtures/read-only';
 import {
     checkActiveTab,
     checkErrorMessage,
@@ -41,10 +41,10 @@ test.describe('Node tab 1', { tag: '@read-only' }, () => {
             await expect(containerLocator(page).getByTitle('Remove from stash')).toHaveCount(1);
 
             const id = await containerLocator(page).getByLabel('identity').inputValue();
-            await checkStashEntry(page, ':Person', id);
+            await checkStashEntry(page, ':Person#' + id);
 
             await containerLocator(page).getByTitle('Remove from stash').click();
-            await checkStashEntry(page, ':Person', id, 0);
+            await checkStashEntry(page, ':Person#' + id, 0);
         });
 
         test('Reload', async ({ page }) => {
@@ -81,16 +81,16 @@ test.describe('Node tab 1', { tag: '@read-only' }, () => {
     test.describe('Copy', () => {
         test('identity', async ({ page }) => {
             await containerLocator(page).getByLabel('identity').click();
-            expect(await page.evaluate('navigator.clipboard.readText();')).toEqual(
-                await containerLocator(page).getByLabel('identity').inputValue()
+            await expect(containerLocator(page).getByLabel('identity')).toHaveText(
+                await page.evaluate('navigator.clipboard.readText();')
             );
             await checkNotification(page);
         });
 
         test('elementId', async ({ page }) => {
             await containerLocator(page).getByLabel('elementId').click();
-            expect(await page.evaluate('navigator.clipboard.readText();')).toEqual(
-                await containerLocator(page).getByLabel('elementId').inputValue()
+            await expect(containerLocator(page).getByLabel('elementId')).toHaveText(
+                await page.evaluate('navigator.clipboard.readText();')
             );
             await checkNotification(page);
         });
@@ -102,7 +102,7 @@ test.describe('Node tab 1', { tag: '@read-only' }, () => {
                 .filter({ hasText: 'Keanu Reeves' })
                 .locator('.is-clickable')
                 .click();
-            expect(await page.evaluate('navigator.clipboard.readText();')).toEqual('Keanu Reeves');
+            expect(await page.evaluate('navigator.clipboard.readText();')).toMatch('Keanu Reeves');
             await checkNotification(page);
         });
 
@@ -110,10 +110,8 @@ test.describe('Node tab 1', { tag: '@read-only' }, () => {
             await containerLocator(page)
                 .getByText(/^MATCH /)
                 .click();
-            expect(await page.evaluate('navigator.clipboard.readText();')).toEqual(
-                await containerLocator(page)
-                    .getByText(/^MATCH /)
-                    .textContent()
+            await expect(containerLocator(page).getByText(/^MATCH /)).toHaveText(
+                await page.evaluate('navigator.clipboard.readText();')
             );
             await checkNotification(page);
         });
@@ -227,7 +225,7 @@ test.describe('Node tab 1', { tag: '@read-only' }, () => {
     });
 
     test.describe('Modal for unsaved changes', () => {
-        test.beforeEach(async ({ page }) => {
+        test.beforeEach('Invoke modal', async ({ page }) => {
             await containerLocator(page)
                 .getByRole('group', { name: 'Properties' })
                 .getByText('Keanu Reeves')

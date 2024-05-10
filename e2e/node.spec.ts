@@ -81,7 +81,7 @@ test.describe('Node tab 1', { tag: '@read-only' }, () => {
     test.describe('Copy', () => {
         test('identity', async ({ page }) => {
             await containerLocator(page).getByLabel('identity').click();
-            await expect(containerLocator(page).getByLabel('identity')).toHaveText(
+            await expect(containerLocator(page).getByLabel('identity')).toHaveValue(
                 await page.evaluate('navigator.clipboard.readText();')
             );
             await checkNotification(page);
@@ -89,7 +89,7 @@ test.describe('Node tab 1', { tag: '@read-only' }, () => {
 
         test('elementId', async ({ page }) => {
             await containerLocator(page).getByLabel('elementId').click();
-            await expect(containerLocator(page).getByLabel('elementId')).toHaveText(
+            await expect(containerLocator(page).getByLabel('elementId')).toHaveValue(
                 await page.evaluate('navigator.clipboard.readText();')
             );
             await checkNotification(page);

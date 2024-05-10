@@ -26,7 +26,7 @@ test.describe('Query tab', { tag: '@read-only' }, () => {
     test.describe('With query', () => {
         test.beforeEach('Execute query', async ({ page }) => {
             await containerLocator(page, 'textarea[name="query"]').fill(
-                'MATCH (n:Person) RETURN * ORDER BY id(n) LIMIT 10'
+                'MATCH (n:Person) RETURN n, n {.*} AS props ORDER BY id(n) LIMIT 10'
             );
             await containerLocator(page).getByRole('button', { name: 'Execute' }).click();
         });
@@ -78,16 +78,17 @@ test.describe('Query tab', { tag: '@read-only' }, () => {
             });
 
             test('Label', async ({ page }) => {
-                await containerLocator(page, 'table').getByRole('button', { name: ':Person' }).click();
+                await containerLocator(page, 'table').getByRole('button', { name: ':Person' }).first().click();
                 await checkActiveTab(page, 'Person');
             });
 
             test('Edit node', async ({ page }) => {
-                await containerLocator(page, 'table').getByRole('button', { name: /#\d+/ }).click();
+                await containerLocator(page, 'table').getByRole('button', { name: /#\d+/ }).first().click();
                 await checkActiveTab(page, /Node#\d+/);
             });
 
             test('Properties', async ({ page }) => {
+                await containerLocator(page, 'table').getByRole('button').nth(2).click();
                 await expect(modalLocator(page)).toHaveScreenshot();
                 await modalLocator(page).locator('.is-clickable').click();
                 await checkNotification(page);
@@ -120,7 +121,7 @@ test.describe('Query tab', { tag: '@read-only' }, () => {
                 await expect(modalLocator(page)).toHaveScreenshot({
                     mask: [modalLocator(page).locator('input[type="color"]')],
                 });
-                await modalLocator(page).getByRole('button', { name: 'Close' }).click();
+                await modalLocator(page).getByRole('button', { name: 'Close' }).last().click();
                 await expect(modalLocator(page)).toHaveCount(0);
             });
 

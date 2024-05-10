@@ -24,11 +24,3 @@ export async function checkNotification(page: Page, text: string | RegExp = 'Cop
     await page.getByRole('region', { name: 'notifications' }).getByRole('button').click();
     await expect(page.getByRole('region', { name: 'notifications' })).toBeEmpty();
 }
-
-export async function checkStashEntry(page: Page, text: string | RegExp, expectedAmount: number = 1) {
-    await page.locator('.stash > .panel-heading').click();
-    await expect(page.locator('.stash > .panel-body')).toBeInViewport();
-    await expect(page.locator('.stash .panel-block').getByText(text)).toHaveCount(expectedAmount);
-    await page.locator('.stash > .panel-heading').click();
-    await expect(page.locator('.stash > .panel-body')).not.toBeInViewport();
-}

@@ -1,12 +1,6 @@
 import { test, expect } from './fixtures/read-only';
-import {
-    checkActiveTab,
-    checkErrorMessage,
-    checkNotification,
-    checkStashEntry,
-    containerLocator,
-    modalLocator,
-} from './helpers';
+import { checkActiveTab, checkErrorMessage, checkNotification, containerLocator, modalLocator } from './helpers';
+import Stash from './pom/Stash';
 
 test.describe('Node tab 1', { tag: '@read-only' }, () => {
     test.beforeEach('Go to', async ({ page }) => {
@@ -39,12 +33,11 @@ test.describe('Node tab 1', { tag: '@read-only' }, () => {
         test('Add to stash', async ({ page }) => {
             await containerLocator(page).getByTitle('Add to stash').click();
             await expect(containerLocator(page).getByTitle('Remove from stash')).toHaveCount(1);
-
+            const stash = new Stash(page);
             const id = await containerLocator(page).getByLabel('identity').inputValue();
-            await checkStashEntry(page, ':Person#' + id);
-
+            await stash.checkEntry(':Person#' + id);
             await containerLocator(page).getByTitle('Remove from stash').click();
-            await checkStashEntry(page, ':Person#' + id, 0);
+            await stash.checkEntry(':Person#' + id, 0);
         });
 
         test('Reload', async ({ page }) => {

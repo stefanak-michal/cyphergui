@@ -1,5 +1,6 @@
 import { test, expect } from './fixtures/read-only';
-import { checkActiveTab, checkNotification, checkStashEntry, containerLocator, modalLocator } from './helpers';
+import { checkActiveTab, checkNotification, containerLocator, modalLocator } from './helpers';
+import Stash from './pom/Stash';
 
 test.describe('Query tab', { tag: '@read-only' }, () => {
     test.beforeEach('Go to', async ({ page }) => {
@@ -42,9 +43,10 @@ test.describe('Query tab', { tag: '@read-only' }, () => {
         test('Stash btn', async ({ page }) => {
             await containerLocator(page).getByTitle('Add to stash').click();
             await expect(containerLocator(page).getByTitle('Remove from stash')).toHaveCount(1);
-            await checkStashEntry(page, /MATCH \(n:Person\).+/);
+            const stash = new Stash(page);
+            await stash.checkEntry(/MATCH \(n:Person\).+/);
             await containerLocator(page).getByTitle('Remove from stash').click();
-            await checkStashEntry(page, /MATCH \(n:Person\).+/, 0);
+            await stash.checkEntry(/MATCH \(n:Person\).+/, 0);
         });
 
         test('Table - medium', async ({ page }) => {

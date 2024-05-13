@@ -69,7 +69,30 @@ test.describe('Stash', { tag: '@read-only' }, () => {
         await expect(morpheusLocator.getByTitle('Remove from stash')).toHaveCount(0);
     });
 
-    test('Query', async () => {
-        test.skip();
+    test('Query', async ({ page }) => {
+        const query: string = 'MATCH (n:Person) RETURN n, n {.*} AS props ORDER BY id(n) LIMIT 10';
+        // add query to stash
+        await page.getByRole('button', { name: 'Query' }).click();
+        await checkActiveTab(page, /Query#\d+/);
+        await containerLocator(page, 'textarea[name="query"]').fill(query);
+        await containerLocator(page).getByRole('button', { name: 'Execute' }).click();
+        await containerLocator(page).getByTitle('Add to stash').click();
+        await expect(containerLocator(page).getByTitle('Remove from stash')).toHaveCount(1);
+
+        const stash = new Stash(page);
+        await stash.checkEntry(query);
+        // close query tab
+        await containerLocator(page).getByRole('button', { name: 'Close' }).click();
+        await checkActiveTab(page, 'Start');
+        // reopen query tab from stash
+        await stash.open();
+        await stash.getEntryLocator(query).click();
+        await checkActiveTab(page, /Query#\d+/);
+        await expect(containerLocator(page, 'textarea[name="query"]')).toHaveValue(query);
+        // remove from stash
+        await stash.getEntryLocator(query).getByRole('button').last().click();
+        // final check
+        await stash.checkEntry(query, 0);
+        await expect(containerLocator(page).getByTitle('Remove from stash')).toHaveCount(0);
     });
 });

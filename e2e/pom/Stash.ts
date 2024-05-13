@@ -20,11 +20,19 @@ export default class Stash {
     async checkEntry(text: string | RegExp, expectedAmount: number = 1) {
         const open = await this.isOpen();
         if (!open) await this.open();
-        await expect(this.page.locator('.stash .panel-block').getByText(text)).toHaveCount(expectedAmount);
+        await expect(
+            this.page
+                .locator('.stash .panel-block')
+                .getByText(text)
+                .or(this.page.locator('.stash .panel-block').getByTitle(text))
+        ).toHaveCount(expectedAmount);
         if (!open) await this.close();
     }
 
     getEntryLocator(text: string): Locator {
-        return this.page.locator('.stash .panel-block').filter({ hasText: text });
+        return this.page
+            .locator('.stash .panel-block')
+            .filter({ hasText: text })
+            .or(this.page.locator('.stash .panel-block').filter({ has: this.page.getByTitle(text) }));
     }
 }

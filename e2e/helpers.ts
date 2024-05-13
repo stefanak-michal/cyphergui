@@ -14,7 +14,7 @@ export async function checkActiveTab(page: Page, text: string | RegExp) {
 }
 
 export async function switchToTab(page: Page, text: string | RegExp) {
-    await this.page.locator('.tabs a', { hasText: text }).click();
+    await page.locator('.tabs a', { hasText: text }).click();
 }
 
 export async function checkErrorMessage(page: Page, text: string) {

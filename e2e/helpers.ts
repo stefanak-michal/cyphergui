@@ -13,6 +13,10 @@ export async function checkActiveTab(page: Page, text: string | RegExp) {
     await expect(page.locator('.tabs .is-active')).toHaveText(text);
 }
 
+export async function switchToTab(page: Page, text: string | RegExp) {
+    await this.page.locator('.tabs a', { hasText: text }).click();
+}
+
 export async function checkErrorMessage(page: Page, text: string) {
     await expect(containerLocator(page)).toContainText(text);
     await containerLocator(page, '.message').getByRole('button').click();

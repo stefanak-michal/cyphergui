@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures/read-only';
-import { checkActiveTab, checkNotification, containerLocator, modalLocator } from './helpers';
+import { checkActiveTab, checkNotification, containerLocator, modalLocator, switchToTab } from './helpers';
 import { Page } from '@playwright/test';
 
 async function changeSettingAndClose(page: Page, title: string) {
@@ -17,7 +17,7 @@ test.describe('Settings', { tag: '@read-only' }, () => {
     test('Show elementId', async ({ page }) => {
         await changeSettingAndClose(page, 'Show elementId in table views');
         // open any table view
-        await page.locator('.tabs a', { hasText: 'Start' }).click();
+        await switchToTab(page, 'Start');
         await containerLocator(page).getByRole('button', { name: '*' }).first().click();
         await checkActiveTab(page, '*');
         // check visually
@@ -34,7 +34,7 @@ test.describe('Settings', { tag: '@read-only' }, () => {
     test('Close tab after execute', async ({ page }) => {
         await changeSettingAndClose(page, 'Close create/edit tab after successful execute');
         // open any table view
-        await page.locator('.tabs a', { hasText: 'Start' }).click();
+        await switchToTab(page, 'Start');
         await containerLocator(page).getByRole('button', { name: '*' }).first().click();
         await checkActiveTab(page, '*');
         // open any edit tab
@@ -48,7 +48,7 @@ test.describe('Settings', { tag: '@read-only' }, () => {
     test('Force naming recommendations', async ({ page }) => {
         await changeSettingAndClose(page, 'Force naming recommendations');
         // open any table view
-        await page.locator('.tabs a', { hasText: 'Start' }).click();
+        await switchToTab(page, 'Start');
         await containerLocator(page).getByRole('button', { name: '*' }).first().click();
         await checkActiveTab(page, '*');
         // open any edit tab
@@ -65,7 +65,7 @@ test.describe('Settings', { tag: '@read-only' }, () => {
     test('Confirm dialog when unsaved changes', async ({ page }) => {
         await changeSettingAndClose(page, 'Confirm dialog when closing tab with unsaved changes');
         // open any table view
-        await page.locator('.tabs a', { hasText: 'Start' }).click();
+        await switchToTab(page, 'Start');
         await containerLocator(page).getByRole('button', { name: '*' }).first().click();
         await checkActiveTab(page, '*');
         // open any edit tab

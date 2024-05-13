@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures/read-only';
-import { checkActiveTab, containerLocator, modalLocator } from './helpers';
+import { checkActiveTab, containerLocator, modalLocator, switchToTab } from './helpers';
 import Stash from './pom/Stash';
 
 test.describe('Stash', { tag: '@read-only' }, () => {
@@ -7,7 +7,7 @@ test.describe('Stash', { tag: '@read-only' }, () => {
         const stash = new Stash(page);
         const hugoLocator = containerLocator(page).getByRole('row').filter({ hasText: 'Hugo Weaving' });
         // open label table
-        await page.locator('.tabs a', { hasText: 'Start' }).click();
+        await switchToTab(page, 'Start');
         await containerLocator(page).getByRole('button', { name: ':Person' }).click();
         await checkActiveTab(page, 'Person');
         // add to stash
@@ -40,7 +40,7 @@ test.describe('Stash', { tag: '@read-only' }, () => {
         const stash = new Stash(page);
         const morpheusLocator = containerLocator(page).getByRole('row').filter({ hasText: '[Morpheus]' }).first();
         // open type table
-        await page.locator('.tabs a', { hasText: 'Start' }).click();
+        await switchToTab(page, 'Start');
         await containerLocator(page).getByRole('button', { name: ':ACTED_IN' }).click();
         await checkActiveTab(page, 'ACTED_IN');
         // add to stash

@@ -1,10 +1,17 @@
 import { test, expect } from './fixtures/read-only';
-import { checkActiveTab, checkErrorMessage, checkNotification, containerLocator, modalLocator } from './helpers';
+import {
+    checkActiveTab,
+    checkErrorMessage,
+    checkNotification,
+    containerLocator,
+    modalLocator,
+    switchToTab,
+} from './helpers';
 import Stash from './pom/Stash';
 
 test.describe('Label tab', { tag: '@read-only' }, () => {
     test.beforeEach('Go to', async ({ page }) => {
-        await page.locator('.tabs a', { hasText: 'Start' }).click();
+        await switchToTab(page, 'Start');
         await containerLocator(page).getByRole('button', { name: '*' }).first().click();
         await checkActiveTab(page, '*');
     });

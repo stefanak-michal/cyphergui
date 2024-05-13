@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 
+// some general tests
+
 test.describe('Dark mode', { tag: '@read-only' }, () => {
     test.use({
         colorScheme: 'dark',
@@ -34,7 +36,7 @@ test.describe('Remember me', { tag: '@read-only' }, () => {
     });
 });
 
-test.describe('Access cypherGUI as file', { tag: '@read-only' }, () => {
+test.describe('Access cypherGUI as file', { tag: '@build' }, () => {
     test('Open and login', async ({ page }) => {
         await page.goto('file://' + require('node:path').resolve('./build/index.html'));
         await page.getByLabel('URL').fill(process.env.DB_HOSTNAME || 'bolt://localhost:7687');

@@ -51,6 +51,7 @@
     "playwright:read-write": "npx playwright test --grep @read-write",
     "playwright:multidatabase": "npx playwright test --grep @multidatabase",
     "playwright:memgraph": "npx playwright test --grep @memgraph",
+    "playwright:build": "npx playwright test --grep @build",
     "playwright:ui": "npx playwright test --ui"
   },
   "browserslist": {

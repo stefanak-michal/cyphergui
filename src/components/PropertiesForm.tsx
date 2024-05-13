@@ -705,7 +705,7 @@ class TimezoneControl extends React.Component<{
         return (
             <div className='control'>
                 <div className={'select ' + (this.props.invalid ? 'is-danger' : '')}>
-                    <select ref={this.props.selectRef} value={this.props.value} onChange={this.props.handleChange}>
+                    <select title='Timezone' ref={this.props.selectRef} value={this.props.value} onChange={this.props.handleChange}>
                         {range.map((offset, i) => (
                             <option key={i} value={offset}>
                                 {(offset >= 0 ? '+' : '-') + Math.abs(offset).toString().padStart(2, '0') + ':00'}
@@ -1087,6 +1087,7 @@ class PropertyDurationInput extends APropertyInput {
                     value={this.props.temp}
                     name={this.props.name}
                     autoFocus={this.props.focus}
+                    title='Duration'
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         this.props.onValueChange(
                             this.props.name,

@@ -211,7 +211,9 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                     this.props.toast(this.create ? 'Relationship created' : 'Relationship updated');
                 }
                 if (settings().closeEditAfterExecuteSuccess) {
-                    this.props.tabManager.close(this.props.tabId);
+                    this.props.tabManager.setChanged(this.props.tabId, false, () => {
+                        this.props.tabManager.close(this.props.tabId);
+                    });
                 } else if (this.create) {
                     const rel = response.records[0].get('r');
                     this.props.tabManager.setChanged(this.props.tabId, false, () => {

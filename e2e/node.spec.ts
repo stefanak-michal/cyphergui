@@ -9,7 +9,7 @@ import {
 } from './helpers';
 import Stash from './pom/Stash';
 
-test.describe('Node tab 1', { tag: '@read-only' }, () => {
+test.describe('Node tab', { tag: '@read-only' }, () => {
     test.beforeEach('Go to', async ({ page }) => {
         await switchToTab(page, 'Start');
         await containerLocator(page).getByRole('button', { name: ':Person' }).first().click();
@@ -244,8 +244,4 @@ test.describe('Node tab 1', { tag: '@read-only' }, () => {
             await checkActiveTab(page, /Node#\d+/);
         });
     });
-});
-
-test.describe('Node tab 2', { tag: '@read-write' }, () => {
-    //todo read-write tests
 });

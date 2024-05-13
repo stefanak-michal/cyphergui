@@ -215,7 +215,9 @@ class Node extends React.Component<INodeProps, INodeState> {
                     this.props.toast(this.create ? 'Node created' : 'Node updated');
                 }
                 if (settings().closeEditAfterExecuteSuccess) {
-                    this.props.tabManager.close(this.props.tabId);
+                    this.props.tabManager.setChanged(this.props.tabId, false, () => {
+                        this.props.tabManager.close(this.props.tabId);
+                    });
                 } else if (this.create) {
                     const node = response.records[0].get('n');
                     this.props.tabManager.setChanged(this.props.tabId, false, () => {

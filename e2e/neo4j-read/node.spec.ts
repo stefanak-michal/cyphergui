@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures/read-only';
+import { test, expect } from '../fixtures/neo4j-movies';
 import {
     checkActiveTab,
     checkErrorMessage,
@@ -6,10 +6,10 @@ import {
     containerLocator,
     modalLocator,
     switchToTab,
-} from './helpers';
-import Stash from './pom/Stash';
+} from '../helpers';
+import Stash from '../pom/Stash';
 
-test.describe('Node tab', { tag: '@read-only' }, () => {
+test.describe('Node tab', { tag: '@neo4j-read' }, () => {
     test.beforeEach('Go to', async ({ page }) => {
         await switchToTab(page, 'Start');
         await containerLocator(page).getByRole('button', { name: ':Person' }).first().click();

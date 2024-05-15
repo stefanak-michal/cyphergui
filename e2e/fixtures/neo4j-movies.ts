@@ -1,4 +1,4 @@
-import { expect, test as base } from './login';
+import { expect, test as base } from './neo4j-login';
 import { containerLocator, switchToTab } from '../helpers';
 
 export const test = base.extend({

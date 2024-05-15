@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 // some general tests
 
-test.describe('Dark mode', { tag: '@read-only' }, () => {
+test.describe('Dark mode', { tag: '@neo4j-read' }, () => {
     test.use({
         colorScheme: 'dark',
         viewport: { width: 1280, height: 800 },
@@ -16,7 +16,7 @@ test.describe('Dark mode', { tag: '@read-only' }, () => {
     });
 });
 
-test.describe('Remember me', { tag: '@read-only' }, () => {
+test.describe('Remember me', { tag: '@neo4j-read' }, () => {
     test('Turn it on and check', async ({ page }) => {
         // open page and login
         await page.goto(process.env.URL || '/');

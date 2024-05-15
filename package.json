@@ -47,9 +47,9 @@
     "format": "npx prettier . --write",
     "prettier-check": "npx prettier . --check",
     "lint": "npx eslint src",
-    "playwright:read-only": "npx playwright test --grep @read-only",
-    "playwright:read-write": "npx playwright test --grep @read-write --workers=1",
-    "playwright:multidatabase": "npx playwright test --grep @multidatabase",
+    "playwright:read-only": "npx playwright test --grep @neo4j-read",
+    "playwright:read-write": "npx playwright test --grep @neo4j-write --workers=1",
+    "playwright:multidatabase": "npx playwright test --grep @neo4j-multidb",
     "playwright:memgraph": "npx playwright test --grep @memgraph",
     "playwright:build": "npx playwright test --grep @build",
     "playwright:ui": "npx playwright test --ui"

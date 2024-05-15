@@ -1,7 +1,7 @@
-import { test, expect } from './fixtures/read-only';
-import { checkActiveTab, checkNotification, containerLocator } from './helpers';
+import { test, expect } from '../fixtures/neo4j-movies';
+import { checkActiveTab, checkNotification, containerLocator } from '../helpers';
 
-test.describe('History tab', { tag: '@read-only' }, () => {
+test.describe('History tab', { tag: '@neo4j-read' }, () => {
     test.beforeEach('Go to', async ({ page }) => {
         await page.getByTitle('Open history').click();
         await checkActiveTab(page, 'History');

@@ -1,20 +1,15 @@
-import { test, expect } from './fixtures/read-only';
-import {
-    checkActiveTab,
-    checkErrorMessage,
-    checkNotification,
-    containerLocator,
-    modalLocator,
-    switchToTab,
-} from './helpers';
-import Stash from './pom/Stash';
+import { test, expect } from '../fixtures/neo4j-movies';
+import { checkActiveTab, checkNotification, containerLocator, modalLocator, switchToTab } from '../helpers';
+import Stash from '../pom/Stash';
 
-test.describe('Label tab', { tag: '@read-only' }, () => {
+test.describe('Type tab', { tag: '@neo4j-read' }, () => {
     test.beforeEach('Go to', async ({ page }) => {
         await switchToTab(page, 'Start');
-        await containerLocator(page).getByRole('button', { name: '*' }).first().click();
+        await containerLocator(page).getByRole('button', { name: '*' }).last().click();
         await checkActiveTab(page, '*');
     });
+
+    test.use({ viewport: { width: 1920, height: 1800 } });
 
     test('Table view', async ({ page }) => {
         await expect(containerLocator(page)).toHaveScreenshot({
@@ -44,7 +39,7 @@ test.describe('Label tab', { tag: '@read-only' }, () => {
         await containerLocator(page).getByLabel('Goto next page').click();
         await expect(containerLocator(page).getByLabel('Goto page 3')).toHaveAttribute('aria-current', 'page');
         await containerLocator(page).getByLabel('pagination').getByRole('button', { name: /\d+/ }).last().click();
-        await expect(containerLocator(page).getByLabel('pagination').getByLabel('Goto next page')).toBeDisabled();
+        await expect(containerLocator(page).getByLabel('Goto next page')).toBeDisabled();
     });
 
     test('Copy query', async ({ page }) => {
@@ -57,9 +52,9 @@ test.describe('Label tab', { tag: '@read-only' }, () => {
         await checkNotification(page);
     });
 
-    test('Create node btn', async ({ page }) => {
-        await containerLocator(page).getByRole('button', { name: 'Create node' }).click();
-        await checkActiveTab(page, /New node#\d+/);
+    test('Create relationship btn', async ({ page }) => {
+        await containerLocator(page).getByRole('button', { name: 'Create relationship' }).click();
+        await checkActiveTab(page, /New relationship#\d+/);
     });
 
     test('View as graph btn', async ({ page }) => {
@@ -68,14 +63,24 @@ test.describe('Label tab', { tag: '@read-only' }, () => {
     });
 
     test('Search input', async ({ page }) => {
-        await containerLocator(page).getByRole('searchbox').fill('Hugo');
-        await expect(containerLocator(page, 'table tbody tr')).toHaveCount(1);
+        await containerLocator(page).getByRole('searchbox').fill('2');
+        await expect(containerLocator(page, 'table tbody tr')).toHaveCount(3);
+    });
+
+    test('Relationship btn', async ({ page }) => {
+        await containerLocator(page)
+            .getByRole('row', { name: '[Neo]' })
+            .getByRole('button', { name: /#\d+/ })
+            .first()
+            .click();
+        await checkActiveTab(page, /Rel#\d+/);
     });
 
     test('Node btn', async ({ page }) => {
         await containerLocator(page)
-            .getByRole('row', { name: 'Keanu Reeves' })
+            .getByRole('row', { name: '[Neo]' })
             .getByRole('button', { name: /#\d+/ })
+            .last()
             .click();
         await checkActiveTab(page, /Node#\d+/);
     });
@@ -85,38 +90,26 @@ test.describe('Label tab', { tag: '@read-only' }, () => {
         await expect(containerLocator(page).getByTitle('Remove from stash')).toHaveCount(1);
         const stash = new Stash(page);
         const id = await containerLocator(page).getByRole('button', { name: /#\d+/ }).first().textContent();
-        const label = await containerLocator(page).getByRole('button', { name: /:\w+/ }).first().textContent();
-        await stash.checkEntry(label + id);
+        const type = await containerLocator(page).getByRole('button', { name: /:\w+/ }).first().textContent();
+        await stash.checkEntry(type + id);
         await containerLocator(page).getByTitle('Remove from stash').click();
-        await stash.checkEntry(label + id, 0);
+        await stash.checkEntry(type + id, 0);
     });
 
-    test('Delete node btn', async ({ page }) => {
+    test('Delete relationship btn', async ({ page }) => {
         await containerLocator(page).getByTitle('Delete').first().click();
         await expect(modalLocator(page)).toHaveScreenshot();
-        await modalLocator(page).getByRole('button', { name: 'Confirm' }).click();
+        await modalLocator(page).getByRole('button', { name: 'Cancel' }).click();
         await expect(modalLocator(page)).toHaveCount(0);
-        await checkErrorMessage(page, 'Cannot delete node');
     });
 
     test('Label tag btn', async ({ page }) => {
-        await containerLocator(page).getByRole('button', { name: ':Person' }).first().click();
-        await checkActiveTab(page, 'Person');
+        await containerLocator(page).getByRole('button', { name: ':ACTED_IN' }).first().click();
+        await checkActiveTab(page, 'ACTED_IN');
     });
 
     test('Table sort', async ({ page }) => {
-        await containerLocator(page).getByRole('cell', { name: 'born' }).click();
-        await expect(containerLocator(page)).toHaveScreenshot({
-            mask: [
-                //hide ids and elementIds
-                containerLocator(page, 'table tbody')
-                    .getByRole('button')
-                    .getByText(/^#\d+$/),
-                containerLocator(page, 'table tbody').getByRole('cell', { name: /^\d+:[a-z0-9\-]+:\d+$/ }),
-            ],
-        });
-        await containerLocator(page).getByRole('cell', { name: 'name' }).click();
-        await containerLocator(page).getByRole('cell', { name: 'name' }).click();
+        await containerLocator(page).getByRole('cell', { name: 'roles' }).click();
         await expect(containerLocator(page)).toHaveScreenshot({
             mask: [
                 //hide ids and elementIds

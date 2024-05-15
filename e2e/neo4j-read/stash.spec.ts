@@ -1,8 +1,8 @@
-import { test, expect } from './fixtures/read-only';
-import { checkActiveTab, containerLocator, modalLocator, switchToTab } from './helpers';
-import Stash from './pom/Stash';
+import { test, expect } from '../fixtures/neo4j-movies';
+import { checkActiveTab, containerLocator, modalLocator, switchToTab } from '../helpers';
+import Stash from '../pom/Stash';
 
-test.describe('Stash', { tag: '@read-only' }, () => {
+test.describe('Stash', { tag: '@neo4j-read' }, () => {
     test('Node', async ({ page }) => {
         const stash = new Stash(page);
         const hugoLocator = containerLocator(page).getByRole('row').filter({ hasText: 'Hugo Weaving' });

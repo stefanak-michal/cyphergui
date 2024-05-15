@@ -1,5 +1,5 @@
-import { expect, test } from './fixtures/login';
-import { checkActiveTab, checkNotification, containerLocator, modalLocator, switchToTab } from './helpers';
+import { expect, test } from '../fixtures/neo4j-login';
+import { checkActiveTab, checkNotification, containerLocator, modalLocator, switchToTab } from '../helpers';
 import { Locator, Page } from '@playwright/test';
 
 function propertyLocatorByKey(page: Page, key: string): Locator {
@@ -124,7 +124,7 @@ async function addProperties(page: Page) {
     await propertyLocator.getByTitle('Duration', { exact: true }).fill('P1Y2M3DT5H6M7S');
 }
 
-test.describe('Write flow', { tag: '@read-write' }, () => {
+test.describe('Write flow', { tag: '@neo4j-write' }, () => {
     test.describe.configure({ mode: 'serial' });
     test.use({ viewport: { width: 1920, height: 1800 } });
 

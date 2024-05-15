@@ -1,8 +1,8 @@
-import { test, expect } from './fixtures/read-only';
-import { checkActiveTab, checkNotification, containerLocator, modalLocator } from './helpers';
-import Stash from './pom/Stash';
+import { test, expect } from '../fixtures/neo4j-movies';
+import { checkActiveTab, checkNotification, containerLocator, modalLocator } from '../helpers';
+import Stash from '../pom/Stash';
 
-test.describe('Query tab', { tag: '@read-only' }, () => {
+test.describe('Query tab', { tag: '@neo4j-read' }, () => {
     test.beforeEach('Go to', async ({ page }) => {
         await page.getByRole('button', { name: 'Query' }).click();
         await checkActiveTab(page, /Query#\d+/);

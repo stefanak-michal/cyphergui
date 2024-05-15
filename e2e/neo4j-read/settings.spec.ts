@@ -1,5 +1,5 @@
-import { test, expect } from './fixtures/read-only';
-import { checkActiveTab, checkNotification, containerLocator, modalLocator, switchToTab } from './helpers';
+import { test, expect } from '../fixtures/neo4j-movies';
+import { checkActiveTab, checkNotification, containerLocator, modalLocator, switchToTab } from '../helpers';
 import { Page } from '@playwright/test';
 
 async function changeSettingAndClose(page: Page, title: string) {
@@ -9,7 +9,7 @@ async function changeSettingAndClose(page: Page, title: string) {
     await expect(modalLocator(page)).toHaveCount(0);
 }
 
-test.describe('Settings', { tag: '@read-only' }, () => {
+test.describe('Settings', { tag: '@neo4j-read' }, () => {
     test.beforeEach('Open settings modal', async ({ page }) => {
         await page.getByTitle('Open settings').click();
     });

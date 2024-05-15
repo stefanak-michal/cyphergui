@@ -39,8 +39,8 @@ jobs:
         run: npm ci
       #      - name: Install Playwright Browsers
       #        run: npx playwright install --with-deps chromium
-      - name: Run Playwright tests (read-only)
-        run: npm run playwright:read-only
+      - name: Run Playwright tests (neo4j-read)
+        run: npm run playwright:neo4j-read
         env:
           DB_USERNAME: 'neo4j'
           DB_PASSWORD: 'nothing123'
@@ -82,8 +82,8 @@ jobs:
         run: npm ci
       #      - name: Install Playwright Browsers
       #        run: npx playwright install --with-deps chromium
-      - name: Run Playwright tests (read-write)
-        run: npm run playwright:read-write
+      - name: Run Playwright tests (neo4j-write)
+        run: npm run playwright:neo4j-write
         env:
           DB_USERNAME: 'neo4j'
           DB_PASSWORD: 'nothing123'
@@ -115,8 +115,8 @@ jobs:
           node-version: latest
       - name: Install dependencies
         run: npm ci
-      - name: Run Playwright tests (multidatabase)
-        run: npm run playwright:multidatabase
+      - name: Run Playwright tests (neo4j-multidb)
+        run: npm run playwright:neo4j-multidb
         env:
           DB_USERNAME: 'neo4j'
           DB_PASSWORD: 'nothing123'

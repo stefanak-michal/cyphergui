@@ -135,6 +135,7 @@ test.describe('Relationship tab', { tag: '@read-only' }, () => {
             await containerLocator(page).getByRole('group', { name: 'Type' }).getByRole('button').click();
             await modalLocator(page).getByRole('textbox').fill('TEST');
             await modalLocator(page).locator('button[type="submit"]').click();
+            await expect(modalLocator(page)).toHaveCount(0);
             await expect(containerLocator(page).getByRole('group', { name: 'Type' })).toHaveScreenshot();
         });
     });
@@ -226,11 +227,13 @@ test.describe('Relationship tab', { tag: '@read-only' }, () => {
         test('Close', async ({ page }) => {
             await expect(modalLocator(page)).toHaveScreenshot();
             await modalLocator(page).getByRole('button', { name: 'Close anyway' }).click();
+            await expect(modalLocator(page)).toHaveCount(0);
             await checkActiveTab(page, 'ACTED_IN');
         });
 
         test('Cancel', async ({ page }) => {
             await modalLocator(page).getByRole('button', { name: "Don't close" }).click();
+            await expect(modalLocator(page)).toHaveCount(0);
             await checkActiveTab(page, /Rel#\d+/);
         });
     });

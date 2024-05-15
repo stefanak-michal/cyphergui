@@ -140,8 +140,11 @@ class Label extends React.Component<ILabelProps, ILabelState> {
             .then(response => {
                 if (response.summary.counters.updates().nodesDeleted > 0) {
                     this.requestData();
-                    this.props.tabManager.close(this.props.tabId);
                     this.props.toast('Node deleted');
+                    const tabId = this.props.tabManager.generateId({ id: id, database: this.props.database });
+                    this.props.tabManager.setChanged(tabId, false, () => {
+                        this.props.tabManager.close(tabId);
+                    });
                 }
             })
             .catch(error => {

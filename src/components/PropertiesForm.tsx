@@ -705,7 +705,12 @@ class TimezoneControl extends React.Component<{
         return (
             <div className='control'>
                 <div className={'select ' + (this.props.invalid ? 'is-danger' : '')}>
-                    <select title='Timezone' ref={this.props.selectRef} value={this.props.value} onChange={this.props.handleChange}>
+                    <select
+                        title='Timezone'
+                        ref={this.props.selectRef}
+                        value={this.props.value}
+                        onChange={this.props.handleChange}
+                    >
                         {range.map((offset, i) => (
                             <option key={i} value={offset}>
                                 {(offset >= 0 ? '+' : '-') + Math.abs(offset).toString().padStart(2, '0') + ':00'}

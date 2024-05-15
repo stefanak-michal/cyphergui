@@ -15,6 +15,7 @@ export interface ITabManager {
     close: (id: string, e?: React.PointerEvent) => void;
     setActive: (id: string) => void;
     generateName: (prefix: string, i?: Integer | string | number | null) => string;
+    generateId: (props: { id?: number | string; database?: string }, title?: string) => string;
     setChanged: (id: string, changed: boolean, callback?: () => void) => void;
 }
 

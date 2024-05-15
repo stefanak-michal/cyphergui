@@ -146,6 +146,7 @@ test.describe('Node tab', { tag: '@read-only' }, () => {
                 .click();
             await modalLocator(page).getByRole('textbox').fill('Test');
             await modalLocator(page).locator('button[type="submit"]').click();
+            await expect(modalLocator(page)).toHaveCount(0);
             await expect(containerLocator(page).getByRole('group', { name: 'Labels' })).toHaveScreenshot();
         });
     });
@@ -236,11 +237,13 @@ test.describe('Node tab', { tag: '@read-only' }, () => {
         test('Close', async ({ page }) => {
             await expect(modalLocator(page)).toHaveScreenshot();
             await modalLocator(page).getByRole('button', { name: 'Close anyway' }).click();
+            await expect(modalLocator(page)).toHaveCount(0);
             await checkActiveTab(page, 'Person');
         });
 
         test('Cancel', async ({ page }) => {
             await modalLocator(page).getByRole('button', { name: "Don't close" }).click();
+            await expect(modalLocator(page)).toHaveCount(0);
             await checkActiveTab(page, /Node#\d+/);
         });
     });

@@ -1,4 +1,4 @@
-import * as React from "react";
+import * as React from 'react';
 
 interface ITabProps {
     id: string;
@@ -18,20 +18,30 @@ class Tab extends React.Component<ITabProps> {
     };
 
     showDelete = (e: React.MouseEvent) => {
-        this.setState({ delete: e.type === "mouseenter" });
+        this.setState({ delete: e.type === 'mouseenter' });
     };
 
     render() {
         return (
-            <li className={this.props.active ? "is-active" : ""} onClick={() => this.props.handleClick(this.props.id)} onMouseEnter={this.showDelete} onMouseLeave={this.showDelete}>
+            <li
+                className={this.props.active ? 'is-active' : ''}
+                onClick={() => this.props.handleClick(this.props.id)}
+                onMouseEnter={this.showDelete}
+                onMouseLeave={this.showDelete}
+            >
                 <a>
                     {this.props.icon && (
-                        <span className="icon">
-                            <i className={this.props.icon} aria-hidden="true" />
+                        <span className='icon'>
+                            <i className={this.props.icon} aria-hidden='true' />
                         </span>
                     )}
                     <span>{this.props.title}</span>
-                    {this.props.title !== "Start" && this.state.delete && <button className="delete is-small ml-3" onClick={e => this.props.handleRemove(this.props.id, e)} />}
+                    {this.props.title !== 'Start' && this.state.delete && (
+                        <button
+                            className='delete is-small ml-3'
+                            onClick={e => this.props.handleRemove(this.props.id, e)}
+                        />
+                    )}
                 </a>
             </li>
         );

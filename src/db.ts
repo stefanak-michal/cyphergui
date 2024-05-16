@@ -1,9 +1,9 @@
-import { Driver, Integer, Node as _Node, QueryResult, Relationship as _Relationship } from "neo4j-driver-lite";
-import { t_Log } from "./utils/types";
-import { Ecosystem } from "./utils/enums";
+import { Driver, Integer, Node as _Node, QueryResult, Relationship as _Relationship } from 'neo4j-driver-lite';
+import { t_Log } from './utils/types';
+import { Ecosystem } from './utils/enums';
 
 class Db {
-    private _neo4j = require("neo4j-driver-lite");
+    private _neo4j = require('neo4j-driver-lite');
     private _driver: Driver;
     private activedb: string = undefined;
     private availableDatabases: string[] = [];
@@ -21,8 +21,8 @@ class Db {
     set database(name: string) {
         if (this.databases.length === 0 || !this.databases.includes(name)) return;
         this.activedb = name;
-        localStorage.setItem("activedb", name);
-        for (let fn of this.callbacks_1) fn(name);
+        localStorage.setItem('activedb', name);
+        for (const fn of this.callbacks_1) fn(name);
     }
 
     get database(): string {
@@ -31,7 +31,7 @@ class Db {
 
     set databases(names: string[]) {
         this.availableDatabases = names;
-        for (let fn of this.callbacks_2) fn(names);
+        for (const fn of this.callbacks_2) fn(names);
     }
 
     get databases(): string[] {
@@ -45,20 +45,22 @@ class Db {
             .getServerInfo()
             .then(r => {
                 this.ecosystem = /memgraph/i.test(r.agent) ? Ecosystem.Memgraph : Ecosystem.Neo4j;
-                this.hasElementId = this.ecosystem === Ecosystem.Neo4j && r["protocolVersion"] >= 5;
+                this.hasElementId = this.ecosystem === Ecosystem.Neo4j && r['protocolVersion'] >= 5;
 
-                this
-                    .query("SHOW DATABASES")
+                this.query('SHOW DATABASES')
                     .then(response => {
                         if (this.ecosystem === Ecosystem.Memgraph) {
                             this.activedb = response.records[0].get('Name');
-                            this.availableDatabases = response.records.map(row => row.get("Name"));
+                            this.availableDatabases = response.records.map(row => row.get('Name'));
                         } else {
-                            this.activedb = response.records.find(row => row.get("default")).get("name");
-                            this.availableDatabases = response.records.filter(row => row.get("type") !== "system").map(row => row.get("name"));
+                            this.activedb = response.records.find(row => row.get('default')).get('name');
+                            this.availableDatabases = response.records
+                                .filter(row => row.get('type') !== 'system')
+                                .map(row => row.get('name'));
                         }
-                        const active = localStorage.getItem("activedb");
-                        if (active && this.activedb !== active && this.availableDatabases.includes(active)) this.activedb = active;
+                        const active = localStorage.getItem('activedb');
+                        if (active && this.activedb !== active && this.availableDatabases.includes(active))
+                            this.activedb = active;
                         callback();
                     })
                     .catch(() => {
@@ -78,21 +80,29 @@ class Db {
     };
 
     registerChangeActiveDatabaseCallback = (fn: (db: string) => void) => {
-        for (let _fn of this.callbacks_1) if (`${fn}` === `${_fn}`) return;
+        for (const _fn of this.callbacks_1) if (`${fn}` === `${_fn}`) return;
         this.callbacks_1.push(fn);
     };
 
     registerChangeDatabasesCallback = (fn: (databases: string[]) => void) => {
-        for (let _fn of this.callbacks_2) if (`${fn}` === `${_fn}`) return;
+        for (const _fn of this.callbacks_2) if (`${fn}` === `${_fn}`) return;
         this.callbacks_2.push(fn);
     };
 
-    fnId = (name: string = "n"): string => {
-        return this.hasElementId ? "elementId(" + name + ")" : "id(" + name + ")";
+    fnId = (name: string = 'n'): string => {
+        return this.hasElementId ? 'elementId(' + name + ')' : 'id(' + name + ')';
     };
 
-    getId = (entry: _Node | _Relationship, elementId: string = "elementId", identity: string = "identity"): number | string => {
-        return this.hasElementId ? entry[elementId] : this._neo4j.integer.inSafeRange(entry[identity]) ? this._neo4j.integer.toNumber(entry[identity]) : this._neo4j.integer.toString(entry[identity]);
+    getId = (
+        entry: _Node | _Relationship,
+        elementId: string = 'elementId',
+        identity: string = 'identity'
+    ): number | string => {
+        return this.hasElementId
+            ? entry[elementId]
+            : this._neo4j.integer.inSafeRange(entry[identity])
+              ? this._neo4j.integer.toNumber(entry[identity])
+              : this._neo4j.integer.toString(entry[identity]);
     };
 
     isInt = (value: any): boolean => {
@@ -104,7 +114,9 @@ class Db {
     };
 
     fromInt = (val: Integer): number => {
-        return this._neo4j.integer.inSafeRange(val) ? this._neo4j.integer.toNumber(val) : parseFloat(this._neo4j.integer.toString(val));
+        return this._neo4j.integer.inSafeRange(val)
+            ? this._neo4j.integer.toNumber(val)
+            : parseFloat(this._neo4j.integer.toString(val));
     };
 
     toInt = (val: number | string): Integer => {
@@ -112,15 +124,31 @@ class Db {
     };
 
     query = (stmt: string, params: object = {}, db: string = undefined): Promise<QueryResult> => {
-        return new Promise(async (resolve, reject) => {
+        return new Promise((resolve, reject) => {
             try {
-                const session = this._driver.session({ database: db });
-                const result = await session.run(stmt, params);
-                await session.close();
-                this.logs = this.logs.concat({ query: stmt, params: params, status: true, date: new Date() } as t_Log).slice(-1000);
-                resolve({ records: result.records, summary: result.summary } as QueryResult);
+                this._driver.executeQuery(stmt, params, { database: db }).then(result => {
+                    this.logs = this.logs
+                        .concat({
+                            query: stmt,
+                            params: params,
+                            status: true,
+                            date: new Date(),
+                        } as t_Log)
+                        .slice(-1000);
+                    resolve({
+                        records: result.records,
+                        summary: result.summary,
+                    } as QueryResult);
+                });
             } catch (err) {
-                this.logs = this.logs.concat({ query: stmt, params: params, status: false, date: new Date() } as t_Log).slice(-1000);
+                this.logs = this.logs
+                    .concat({
+                        query: stmt,
+                        params: params,
+                        status: false,
+                        date: new Date(),
+                    } as t_Log)
+                    .slice(-1000);
                 reject(err);
             }
         });

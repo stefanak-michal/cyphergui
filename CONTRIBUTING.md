@@ -4,9 +4,9 @@ We appreciate your interest in contributing to cypherGUI! This document outlines
 
 **Prerequisites:**
 
-* Node.js and npm installed on your system.
-* Basic understanding of Git version control.
-* Familiarity with React.js and TypeScript.
+-   Node.js and npm installed on your system.
+-   Basic understanding of Git version control.
+-   Familiarity with React.js and TypeScript.
 
 **Development Setup:**
 
@@ -14,29 +14,29 @@ We appreciate your interest in contributing to cypherGUI! This document outlines
 2. Clone your forked repository to your local machine or use Codespace.
 3. Navigate to the project directory:
 
-   ```bash
-   cd cypherGUI
-   ```
+    ```bash
+    cd cypherGUI
+    ```
 
 4. Install dependencies:
 
-   ```bash
-   npm install
-   ```
+    ```bash
+    npm install
+    ```
 
 5. Start the development server:
 
-   ```bash
-   npm start
-   ```
+    ```bash
+    npm start
+    ```
 
 This will start the development server and open the application in your default browser.
 
 **Code Style:**
 
-* We follow standard React code style conventions.
-* We use TypeScript for type checking and code clarity. (non-strict)
-* Bulma CSS framework is used for styling.
+-   We follow standard React code style conventions.
+-   We use TypeScript for type checking and code clarity. (non-strict)
+-   Bulma CSS framework is used for styling.
 
 **Contributing Code:**
 
@@ -47,17 +47,17 @@ This will start the development server and open the application in your default 
 
 **Pull Request Review:**
 
-* We will review your pull request and provide feedback.
-* Address any comments or suggestions before merging your changes.
+-   We will review your pull request and provide feedback.
+-   Address any comments or suggestions before merging your changes.
 
 **Testing:**
 
-* Make sure to check project functionality in your browser.
-* Verify your change towards different ecosystems (Neo4j, Memgraph, etc.).
+-   Make sure to check project functionality in your browser.
+-   Verify your change towards different ecosystems (Neo4j, Memgraph, etc.).
 
 **Licensing:**
 
-* All contributions to cypherGUI are assumed to be licensed under the Apache-2.0 License (see LICENSE file).
+-   All contributions to cypherGUI are assumed to be licensed under the Apache-2.0 License (see LICENSE file).
 
 **Thank You!**
 

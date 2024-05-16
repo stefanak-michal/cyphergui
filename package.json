@@ -32,7 +32,11 @@
     "typescript": "^4.9.5"
   },
   "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@eslint/js": "^9.1.1",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5",
+    "typescript-eslint": "^7.8.0"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -40,7 +44,10 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d build",
+    "format": "npx prettier . --write",
+    "prettier-check": "npx prettier . --check",
+    "lint": "npx eslint src"
   },
   "browserslist": {
     "production": [
@@ -52,6 +59,26 @@
       "last 1 chrome version",
       "last 1 firefox version",
       "last 1 safari version"
+    ]
+  },
+  "prettier": {
+    "trailingComma": "es5",
+    "tabWidth": 4,
+    "singleQuote": true,
+    "proseWrap": "preserve",
+    "jsxSingleQuote": true,
+    "arrowParens": "avoid",
+    "printWidth": 120,
+    "overrides": [
+      {
+        "files": [
+          "*.json",
+          "*.yml"
+        ],
+        "options": {
+          "tabWidth": 2
+        }
+      }
     ]
   }
 }

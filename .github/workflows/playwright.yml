@@ -60,7 +60,7 @@ jobs:
       - name: Run Playwright tests (neo4j-read)
         run: npx playwright test --grep @neo4j-read --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} --reporter=blob
         env:
-          DB_HOSTNAME: 'bolt://neo4j:7687'
+          DB_HOSTNAME: 'bolt://neo4j_service:7687'
           DB_USERNAME: 'neo4j'
           DB_PASSWORD: 'nothing123'
       - name: Upload blob report to GitHub Actions Artifacts

@@ -25,6 +25,7 @@ jobs:
           - 7687:7687
           - 7474:7474
         options: >-
+          --name "neo4j_service"
           --health-cmd "wget http://localhost:7474 || exit 1"
     steps:
       #      - name: Install Cypher Shell (Debian Package)
@@ -35,8 +36,8 @@ jobs:
       - name: Get movies dataset
         run: |
           wget -O movies.cypher https://raw.githubusercontent.com/neo4j-graph-examples/movies/main/scripts/movies.cypher
-          docker exec neo4j cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" "MATCH (n) DETACH DELETE n"
-          docker exec neo4j cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" -f movies.cypher
+          docker exec neo4j_service cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" "MATCH (n) DETACH DELETE n"
+          docker exec neo4j_service cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" -f movies.cypher
   #          cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" "MATCH (n) DETACH DELETE n"
   #          cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" -f movies.cypher
 

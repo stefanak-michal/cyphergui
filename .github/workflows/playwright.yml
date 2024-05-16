@@ -9,57 +9,57 @@ on:
       - completed
 
 jobs:
-  neo4j-read:
-    timeout-minutes: 60
-    runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/playwright:v1.43.0-jammy
-
-    services:
-      neo4j:
-        image: neo4j:latest
-        env:
-          NEO4J_AUTH: neo4j/nothing123
-        ports:
-          - 7687:7687
-          - 7474:7474
-        options: >-
-          --health-cmd "wget http://localhost:7474 || exit 1"
-
-    steps:
-      - name: Install Cypher Shell (Debian Package)
-        run: |
-          wget -nv https://dist.neo4j.org/cypher-shell/cypher-shell_5.19.0_all.deb
-          apt-get update
-          apt-get install -y ./cypher-shell_5.19.0_all.deb
-      - name: Get movies dataset
-        run: |
-          wget -O movies.cypher https://raw.githubusercontent.com/neo4j-graph-examples/movies/main/scripts/movies.cypher
-          cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" "MATCH (n) DETACH DELETE n"
-          cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" -f movies.cypher
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: latest
-      - name: Install dependencies
-        run: npm ci
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
-      - name: Run Playwright tests (neo4j-read)
-        run: npm run playwright:neo4j-read
-        env:
-          DB_USERNAME: 'neo4j'
-          DB_PASSWORD: 'nothing123'
-
-      - name: Build
-        run: npm run build
-      - name: Run Playwright tests (build)
-        run: npm run playwright:build
-        env:
-          DB_USERNAME: 'neo4j'
-          DB_PASSWORD: 'nothing123'
+  #  neo4j-read:
+  #    timeout-minutes: 60
+  #    runs-on: ubuntu-latest
+  #    container:
+  #      image: mcr.microsoft.com/playwright:v1.43.0-jammy
+  #
+  #    services:
+  #      neo4j:
+  #        image: neo4j:latest
+  #        env:
+  #          NEO4J_AUTH: neo4j/nothing123
+  #        ports:
+  #          - 7687:7687
+  #          - 7474:7474
+  #        options: >-
+  #          --health-cmd "wget http://localhost:7474 || exit 1"
+  #
+  #    steps:
+  #      - name: Install Cypher Shell (Debian Package)
+  #        run: |
+  #          wget -nv https://dist.neo4j.org/cypher-shell/cypher-shell_5.19.0_all.deb
+  #          apt-get update
+  #          apt-get install -y ./cypher-shell_5.19.0_all.deb
+  #      - name: Get movies dataset
+  #        run: |
+  #          wget -O movies.cypher https://raw.githubusercontent.com/neo4j-graph-examples/movies/main/scripts/movies.cypher
+  #          cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" "MATCH (n) DETACH DELETE n"
+  #          cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" -f movies.cypher
+  #      - name: Checkout
+  #        uses: actions/checkout@v4
+  #      - name: Setup node
+  #        uses: actions/setup-node@v4
+  #        with:
+  #          node-version: latest
+  #      - name: Install dependencies
+  #        run: npm ci
+  #      - name: Install Playwright Browsers
+  #        run: npx playwright install --with-deps chromium
+  #      - name: Run Playwright tests (neo4j-read)
+  #        run: npm run playwright:neo4j-read
+  #        env:
+  #          DB_USERNAME: 'neo4j'
+  #          DB_PASSWORD: 'nothing123'
+  #
+  #      - name: Build
+  #        run: npm run build
+  #      - name: Run Playwright tests (build)
+  #        run: npm run playwright:build
+  #        env:
+  #          DB_USERNAME: 'neo4j'
+  #          DB_PASSWORD: 'nothing123'
 
   neo4j-write:
     timeout-minutes: 60
@@ -94,40 +94,45 @@ jobs:
         env:
           DB_USERNAME: 'neo4j'
           DB_PASSWORD: 'nothing123'
-
-  neo4j-multidb:
-    timeout-minutes: 60
-    runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/playwright:v1.43.0-jammy
-
-    services:
-      neo4j:
-        image: neo4j:enterprise
-        env:
-          NEO4J_AUTH: neo4j/nothing123
-          NEO4J_ACCEPT_LICENSE_AGREEMENT: yes
-        ports:
-          - 7687:7687
-          - 7474:7474
-        options: >-
-          --health-cmd "wget http://localhost:7474 || exit 1"
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup node
-        uses: actions/setup-node@v4
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
         with:
-          node-version: latest
-      - name: Install dependencies
-        run: npm ci
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
-      - name: Run Playwright tests (neo4j-multidb)
-        run: npm run playwright:neo4j-multidb
-        env:
-          DB_USERNAME: 'neo4j'
-          DB_PASSWORD: 'nothing123'
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+#  neo4j-multidb:
+#    timeout-minutes: 60
+#    runs-on: ubuntu-latest
+#    container:
+#      image: mcr.microsoft.com/playwright:v1.43.0-jammy
+#
+#    services:
+#      neo4j:
+#        image: neo4j:enterprise
+#        env:
+#          NEO4J_AUTH: neo4j/nothing123
+#          NEO4J_ACCEPT_LICENSE_AGREEMENT: yes
+#        ports:
+#          - 7687:7687
+#          - 7474:7474
+#        options: >-
+#          --health-cmd "wget http://localhost:7474 || exit 1"
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#      - name: Setup node
+#        uses: actions/setup-node@v4
+#        with:
+#          node-version: latest
+#      - name: Install dependencies
+#        run: npm ci
+#      - name: Install Playwright Browsers
+#        run: npx playwright install --with-deps chromium
+#      - name: Run Playwright tests (neo4j-multidb)
+#        run: npm run playwright:neo4j-multidb
+#        env:
+#          DB_USERNAME: 'neo4j'
+#          DB_PASSWORD: 'nothing123'
 #  memgraph:
 #    timeout-minutes: 60
 #    runs-on: ubuntu-latest

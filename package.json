@@ -47,11 +47,6 @@
     "format": "npx prettier . --write",
     "prettier-check": "npx prettier . --check",
     "lint": "npx eslint src",
-    "playwright:neo4j-read": "npx playwright test --grep @neo4j-read",
-    "playwright:neo4j-write": "npx playwright test --grep @neo4j-write",
-    "playwright:neo4j-multidb": "npx playwright test --grep @neo4j-multidb",
-    "playwright:memgraph": "npx playwright test --grep @memgraph",
-    "playwright:build": "npx playwright test --grep @build",
     "playwright:ui": "npx playwright test --ui"
   },
   "browserslist": {

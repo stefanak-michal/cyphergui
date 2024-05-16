@@ -13,33 +13,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  #  neo4j-movies:
-  #    timeout-minutes: 60
-  #    runs-on: ubuntu-latest
-  #    services:
-  #      neo4j:
-  #        image: neo4j:latest
-  #        env:
-  #          NEO4J_AUTH: neo4j/nothing123
-  #        ports:
-  #          - 7687:7687
-  #          - 7474:7474
-  #        options: >-
-  #          --name "neo4j_service"
-  #          --health-cmd "wget http://localhost:7474 || exit 1"
-  #    steps:
-  #      - name: Get movies dataset
-  #        run: |
-  #          docker exec neo4j_service wget -O /tmp/movies.cypher https://raw.githubusercontent.com/neo4j-graph-examples/movies/main/scripts/movies.cypher
-  #          docker exec neo4j_service cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" "MATCH (n) DETACH DELETE n"
-  #          docker exec neo4j_service cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" -f /tmp/movies.cypher
-
   neo4j-read:
-    #    needs: neo4j-movies
     timeout-minutes: 60
     runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/playwright:v1.44.0-jammy
+    #    container:
+    #      image: mcr.microsoft.com/playwright:v1.44.0-jammy
     services:
       neo4j:
         image: neo4j:latest
@@ -73,10 +51,15 @@ jobs:
           node-version: latest
       - name: Install dependencies
         run: npm ci
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
-      - name: Run Playwright tests (neo4j-read)
-        run: npx playwright test --grep @neo4j-read --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} --reporter=blob
+      - name: Playwright
+        uses: mcr.microsoft.com/playwright:v1.44.0-jammy
+        run: |
+          npx playwright install --with-deps chromium
+          npx playwright test --grep @neo4j-read --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} --reporter=blob
+        #      - name: Install Playwright Browsers
+        #        run: npx playwright install --with-deps chromium
+        #      - name: Run Playwright tests (neo4j-read)
+        #        run: npx playwright test --grep @neo4j-read --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} --reporter=blob
         env:
           DB_HOSTNAME: 'bolt://neo4j:7687'
           DB_USERNAME: 'neo4j'

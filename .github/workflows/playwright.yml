@@ -51,10 +51,10 @@ jobs:
           node-version: latest
       - name: Install dependencies
         run: npm ci
-#      - name: Playwright
-#        run: |
-#          npx playwright install --with-deps chromium
-#          npx playwright test --grep @neo4j-read --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} --reporter=blob
+      #      - name: Playwright
+      #        run: |
+      #          npx playwright install --with-deps chromium
+      #          npx playwright test --grep @neo4j-read --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} --reporter=blob
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
       - name: Run Playwright tests (neo4j-read)

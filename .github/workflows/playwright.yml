@@ -30,8 +30,8 @@ jobs:
       - name: Install Cypher Shell (Debian Package)
         run: |
           wget -nv https://dist.neo4j.org/cypher-shell/cypher-shell_5.19.0_all.deb
-          apt-get update
-          apt-get install -y ./cypher-shell_5.19.0_all.deb
+          sudo apt-get update
+          sudo apt-get install -y ./cypher-shell_5.19.0_all.deb
       - name: Get movies dataset
         run: |
           wget -O movies.cypher https://raw.githubusercontent.com/neo4j-graph-examples/movies/main/scripts/movies.cypher

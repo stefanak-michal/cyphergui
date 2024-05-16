@@ -8,6 +8,10 @@ on:
     types:
       - completed
 
+concurrency:
+  group: ${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
   neo4j-read:
     timeout-minutes: 60

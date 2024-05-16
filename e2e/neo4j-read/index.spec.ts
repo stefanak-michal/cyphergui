@@ -26,10 +26,10 @@ test.describe('Remember me', { tag: '@neo4j-read' }, () => {
         await page.getByText('Remember me (not secure)').click();
         await page.getByRole('button', { name: 'Login' }).click();
         // check success
-        await expect(page.locator('#basicNavbar')).toBeVisible();
+        await expect(page.getByLabel('main navigation')).toHaveCount(1);
         // open page again and it should automatically log in
         await page.goto(process.env.URL || '/');
-        await expect(page.locator('#basicNavbar')).toBeVisible();
+        await expect(page.getByLabel('main navigation')).toHaveCount(1);
         // click on log out button should stay at login page
         await page.getByRole('button', { name: 'Log out' }).click();
         await expect(page.locator('form#login')).toHaveCount(1);

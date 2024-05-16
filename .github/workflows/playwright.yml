@@ -63,6 +63,12 @@ jobs:
           DB_HOSTNAME: 'bolt://neo4j:7687'
           DB_USERNAME: 'neo4j'
           DB_PASSWORD: 'nothing123'
+      - uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 1
   #      - name: Upload blob report to GitHub Actions Artifacts
   #        if: ${{ failure() }}
   #        uses: actions/upload-artifact@v4

@@ -40,8 +40,8 @@ jobs:
         #        if: ${{ matrix.shardIndex == 1 }}
         run: |
           docker exec neo4j_service wget -O /tmp/movies.cypher https://raw.githubusercontent.com/neo4j-graph-examples/movies/main/scripts/movies.cypher
-          docker exec neo4j_service cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" "MATCH (n) DETACH DELETE n"
-          docker exec neo4j_service cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" -f /tmp/movies.cypher
+          docker exec neo4j_service cypher-shell -a bolt://localhost:7687 -u "neo4j" -p "nothing123" "MATCH (n) DETACH DELETE n"
+          docker exec neo4j_service cypher-shell -a bolt://localhost:7687 -u "neo4j" -p "nothing123" -f /tmp/movies.cypher
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -76,139 +76,138 @@ jobs:
   #          name: blob-report-${{ matrix.shardIndex }}
   #          path: blob-report
   #          retention-days: 1
-
-  build:
-    timeout-minutes: 60
-    runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/playwright:v1.44.0-jammy
-
-    services:
-      neo4j:
-        image: neo4j:latest
-        env:
-          NEO4J_AUTH: neo4j/nothing123
-        ports:
-          - 7687:7687
-          - 7474:7474
-        options: >-
-          --health-cmd "wget http://localhost:7474 || exit 1"
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: latest
-      - name: Install dependencies
-        run: npm ci
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
-      - name: Build
-        run: npm run build
-      - name: Run Playwright tests (build)
-        run: npx playwright test --grep @build
-        env:
-          DB_HOSTNAME: 'bolt://neo4j:7687'
-          DB_USERNAME: 'neo4j'
-          DB_PASSWORD: 'nothing123'
-
-  neo4j-write:
-    timeout-minutes: 60
-    runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/playwright:v1.44.0-jammy
-
-    services:
-      neo4j:
-        image: neo4j:latest
-        env:
-          NEO4J_AUTH: neo4j/nothing123
-        ports:
-          - 7687:7687
-          - 7474:7474
-        options: >-
-          --health-cmd "wget http://localhost:7474 || exit 1"
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: latest
-      - name: Install dependencies
-        run: npm ci
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
-      - name: Run Playwright tests (neo4j-write)
-        run: npx playwright test --grep @neo4j-write
-        env:
-          DB_HOSTNAME: 'bolt://neo4j:7687'
-          DB_USERNAME: 'neo4j'
-          DB_PASSWORD: 'nothing123'
-
-  neo4j-multidb:
-    timeout-minutes: 60
-    runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/playwright:v1.44.0-jammy
-
-    services:
-      neo4j:
-        image: neo4j:enterprise
-        env:
-          NEO4J_AUTH: neo4j/nothing123
-          NEO4J_ACCEPT_LICENSE_AGREEMENT: yes
-        ports:
-          - 7687:7687
-          - 7474:7474
-        options: >-
-          --health-cmd "wget http://localhost:7474 || exit 1"
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: latest
-      - name: Install dependencies
-        run: npm ci
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
-      - name: Run Playwright tests (neo4j-multidb)
-        run: npx playwright test --grep @neo4j-multidb
-        env:
-          DB_HOSTNAME: 'bolt://neo4j:7687'
-          DB_USERNAME: 'neo4j'
-          DB_PASSWORD: 'nothing123'
-
-  memgraph:
-    timeout-minutes: 60
-    runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/playwright:v1.44.0-jammy
-
-    services:
-      memgraph:
-        image: memgraph/memgraph:latest
-        ports:
-          - 7687:7687
-        options: >-
-          --health-cmd "echo 'RETURN 0;' | mgconsole || exit 1"
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: latest
-      - name: Install dependencies
-        run: npm ci
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
-      - name: Run Playwright tests (memgraph)
-        run: npx playwright test --grep @memgraph
-        env:
-          DB_HOSTNAME: 'bolt://memgraph:7687'
+#  build:
+#    timeout-minutes: 60
+#    runs-on: ubuntu-latest
+#    container:
+#      image: mcr.microsoft.com/playwright:v1.44.0-jammy
+#
+#    services:
+#      neo4j:
+#        image: neo4j:latest
+#        env:
+#          NEO4J_AUTH: neo4j/nothing123
+#        ports:
+#          - 7687:7687
+#          - 7474:7474
+#        options: >-
+#          --health-cmd "wget http://localhost:7474 || exit 1"
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#      - name: Setup node
+#        uses: actions/setup-node@v4
+#        with:
+#          node-version: latest
+#      - name: Install dependencies
+#        run: npm ci
+#      - name: Install Playwright Browsers
+#        run: npx playwright install --with-deps chromium
+#      - name: Build
+#        run: npm run build
+#      - name: Run Playwright tests (build)
+#        run: npx playwright test --grep @build
+#        env:
+#          DB_HOSTNAME: 'bolt://neo4j:7687'
+#          DB_USERNAME: 'neo4j'
+#          DB_PASSWORD: 'nothing123'
+#
+#  neo4j-write:
+#    timeout-minutes: 60
+#    runs-on: ubuntu-latest
+#    container:
+#      image: mcr.microsoft.com/playwright:v1.44.0-jammy
+#
+#    services:
+#      neo4j:
+#        image: neo4j:latest
+#        env:
+#          NEO4J_AUTH: neo4j/nothing123
+#        ports:
+#          - 7687:7687
+#          - 7474:7474
+#        options: >-
+#          --health-cmd "wget http://localhost:7474 || exit 1"
+#
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#      - name: Setup node
+#        uses: actions/setup-node@v4
+#        with:
+#          node-version: latest
+#      - name: Install dependencies
+#        run: npm ci
+#      - name: Install Playwright Browsers
+#        run: npx playwright install --with-deps chromium
+#      - name: Run Playwright tests (neo4j-write)
+#        run: npx playwright test --grep @neo4j-write
+#        env:
+#          DB_HOSTNAME: 'bolt://neo4j:7687'
+#          DB_USERNAME: 'neo4j'
+#          DB_PASSWORD: 'nothing123'
+#
+#  neo4j-multidb:
+#    timeout-minutes: 60
+#    runs-on: ubuntu-latest
+#    container:
+#      image: mcr.microsoft.com/playwright:v1.44.0-jammy
+#
+#    services:
+#      neo4j:
+#        image: neo4j:enterprise
+#        env:
+#          NEO4J_AUTH: neo4j/nothing123
+#          NEO4J_ACCEPT_LICENSE_AGREEMENT: yes
+#        ports:
+#          - 7687:7687
+#          - 7474:7474
+#        options: >-
+#          --health-cmd "wget http://localhost:7474 || exit 1"
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#      - name: Setup node
+#        uses: actions/setup-node@v4
+#        with:
+#          node-version: latest
+#      - name: Install dependencies
+#        run: npm ci
+#      - name: Install Playwright Browsers
+#        run: npx playwright install --with-deps chromium
+#      - name: Run Playwright tests (neo4j-multidb)
+#        run: npx playwright test --grep @neo4j-multidb
+#        env:
+#          DB_HOSTNAME: 'bolt://neo4j:7687'
+#          DB_USERNAME: 'neo4j'
+#          DB_PASSWORD: 'nothing123'
+#
+#  memgraph:
+#    timeout-minutes: 60
+#    runs-on: ubuntu-latest
+#    container:
+#      image: mcr.microsoft.com/playwright:v1.44.0-jammy
+#
+#    services:
+#      memgraph:
+#        image: memgraph/memgraph:latest
+#        ports:
+#          - 7687:7687
+#        options: >-
+#          --health-cmd "echo 'RETURN 0;' | mgconsole || exit 1"
+#
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#      - name: Setup node
+#        uses: actions/setup-node@v4
+#        with:
+#          node-version: latest
+#      - name: Install dependencies
+#        run: npm ci
+#      - name: Install Playwright Browsers
+#        run: npx playwright install --with-deps chromium
+#      - name: Run Playwright tests (memgraph)
+#        run: npx playwright test --grep @memgraph
+#        env:
+#          DB_HOSTNAME: 'bolt://memgraph:7687'

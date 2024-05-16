@@ -17,6 +17,7 @@ test.describe('Label tab', { tag: '@neo4j-read' }, () => {
     });
 
     test('Table view', async ({ page }) => {
+        await expect(containerLocator(page, 'table tbody tr')).toHaveCount(20);
         await expect(containerLocator(page)).toHaveScreenshot({
             mask: [
                 //hide ids and elementIds

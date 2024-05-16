@@ -12,6 +12,7 @@ test.describe('Type tab', { tag: '@neo4j-read' }, () => {
     test.use({ viewport: { width: 1920, height: 1800 } });
 
     test('Table view', async ({ page }) => {
+        await expect(containerLocator(page, 'table tbody tr')).toHaveCount(20);
         await expect(containerLocator(page)).toHaveScreenshot({
             mask: [
                 //hide ids and elementIds

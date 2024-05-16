@@ -92,6 +92,7 @@ jobs:
       - name: Run Playwright tests (neo4j-write)
         run: npm run playwright:neo4j-write
         env:
+          DB_HOSTNAME: 'bolt://neo4j:7687'
           DB_USERNAME: 'neo4j'
           DB_PASSWORD: 'nothing123'
       - uses: actions/upload-artifact@v4

@@ -1,4 +1,4 @@
-import { expect, test } from '../fixtures/neo4j-login';
+import { expect, test } from '../fixtures/login';
 import { checkActiveTab, checkNotification, containerLocator, modalLocator, switchToTab } from '../helpers';
 import { Locator, Page } from '@playwright/test';
 

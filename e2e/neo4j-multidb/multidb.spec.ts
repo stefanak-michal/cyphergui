@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/neo4j-login';
+import { test, expect } from '../fixtures/login';
 import { checkActiveTab, checkNotification, containerLocator, modalLocator, switchToTab } from '../helpers';
 
 test.describe('Multi database', { tag: '@neo4j-multidb' }, () => {

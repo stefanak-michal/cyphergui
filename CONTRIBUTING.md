@@ -37,13 +37,17 @@ This will start the development server and open the application in your default 
 -   We follow standard React code style conventions.
 -   We use TypeScript for type checking and code clarity. (non-strict)
 -   Bulma CSS framework is used for styling.
+-   Prettier is used. `npm run format`
 
 **Contributing Code:**
 
 1. Create a new branch for your feature or bug fix.
-2. Make your changes and commit them with descriptive messages.
-3. Push your changes to your forked repository.
-4. Create a pull request from your forked repository to the upstream cypherGUI repository.
+2. Make your changes.
+3. Test your code.
+4. Check your code with prettier and linter.
+5. Commit them with descriptive messages.
+6. Push your changes to your forked repository.
+7. Create a pull request from your forked repository to the upstream cypherGUI repository.
 
 **Pull Request Review:**
 
@@ -53,6 +57,7 @@ This will start the development server and open the application in your default 
 **Testing:**
 
 -   Make sure to check project functionality in your browser.
+-   Playwright is used. `npx playwright test`
 -   Verify your change towards different ecosystems (Neo4j, Memgraph, etc.).
 
 **Licensing:**

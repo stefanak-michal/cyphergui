@@ -62,11 +62,6 @@ jobs:
           DB_HOSTNAME: 'bolt://neo4j:7687'
           DB_USERNAME: 'neo4j'
           DB_PASSWORD: 'nothing123'
-      - uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
-        with:
-          name: playwright-report-neo4j-read-${{ matrix.shardIndex }}
-          path: playwright-report/
 
   build:
     timeout-minutes: 60
@@ -103,12 +98,6 @@ jobs:
           DB_HOSTNAME: 'bolt://neo4j:7687'
           DB_USERNAME: 'neo4j'
           DB_PASSWORD: 'nothing123'
-      - uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
-        with:
-          name: playwright-report-build
-          path: playwright-report/
-          retention-days: 7
 
   neo4j-write:
     timeout-minutes: 60
@@ -144,12 +133,6 @@ jobs:
           DB_HOSTNAME: 'bolt://neo4j:7687'
           DB_USERNAME: 'neo4j'
           DB_PASSWORD: 'nothing123'
-      - uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
-        with:
-          name: playwright-report-neo4j-write
-          path: playwright-report/
-          retention-days: 7
 
   neo4j-multidb:
     timeout-minutes: 60
@@ -185,12 +168,6 @@ jobs:
           DB_HOSTNAME: 'bolt://neo4j:7687'
           DB_USERNAME: 'neo4j'
           DB_PASSWORD: 'nothing123'
-      - uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
-        with:
-          name: playwright-report-neo4j-multidb
-          path: playwright-report/
-          retention-days: 7
 
   memgraph:
     timeout-minutes: 60
@@ -221,9 +198,3 @@ jobs:
         run: npx playwright test --grep @memgraph
         env:
           DB_HOSTNAME: 'bolt://memgraph:7687'
-      - uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
-        with:
-          name: playwright-report-memgraph
-          path: playwright-report/
-          retention-days: 7

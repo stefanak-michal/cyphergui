@@ -56,7 +56,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report
+          name: playwright-report-neo4j-read
           path: playwright-report/
 
       - name: Build
@@ -70,7 +70,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report
+          name: playwright-report-build
           path: playwright-report/
 
   neo4j-write:
@@ -110,7 +110,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report
+          name: playwright-report-neo4j-write
           path: playwright-report/
           retention-days: 7
 
@@ -151,31 +151,42 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report
+          name: playwright-report-neo4j-multidb
           path: playwright-report/
           retention-days: 7
-#  memgraph:
-#    timeout-minutes: 60
-#    runs-on: ubuntu-latest
-#    container:
-#      image: mcr.microsoft.com/playwright:v1.43.0-jammy
-#
-#    services:
-#      memgraph:
-#        image: memgraph/memgraph:latest
-#        ports:
-#          - 7687:7687
-#        options: >-
-#          --health-cmd "echo 'RETURN 0;' | mgconsole || exit 1"
-#
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v4
-#      - name: Setup node
-#        uses: actions/setup-node@v4
-#        with:
-#          node-version: latest
-#      - name: Install dependencies
-#        run: npm ci
-#      - name: Run Playwright tests (memgraph)
-#        run: npm run playwright:memgraph
+
+  memgraph:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.44.0-jammy
+
+    services:
+      memgraph:
+        image: memgraph/memgraph:latest
+        ports:
+          - 7687:7687
+        options: >-
+          --health-cmd "echo 'RETURN 0;' | mgconsole || exit 1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: latest
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+      - name: Run Playwright tests (memgraph)
+        run: npm run playwright:memgraph
+        env:
+          DB_HOSTNAME: 'bolt://memgraph:7687'
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report-memgraph
+          path: playwright-report/
+          retention-days: 7

@@ -31,6 +31,8 @@ class Db {
 
     set databases(names: string[]) {
         this.availableDatabases = names;
+        if (!this.databases.includes(this.database))
+            this.database = names[0];
         for (const fn of this.callbacks_2) fn(names);
     }
 

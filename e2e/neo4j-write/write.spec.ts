@@ -125,7 +125,6 @@ async function addProperties(page: Page) {
 }
 
 test.describe('Write flow', { tag: '@neo4j-write' }, () => {
-    test.describe.configure({ mode: 'serial' });
     test.use({ viewport: { width: 1920, height: 1800 } });
 
     test('Run', async ({ page }) => {

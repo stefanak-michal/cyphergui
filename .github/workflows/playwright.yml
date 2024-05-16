@@ -3,6 +3,10 @@ name: Playwright e2e tests
 on:
   pull_request:
     branches: [master]
+  workflow_run:
+    workflows: ['Prettier and linter']
+    types:
+      - completed
 
 jobs:
   neo4j-read:
@@ -26,8 +30,8 @@ jobs:
       - name: Install Cypher Shell (Debian Package)
         run: |
           wget https://dist.neo4j.org/cypher-shell/cypher-shell_5.19.0_all.deb
-          sudo apt-get update
-          sudo apt-get install -y ./cypher-shell_5.19.0_all.deb
+          apt-get update
+          apt-get install -y ./cypher-shell_5.19.0_all.deb
       - name: Get movies dataset
         run: |
           wget -O movies.cypher https://raw.githubusercontent.com/neo4j-graph-examples/movies/main/scripts/movies.cypher

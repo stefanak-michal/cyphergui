@@ -13,17 +13,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  neo4j-read:
+  neo4j-movies:
     timeout-minutes: 60
     runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/playwright:v1.44.0-jammy
-    strategy:
-      fail-fast: false
-      matrix:
-        shardIndex: [1, 2, 3, 4, 5, 6, 7, 8]
-        shardTotal: [8]
-
     services:
       neo4j:
         image: neo4j:latest
@@ -34,7 +26,6 @@ jobs:
           - 7474:7474
         options: >-
           --health-cmd "wget http://localhost:7474 || exit 1"
-
     steps:
       - name: Install Cypher Shell (Debian Package)
         run: |
@@ -46,6 +37,20 @@ jobs:
           wget -O movies.cypher https://raw.githubusercontent.com/neo4j-graph-examples/movies/main/scripts/movies.cypher
           cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" "MATCH (n) DETACH DELETE n"
           cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" -f movies.cypher
+
+  neo4j-read:
+    needs: neo4j-movies
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.44.0-jammy
+    strategy:
+      fail-fast: false
+      matrix:
+        shardIndex: [1, 2, 3, 4, 5, 6, 7, 8]
+        shardTotal: [8]
+
+    steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup node

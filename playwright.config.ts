@@ -25,6 +25,8 @@ export default defineConfig({
         max: 5,
         threshold: 60000,
     },
+    /* Limit the number of failures on CI to save resources */
+    maxFailures: process.env.CI ? 1 : undefined,
     timeout: 120000,
     /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
     use: {

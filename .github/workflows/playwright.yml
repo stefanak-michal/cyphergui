@@ -35,9 +35,10 @@ jobs:
       #          sudo apt-get install -y ./cypher-shell_5.19.0_all.deb
       - name: Get movies dataset
         run: |
-          wget -O movies.cypher https://raw.githubusercontent.com/neo4j-graph-examples/movies/main/scripts/movies.cypher
+          docker exec neo4j_service wget -O /tmp/movies.cypher https://raw.githubusercontent.com/neo4j-graph-examples/movies/main/scripts/movies.cypher
           docker exec neo4j_service cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" "MATCH (n) DETACH DELETE n"
-          docker exec neo4j_service cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" -f movies.cypher
+          docker exec neo4j_service cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" -f /tmp/movies.cypher
+  #          wget -O movies.cypher https://raw.githubusercontent.com/neo4j-graph-examples/movies/main/scripts/movies.cypher
   #          cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" "MATCH (n) DETACH DELETE n"
   #          cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" -f movies.cypher
 

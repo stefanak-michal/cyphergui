@@ -51,15 +51,14 @@ jobs:
           node-version: latest
       - name: Install dependencies
         run: npm ci
-      - name: Playwright
-        uses: mcr.microsoft.com/playwright:v1.44.0-jammy
-        run: |
-          npx playwright install --with-deps chromium
-          npx playwright test --grep @neo4j-read --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} --reporter=blob
-        #      - name: Install Playwright Browsers
-        #        run: npx playwright install --with-deps chromium
-        #      - name: Run Playwright tests (neo4j-read)
-        #        run: npx playwright test --grep @neo4j-read --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} --reporter=blob
+#      - name: Playwright
+#        run: |
+#          npx playwright install --with-deps chromium
+#          npx playwright test --grep @neo4j-read --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} --reporter=blob
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+      - name: Run Playwright tests (neo4j-read)
+        run: npx playwright test --grep @neo4j-read --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} --reporter=blob
         env:
           DB_HOSTNAME: 'bolt://neo4j:7687'
           DB_USERNAME: 'neo4j'

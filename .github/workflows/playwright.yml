@@ -16,8 +16,8 @@ jobs:
   neo4j-read:
     timeout-minutes: 60
     runs-on: ubuntu-latest
-#    container:
-#      image: mcr.microsoft.com/playwright:v1.44.0-jammy
+    #    container:
+    #      image: mcr.microsoft.com/playwright:v1.44.0-jammy
     services:
       neo4j:
         image: neo4j:latest
@@ -29,15 +29,15 @@ jobs:
         options: >-
           --name "neo4j_service"
           --health-cmd "wget http://localhost:7474 || exit 1"
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        shardIndex: [1, 2, 3, 4, 5, 6, 7, 8]
-#        shardTotal: [8]
+    #    strategy:
+    #      fail-fast: false
+    #      matrix:
+    #        shardIndex: [1, 2, 3, 4, 5, 6, 7, 8]
+    #        shardTotal: [8]
 
     steps:
       - name: Load movies dataset
-#        if: ${{ matrix.shardIndex == 1 }}
+        #        if: ${{ matrix.shardIndex == 1 }}
         run: |
           docker exec neo4j_service wget -O /tmp/movies.cypher https://raw.githubusercontent.com/neo4j-graph-examples/movies/main/scripts/movies.cypher
           docker exec neo4j_service cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" "MATCH (n) DETACH DELETE n"
@@ -63,13 +63,13 @@ jobs:
           DB_HOSTNAME: 'bolt://neo4j:7687'
           DB_USERNAME: 'neo4j'
           DB_PASSWORD: 'nothing123'
-#      - name: Upload blob report to GitHub Actions Artifacts
-#        if: ${{ failure() }}
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: blob-report-${{ matrix.shardIndex }}
-#          path: blob-report
-#          retention-days: 1
+  #      - name: Upload blob report to GitHub Actions Artifacts
+  #        if: ${{ failure() }}
+  #        uses: actions/upload-artifact@v4
+  #        with:
+  #          name: blob-report-${{ matrix.shardIndex }}
+  #          path: blob-report
+  #          retention-days: 1
 
   build:
     timeout-minutes: 60

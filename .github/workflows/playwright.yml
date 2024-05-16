@@ -58,7 +58,7 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
       - name: Run Playwright tests (neo4j-read)
-        run: npx playwright test --grep @neo4j-read --workers 6 #--reporter=blob --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+        run: npx playwright test --grep @neo4j-read --reporter=html #--reporter=blob --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
         env:
           DB_HOSTNAME: 'bolt://neo4j:7687'
           DB_USERNAME: 'neo4j'

@@ -119,7 +119,6 @@ jobs:
         env:
           DB_USERNAME: 'neo4j'
           DB_PASSWORD: 'nothing123'
-
 #  memgraph:
 #    timeout-minutes: 60
 #    runs-on: ubuntu-latest

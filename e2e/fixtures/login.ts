@@ -7,7 +7,7 @@ export const test = base.extend({
         await page.getByLabel('Username').fill(process.env.DB_USERNAME || '');
         await page.getByLabel('Password').fill(process.env.DB_PASSWORD || '');
         await page.getByRole('button', { name: 'Login' }).click();
-        await expect(page.locator('#basicNavbar')).toBeVisible();
+        await expect(page.getByLabel('main navigation')).toHaveCount(1);
 
         await use(page);
     },

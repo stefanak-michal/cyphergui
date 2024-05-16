@@ -28,19 +28,11 @@ jobs:
           --name "neo4j_service"
           --health-cmd "wget http://localhost:7474 || exit 1"
     steps:
-      #      - name: Install Cypher Shell (Debian Package)
-      #        run: |
-      #          wget -nv https://dist.neo4j.org/cypher-shell/cypher-shell_5.19.0_all.deb
-      #          sudo apt-get update
-      #          sudo apt-get install -y ./cypher-shell_5.19.0_all.deb
       - name: Get movies dataset
         run: |
           docker exec neo4j_service wget -O /tmp/movies.cypher https://raw.githubusercontent.com/neo4j-graph-examples/movies/main/scripts/movies.cypher
           docker exec neo4j_service cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" "MATCH (n) DETACH DELETE n"
           docker exec neo4j_service cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" -f /tmp/movies.cypher
-  #          wget -O movies.cypher https://raw.githubusercontent.com/neo4j-graph-examples/movies/main/scripts/movies.cypher
-  #          cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" "MATCH (n) DETACH DELETE n"
-  #          cypher-shell -a neo4j://neo4j:7687 -u "neo4j" -p "nothing123" -f movies.cypher
 
   neo4j-read:
     needs: neo4j-movies
@@ -71,6 +63,13 @@ jobs:
           DB_HOSTNAME: 'bolt://neo4j:7687'
           DB_USERNAME: 'neo4j'
           DB_PASSWORD: 'nothing123'
+      - name: Upload blob report to GitHub Actions Artifacts
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: blob-report-${{ matrix.shardIndex }}
+          path: blob-report
+          retention-days: 1
 
   build:
     timeout-minutes: 60

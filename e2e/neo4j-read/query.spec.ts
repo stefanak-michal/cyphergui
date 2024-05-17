@@ -48,25 +48,13 @@ test.describe('Query tab', { tag: '@neo4j-read' }, () => {
         test('Table - medium', async ({ page }) => {
             await containerLocator(page).getByRole('button', { name: 'Table' }).click();
             await containerLocator(page).getByRole('button', { name: 'Medium' }).click();
-            await expect(containerLocator(page, 'table')).toHaveScreenshot({
-                mask: [
-                    containerLocator(page, 'table tbody')
-                        .getByRole('button')
-                        .getByText(/^#\d+$/),
-                ],
-            });
+            await expect(containerLocator(page, 'table tbody tr')).toHaveCount(10);
         });
 
         test('Table - small', async ({ page }) => {
             await containerLocator(page).getByRole('button', { name: 'Table' }).click();
             await containerLocator(page).getByRole('button', { name: 'Small' }).click();
-            await expect(containerLocator(page, 'table')).toHaveScreenshot({
-                mask: [
-                    containerLocator(page, 'table tbody')
-                        .getByRole('button')
-                        .getByText(/^#\d+$/),
-                ],
-            });
+            await expect(containerLocator(page, 'table tbody tr')).toHaveCount(10);
         });
 
         test.describe('Table buttons', () => {

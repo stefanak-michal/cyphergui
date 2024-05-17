@@ -26,6 +26,9 @@ jobs:
       - name: install dependencies
         run: npm ci
 
+      - name: Build
+        run: npm run build
+
       - name: deploy with gh-pages
         run: |
           git config --global user.email "github-actions-bot@github.com"

@@ -2,35 +2,6 @@ import * as React from 'react';
 import { EPage } from '../utils/enums';
 import { ITabManager } from '../utils/interfaces';
 
-export class Input extends React.Component<{
-    label: string;
-    name: string;
-    type?: string;
-    placeholder?: string;
-    value?: any;
-    onChange: (e: React.ChangeEvent) => void;
-    focus?: boolean;
-}> {
-    render() {
-        return (
-            <div className='field'>
-                <label className='label'>{this.props.label}</label>
-                <div className='control'>
-                    <input
-                        className='input'
-                        name={this.props.name}
-                        type={this.props.type || 'text'}
-                        placeholder={this.props.placeholder || ''}
-                        onChange={this.props.onChange}
-                        value={this.props.value}
-                        autoFocus={this.props.focus || false}
-                    />
-                </div>
-            </div>
-        );
-    }
-}
-
 export class Checkbox extends React.Component<{
     name: string;
     label: string;

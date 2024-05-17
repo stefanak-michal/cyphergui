@@ -44,6 +44,7 @@ export default class InlineRelationship extends React.Component<{
                                 icon='fa-solid fa-rectangle-list'
                                 onClick={() => fn(this.props.rel.properties)}
                                 color={'ml-1 ' + (this.props.small ? 'is-small' : '')}
+                                title='Properties'
                             />
                         )}
                     </PropertiesModalContext.Consumer>

@@ -65,7 +65,7 @@ class Settings extends React.Component<{ handleClose: () => void }, ISettingsSta
                     <Checkbox
                         name='confirmCloseUnsavedChanges'
                         onChange={this.handleChange}
-                        label='Confirm dialog when closing tab with unsaved changes.'
+                        label='Confirm dialog when closing tab with unsaved changes'
                         checked={this.state.settings.confirmCloseUnsavedChanges}
                         color='is-link'
                     />

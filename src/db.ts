@@ -31,6 +31,7 @@ class Db {
 
     set databases(names: string[]) {
         this.availableDatabases = names;
+        if (!this.databases.includes(this.database)) this.database = names[0];
         for (const fn of this.callbacks_2) fn(names);
     }
 
@@ -125,8 +126,9 @@ class Db {
 
     query = (stmt: string, params: object = {}, db: string = undefined): Promise<QueryResult> => {
         return new Promise((resolve, reject) => {
-            try {
-                this._driver.executeQuery(stmt, params, { database: db }).then(result => {
+            this._driver
+                .executeQuery(stmt, params, { database: db })
+                .then(result => {
                     this.logs = this.logs
                         .concat({
                             query: stmt,
@@ -139,18 +141,18 @@ class Db {
                         records: result.records,
                         summary: result.summary,
                     } as QueryResult);
+                })
+                .catch(err => {
+                    this.logs = this.logs
+                        .concat({
+                            query: stmt,
+                            params: params,
+                            status: false,
+                            date: new Date(),
+                        } as t_Log)
+                        .slice(-1000);
+                    reject(err);
                 });
-            } catch (err) {
-                this.logs = this.logs
-                    .concat({
-                        query: stmt,
-                        params: params,
-                        status: false,
-                        date: new Date(),
-                    } as t_Log)
-                    .slice(-1000);
-                reject(err);
-            }
         });
     };
 

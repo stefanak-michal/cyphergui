@@ -215,7 +215,9 @@ class Node extends React.Component<INodeProps, INodeState> {
                     this.props.toast(this.create ? 'Node created' : 'Node updated');
                 }
                 if (settings().closeEditAfterExecuteSuccess) {
-                    this.props.tabManager.close(this.props.tabId);
+                    this.props.tabManager.setChanged(this.props.tabId, false, () => {
+                        this.props.tabManager.close(this.props.tabId);
+                    });
                 } else if (this.create) {
                     const node = response.records[0].get('n');
                     this.props.tabManager.setChanged(this.props.tabId, false, () => {
@@ -370,9 +372,12 @@ class Node extends React.Component<INodeProps, INodeState> {
                                 <div className='columns'>
                                     <div className={'column ' + (db.hasElementId ? 'is-half-desktop' : '')}>
                                         <div className='field'>
-                                            <label className='label'>identity</label>
+                                            <label className='label' htmlFor='node-identity'>
+                                                identity
+                                            </label>
                                             <div className='control' onClick={copy}>
                                                 <input
+                                                    id='node-identity'
                                                     className='input is-copyable'
                                                     readOnly
                                                     type='text'
@@ -384,9 +389,12 @@ class Node extends React.Component<INodeProps, INodeState> {
                                     {db.hasElementId && (
                                         <div className='column is-half-desktop'>
                                             <div className='field'>
-                                                <label className='label'>elementId</label>
+                                                <label className='label' htmlFor='node-elementId'>
+                                                    elementId
+                                                </label>
                                                 <div className='control' onClick={copy}>
                                                     <input
+                                                        id='node-elementId'
                                                         className='input is-copyable'
                                                         readOnly
                                                         type='text'

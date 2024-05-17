@@ -93,7 +93,7 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                         this.setState({
                             rows: response2.records.map(record => record.get('r')),
                             total: cnt,
-                            page: page,
+                            page: Math.max(page, 1),
                             loading: false,
                         });
                     })
@@ -144,10 +144,13 @@ class Type extends React.Component<ITypeProps, ITypeState> {
             this.props.database
         )
             .then(response => {
-                if (response.summary.counters.updates().nodesDeleted > 0) {
+                if (response.summary.counters.updates().relationshipsDeleted > 0) {
                     this.requestData();
-                    this.props.tabManager.close(this.props.tabId);
                     this.props.toast('Relationship deleted');
+                    const tabId = this.props.tabManager.generateId({ id: id, database: this.props.database });
+                    this.props.tabManager.setChanged(tabId, false, () => {
+                        this.props.tabManager.close(tabId);
+                    });
                 }
             })
             .catch(error => {
@@ -319,13 +322,13 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                     />
                     <div
                         className={
-                            'control has-icons-left has-icons-right is-align-self-flex-start ' +
+                            'control has-icons-left is-align-self-flex-start ' +
                             (this.state.loading ? 'border-progress' : '')
                         }
                     >
                         <input
                             className='input'
-                            type='text'
+                            type='search'
                             placeholder='Search'
                             value={this.state.search}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -334,9 +337,6 @@ class Type extends React.Component<ITypeProps, ITypeState> {
                         />
                         <span className='icon is-left'>
                             <i className='fas fa-search' aria-hidden='true' />
-                        </span>
-                        <span className='icon is-right is-clickable' onClick={() => this.handleSearch()}>
-                            <i className='fa-solid fa-xmark' />
                         </span>
                     </div>
                 </div>

@@ -93,7 +93,7 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                         this.setState({
                             rows: response2.records.map(record => record.get('n')),
                             total: cnt,
-                            page: page,
+                            page: Math.max(page, 1),
                             loading: false,
                         });
                     })
@@ -140,8 +140,11 @@ class Label extends React.Component<ILabelProps, ILabelState> {
             .then(response => {
                 if (response.summary.counters.updates().nodesDeleted > 0) {
                     this.requestData();
-                    this.props.tabManager.close(this.props.tabId);
                     this.props.toast('Node deleted');
+                    const tabId = this.props.tabManager.generateId({ id: id, database: this.props.database });
+                    this.props.tabManager.setChanged(tabId, false, () => {
+                        this.props.tabManager.close(tabId);
+                    });
                 }
             })
             .catch(error => {
@@ -322,13 +325,13 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                     />
                     <div
                         className={
-                            'control has-icons-left has-icons-right is-align-self-flex-start ' +
+                            'control has-icons-left is-align-self-flex-start ' +
                             (this.state.loading ? 'border-progress' : '')
                         }
                     >
                         <input
                             className='input'
-                            type='text'
+                            type='search'
                             placeholder='Search'
                             value={this.state.search}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -337,9 +340,6 @@ class Label extends React.Component<ILabelProps, ILabelState> {
                         />
                         <span className='icon is-left'>
                             <i className='fas fa-search' aria-hidden='true' />
-                        </span>
-                        <span className='icon is-right is-clickable' onClick={() => this.handleSearch()}>
-                            <i className='fa-solid fa-xmark' />
                         </span>
                     </div>
                 </div>

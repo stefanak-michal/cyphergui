@@ -148,14 +148,7 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
                 title = this.tabManager.generateName(title.prefix, title.i);
             }
 
-            if (id.length === 0) {
-                //auto generate id from props or title if not provided
-                id =
-                    'id' in props && (typeof props.id === 'number' || typeof props.id === 'string')
-                        ? props.id.toString()
-                        : title;
-                if ('database' in props) id += props.database;
-            }
+            if (id.length === 0) id = this.tabManager.generateId(props, title);
 
             this.setState(state => {
                 if (!state.tabs.find(tab => tab.id === id)) {
@@ -201,7 +194,7 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
             if (
                 settings().confirmCloseUnsavedChanges &&
                 !this.state.confirmModal &&
-                this.state.contents.find(c => c.id === id).changed
+                this.state.contents.find(c => c.id === id)?.changed
             ) {
                 this.setState({ confirmModal: id });
                 return;
@@ -262,6 +255,14 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
                     ) + 1;
             else i = db.strInt(i);
             return prefix + '#' + i;
+        },
+        generateId: (props: { id?: number | string; database?: string }, title?: string): string => {
+            let id: string =
+                'id' in props && (typeof props.id === 'number' || typeof props.id === 'string')
+                    ? props.id.toString()
+                    : title;
+            if ('database' in props) id += props.database;
+            return id;
         },
     };
 
@@ -473,7 +474,7 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
                     <Stash stashed={this.state.stashed} tabManager={this.tabManager} stashManager={this.stashManager} />
                 </PropertiesModalContext.Provider>
 
-                <section className='notifications'>
+                <section className='notifications' aria-label='notifications'>
                     {this.state.toasts.map(toast => (
                         <div
                             key={toast.key}

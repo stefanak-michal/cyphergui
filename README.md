@@ -8,7 +8,7 @@ User friendly GUI administration tool for graph databases with bolt protocol sup
 
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/stefanak-michal/cyphergui/auto-deploy.yml)](https://github.com/stefanak-michal/cyphergui/actions/workflows/auto-deploy.yml)
 [![GitHub package.json version](https://img.shields.io/github/package-json/v/stefanak-michal/cyphergui)](https://github.com/stefanak-michal/cyphergui/releases)
-[![GitHub commits since latest release](https://img.shields.io/github/commits-since/stefanak-michal/cyphergui/latest)](https://github.com/stefanak-michal/cyphergui/compare/v0.4.0...master)
+[![GitHub commits since latest release](https://img.shields.io/github/commits-since/stefanak-michal/cyphergui/latest)](https://github.com/stefanak-michal/cyphergui/releases/latest)
 
 ### :camera: Screenshosts
 

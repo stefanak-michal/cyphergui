@@ -28,20 +28,22 @@ jobs:
           - 7474:7474
         options: >-
           --name "neo4j_service"
-          --health-cmd "wget http://localhost:7474 || exit 1"
-    #    strategy:
-    #      fail-fast: false
-    #      matrix:
-    #        shardIndex: [1, 2, 3, 4, 5, 6, 7, 8]
-    #        shardTotal: [8]
+          --health-cmd "wget --spider http://localhost:7474 || exit 1"
+    strategy:
+      fail-fast: false
+      matrix:
+        shardIndex: [1, 2, 3, 4, 5, 6, 7, 8]
+        shardTotal: [8]
 
     steps:
       - name: Load movies dataset
-        #        if: ${{ matrix.shardIndex == 1 }}
+        if: ${{ matrix.shardIndex == 1 }}
         run: |
           docker exec neo4j_service wget -O /tmp/movies.cypher https://raw.githubusercontent.com/neo4j-graph-examples/movies/main/scripts/movies.cypher
           docker exec neo4j_service cypher-shell -a bolt://localhost:7687 -u "neo4j" -p "nothing123" "MATCH (n) DETACH DELETE n"
           docker exec neo4j_service cypher-shell -a bolt://localhost:7687 -u "neo4j" -p "nothing123" -f /tmp/movies.cypher
+      - if: ${{ matrix.shardIndex > 1 }}
+        run: sleep 60
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,31 +53,27 @@ jobs:
           node-version: latest
       - name: Install dependencies
         run: npm ci
-      #      - name: Playwright
-      #        run: |
-      #          npx playwright install --with-deps chromium
-      #          npx playwright test --grep @neo4j-read --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} --reporter=blob
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
       - name: Run Playwright tests (neo4j-read)
-        run: npx playwright test --grep @neo4j-read --reporter=html #--reporter=blob --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+        run: npx playwright test --grep @neo4j-read --reporter=blob --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
         env:
           DB_HOSTNAME: 'bolt://localhost:7687'
           DB_USERNAME: 'neo4j'
           DB_PASSWORD: 'nothing123'
-      - uses: actions/upload-artifact@v4
+      #      - uses: actions/upload-artifact@v4
+      #        if: ${{ failure() }}
+      #        with:
+      #          name: playwright-report
+      #          path: playwright-report/
+      #          retention-days: 1
+      - name: Upload blob report to GitHub Actions Artifacts
         if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
-          path: playwright-report/
+          name: blob-report-${{ matrix.shardIndex }}
+          path: blob-report
           retention-days: 1
-  #      - name: Upload blob report to GitHub Actions Artifacts
-  #        if: ${{ failure() }}
-  #        uses: actions/upload-artifact@v4
-  #        with:
-  #          name: blob-report-${{ matrix.shardIndex }}
-  #          path: blob-report
-  #          retention-days: 1
 #  build:
 #    timeout-minutes: 60
 #    runs-on: ubuntu-latest

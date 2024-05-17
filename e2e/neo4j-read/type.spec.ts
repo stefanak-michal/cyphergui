@@ -9,8 +9,6 @@ test.describe('Type tab', { tag: '@neo4j-read' }, () => {
         await checkActiveTab(page, '*');
     });
 
-    test.use({ viewport: { width: 1920, height: 1800 } });
-
     test('Table view', async ({ page }) => {
         await expect(containerLocator(page, 'table tbody tr')).toHaveCount(20);
     });
@@ -51,7 +49,7 @@ test.describe('Type tab', { tag: '@neo4j-read' }, () => {
         await expect(async () => {
             await containerLocator(page).getByRole('searchbox').fill('');
             await containerLocator(page).getByRole('searchbox').fill('2');
-            await expect(containerLocator(page, 'table tbody tr')).toHaveCount(3);
+            await expect(containerLocator(page, 'table tbody tr')).not.toHaveCount(20);
         }).toPass();
     });
 

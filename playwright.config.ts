@@ -19,7 +19,7 @@ export default defineConfig({
     /* Allow parallel */
     workers: process.env.CI ? 1 : undefined,
     /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-    reporter: [process.env.CI ? ['github'] : ['html', { open: 'never' }]],
+    reporter: process.env.CI ? [['github'], ['dot']] : [['html', { open: 'never' }]],
     /* Set reporting slow tests */
     reportSlowTests: {
         max: 5,

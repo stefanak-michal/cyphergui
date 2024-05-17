@@ -16,8 +16,6 @@ jobs:
   neo4j-read:
     timeout-minutes: 60
     runs-on: ubuntu-latest
-    #    container:
-    #      image: mcr.microsoft.com/playwright:v1.44.0-jammy
     services:
       neo4j:
         image: neo4j:latest
@@ -37,14 +35,10 @@ jobs:
 
     steps:
       - name: Load movies dataset
-        if: ${{ matrix.shardIndex == 1 }}
         run: |
           docker exec neo4j_service wget -O /tmp/movies.cypher https://raw.githubusercontent.com/neo4j-graph-examples/movies/main/scripts/movies.cypher
           docker exec neo4j_service cypher-shell -a bolt://localhost:7687 -u "neo4j" -p "nothing123" "MATCH (n) DETACH DELETE n"
           docker exec neo4j_service cypher-shell -a bolt://localhost:7687 -u "neo4j" -p "nothing123" -f /tmp/movies.cypher
-      - if: ${{ matrix.shardIndex > 1 }}
-        run: sleep 30
-
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup node
@@ -90,7 +84,7 @@ jobs:
           - 7687:7687
           - 7474:7474
         options: >-
-          --health-cmd "wget http://localhost:7474 || exit 1"
+          --health-cmd "wget --spider http://localhost:7474 || exit 1"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -126,7 +120,7 @@ jobs:
           - 7687:7687
           - 7474:7474
         options: >-
-          --health-cmd "wget http://localhost:7474 || exit 1"
+          --health-cmd "wget --spider http://localhost:7474 || exit 1"
 
     steps:
       - name: Checkout
@@ -162,7 +156,7 @@ jobs:
           - 7687:7687
           - 7474:7474
         options: >-
-          --health-cmd "wget http://localhost:7474 || exit 1"
+          --health-cmd "wget --spider http://localhost:7474 || exit 1"
     steps:
       - name: Checkout
         uses: actions/checkout@v4

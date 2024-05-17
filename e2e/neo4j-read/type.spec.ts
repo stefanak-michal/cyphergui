@@ -48,8 +48,11 @@ test.describe('Type tab', { tag: '@neo4j-read' }, () => {
     });
 
     test('Search input', async ({ page }) => {
-        await containerLocator(page).getByRole('searchbox').fill('2');
-        await expect(containerLocator(page, 'table tbody tr')).toHaveCount(3);
+        await expect(async () => {
+            await containerLocator(page).getByRole('searchbox').fill('');
+            await containerLocator(page).getByRole('searchbox').fill('2');
+            await expect(containerLocator(page, 'table tbody tr')).toHaveCount(3);
+        }).toPass();
     });
 
     test('Relationship btn', async ({ page }) => {

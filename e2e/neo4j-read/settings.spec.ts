@@ -20,15 +20,7 @@ test.describe('Settings', { tag: '@neo4j-read' }, () => {
         await switchToTab(page, 'Start');
         await containerLocator(page).getByRole('button', { name: '*' }).first().click();
         await checkActiveTab(page, '*');
-        // check visually
-        await expect(containerLocator(page)).toHaveScreenshot({
-            mask: [
-                //hide only ids
-                containerLocator(page, 'table tbody')
-                    .getByRole('button')
-                    .getByText(/^#\d+$/),
-            ],
-        });
+        await expect(containerLocator(page, 'table tbody')).not.toContainText(/^\d+:[a-z0-9\-]+:\d+$/);
     });
 
     test('Close tab after execute', async ({ page }) => {

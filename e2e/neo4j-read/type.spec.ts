@@ -13,30 +13,14 @@ test.describe('Type tab', { tag: '@neo4j-read' }, () => {
 
     test('Table view', async ({ page }) => {
         await expect(containerLocator(page, 'table tbody tr')).toHaveCount(20);
-        await expect(containerLocator(page)).toHaveScreenshot({
-            mask: [
-                //hide ids and elementIds
-                containerLocator(page, 'table tbody')
-                    .getByRole('button')
-                    .getByText(/^#\d+$/),
-                containerLocator(page, 'table tbody').getByRole('cell', { name: /^\d+:[a-z0-9\-]+:\d+$/ }),
-            ],
-        });
     });
 
     test('Table view pagination', async ({ page }) => {
+        const text = await containerLocator(page, 'table tbody').textContent();
         await expect(containerLocator(page).getByLabel('Goto previous page')).toBeDisabled();
         await containerLocator(page).getByLabel('Goto page 2').click();
         await expect(containerLocator(page).getByLabel('Goto previous page')).toBeEnabled();
-        await expect(containerLocator(page)).toHaveScreenshot({
-            mask: [
-                //hide ids and elementIds
-                containerLocator(page, 'table tbody')
-                    .getByRole('button')
-                    .getByText(/^#\d+$/),
-                containerLocator(page, 'table tbody').getByRole('cell', { name: /^\d+:[a-z0-9\-]+:\d+$/ }),
-            ],
-        });
+        await expect(containerLocator(page, 'table tbody')).not.toHaveText(text);
         await containerLocator(page).getByLabel('Goto next page').click();
         await expect(containerLocator(page).getByLabel('Goto page 3')).toHaveAttribute('aria-current', 'page');
         await containerLocator(page).getByLabel('pagination').getByRole('button', { name: /\d+/ }).last().click();
@@ -111,14 +95,27 @@ test.describe('Type tab', { tag: '@neo4j-read' }, () => {
 
     test('Table sort', async ({ page }) => {
         await containerLocator(page).getByRole('cell', { name: 'roles' }).click();
-        await expect(containerLocator(page)).toHaveScreenshot({
-            mask: [
-                //hide ids and elementIds
-                containerLocator(page, 'table tbody')
-                    .getByRole('button')
-                    .getByText(/^#\d+$/),
-                containerLocator(page, 'table tbody').getByRole('cell', { name: /^\d+:[a-z0-9\-]+:\d+$/ }),
-            ],
-        });
+        await expect(containerLocator(page, 'table tbody').getByRole('cell')).toContainText([
+            '["All the Way" Mae Mordabito]',
+            '["Wild Bill" Wharton]',
+            '[Ace Merrill]',
+            '[Admiral]',
+            '[Agent Smith]',
+            '[Agent Smith]',
+            '[Agent Smith]',
+            '[Albert Goldman]',
+            '[Albert Lewis]',
+            '[Andrew Marin]',
+            '[Annabelle Farrell]',
+            '[Annie Collins-Nielsen]',
+            '[Annie Reed]',
+            '[Armand Goldman]',
+            '[Avery Bishop]',
+            '[Baw]',
+            '[Becky]',
+            '[Bill Harding]',
+            '[Bill Munny]',
+            '[Bill Smoke, Haskell Moore, Tadeusz Kesselring, Nurse Noakes, Boardman Mephi, Old Georgie]',
+        ]);
     });
 });

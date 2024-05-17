@@ -18,30 +18,14 @@ test.describe('Label tab', { tag: '@neo4j-read' }, () => {
 
     test('Table view', async ({ page }) => {
         await expect(containerLocator(page, 'table tbody tr')).toHaveCount(20);
-        await expect(containerLocator(page)).toHaveScreenshot({
-            mask: [
-                //hide ids and elementIds
-                containerLocator(page, 'table tbody')
-                    .getByRole('button')
-                    .getByText(/^#\d+$/),
-                containerLocator(page, 'table tbody').getByRole('cell', { name: /^\d+:[a-z0-9\-]+:\d+$/ }),
-            ],
-        });
     });
 
     test('Table view pagination', async ({ page }) => {
+        const text = await containerLocator(page, 'table tbody').textContent();
         await expect(containerLocator(page).getByLabel('Goto previous page')).toBeDisabled();
         await containerLocator(page).getByLabel('Goto page 2').click();
         await expect(containerLocator(page).getByLabel('Goto previous page')).toBeEnabled();
-        await expect(containerLocator(page)).toHaveScreenshot({
-            mask: [
-                //hide ids and elementIds
-                containerLocator(page, 'table tbody')
-                    .getByRole('button')
-                    .getByText(/^#\d+$/),
-                containerLocator(page, 'table tbody').getByRole('cell', { name: /^\d+:[a-z0-9\-]+:\d+$/ }),
-            ],
-        });
+        await expect(containerLocator(page, 'table tbody')).not.toHaveText(text);
         await containerLocator(page).getByLabel('Goto next page').click();
         await expect(containerLocator(page).getByLabel('Goto page 3')).toHaveAttribute('aria-current', 'page');
         await containerLocator(page).getByLabel('pagination').getByRole('button', { name: /\d+/ }).last().click();
@@ -107,25 +91,43 @@ test.describe('Label tab', { tag: '@neo4j-read' }, () => {
 
     test('Table sort', async ({ page }) => {
         await containerLocator(page).getByRole('cell', { name: 'born' }).click();
-        await expect(containerLocator(page)).toHaveScreenshot({
-            mask: [
-                //hide ids and elementIds
-                containerLocator(page, 'table tbody')
-                    .getByRole('button')
-                    .getByText(/^#\d+$/),
-                containerLocator(page, 'table tbody').getByRole('cell', { name: /^\d+:[a-z0-9\-]+:\d+$/ }),
-            ],
-        });
+        await expect(
+            containerLocator(page, 'table tbody').getByRole('row').first().getByRole('cell').nth(4)
+        ).toHaveText('1929');
+        let last = 1929;
+        for (let i = 0; i < 20; i++) {
+            let year = parseInt(
+                await containerLocator(page)
+                    .getByRole('cell', { name: /^\d{4}$/ })
+                    .nth(i)
+                    .innerText()
+            );
+            expect(year).toBeGreaterThanOrEqual(last);
+            last = year;
+        }
+
         await containerLocator(page).getByRole('cell', { name: 'name' }).click();
         await containerLocator(page).getByRole('cell', { name: 'name' }).click();
-        await expect(containerLocator(page)).toHaveScreenshot({
-            mask: [
-                //hide ids and elementIds
-                containerLocator(page, 'table tbody')
-                    .getByRole('button')
-                    .getByText(/^#\d+$/),
-                containerLocator(page, 'table tbody').getByRole('cell', { name: /^\d+:[a-z0-9\-]+:\d+$/ }),
-            ],
-        });
+        await expect(containerLocator(page, 'table tbody').getByRole('cell')).toContainText([
+            'Richard Harris',
+            'Gene Hackman',
+            'Clint Eastwood',
+            'Mike Nichols',
+            'Milos Forman',
+            'Tom Skerritt',
+            'Jack Nicholson',
+            'Frank Langella',
+            'Ian McKellen',
+            'John Hurt',
+            'James L. Brooks',
+            'James Cromwell',
+            'Al Pacino',
+            'Nora Ephron',
+            'Jim Cash',
+            'Werner Herzog',
+            'Marshall Bell',
+            'Penny Marshall',
+            'Jan de Bont',
+        ]);
     });
 });

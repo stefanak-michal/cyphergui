@@ -22,22 +22,16 @@ test.describe('Relationship tab', { tag: '@neo4j-read' }, () => {
         await expect(containerLocator(page).getByLabel('identity')).toHaveValue(/^\d+$/);
         await expect(containerLocator(page).getByLabel('elementId')).toHaveValue(/^\d+:[a-z0-9\-]+:\d+$/);
 
-        await expect(containerLocator(page).getByRole('group', { name: 'Type' })).toHaveScreenshot();
-        await expect(containerLocator(page).getByRole('group', { name: 'Properties' })).toHaveScreenshot();
-        await expect(containerLocator(page).getByRole('group', { name: 'Start node' })).toHaveScreenshot({
-            mask: [
-                containerLocator(page)
-                    .getByRole('button')
-                    .getByText(/^#\d+$/),
-            ],
-        });
-        await expect(containerLocator(page).getByRole('group', { name: 'End node' })).toHaveScreenshot({
-            mask: [
-                containerLocator(page)
-                    .getByRole('button')
-                    .getByText(/^#\d+$/),
-            ],
-        });
+        await expect(containerLocator(page).getByRole('group', { name: 'Type' })).toContainText('ACTED_IN');
+        await expect(
+            containerLocator(page).getByRole('group', { name: 'Properties' }).locator('input').first()
+        ).toHaveValue('roles');
+        await expect(containerLocator(page).getByRole('group', { name: 'Properties' }).locator('textarea')).toHaveValue(
+            'Neo'
+        );
+
+        await expect(containerLocator(page).getByRole('group', { name: 'Start node' })).toContainText('Person');
+        await expect(containerLocator(page).getByRole('group', { name: 'End node' })).toContainText('Movie');
     });
 
     test.describe('Buttons', () => {
@@ -128,7 +122,7 @@ test.describe('Relationship tab', { tag: '@neo4j-read' }, () => {
             await expect(modalLocator(page)).toHaveScreenshot();
             await modalLocator(page).getByRole('button', { name: 'DIRECTED' }).click();
             await expect(modalLocator(page)).toHaveCount(0);
-            await expect(containerLocator(page).getByRole('group', { name: 'Type' })).toHaveScreenshot();
+            await expect(containerLocator(page).getByRole('group', { name: 'Type' })).toContainText('DIRECTED');
         });
 
         test('Change type to new', async ({ page }) => {
@@ -136,7 +130,7 @@ test.describe('Relationship tab', { tag: '@neo4j-read' }, () => {
             await modalLocator(page).getByRole('textbox').fill('TEST');
             await modalLocator(page).locator('button[type="submit"]').click();
             await expect(modalLocator(page)).toHaveCount(0);
-            await expect(containerLocator(page).getByRole('group', { name: 'Type' })).toHaveScreenshot();
+            await expect(containerLocator(page).getByRole('group', { name: 'Type' })).toContainText('TEST');
         });
     });
 
@@ -175,7 +169,7 @@ test.describe('Relationship tab', { tag: '@neo4j-read' }, () => {
             await modalLocator(page).getByRole('textbox').fill('2');
             await modalLocator(page).locator('button[type="submit"]').click();
             await expect(modalLocator(page)).toHaveCount(0);
-            await expect(containerLocator(page).getByRole('group', { name: 'Start node' })).toHaveScreenshot();
+            await expect(containerLocator(page).getByRole('group', { name: 'Start node' })).toContainText('Person#2');
         });
     });
 
@@ -214,7 +208,7 @@ test.describe('Relationship tab', { tag: '@neo4j-read' }, () => {
             await modalLocator(page).getByRole('textbox').fill('3');
             await modalLocator(page).locator('button[type="submit"]').click();
             await expect(modalLocator(page)).toHaveCount(0);
-            await expect(containerLocator(page).getByRole('group', { name: 'End node' })).toHaveScreenshot();
+            await expect(containerLocator(page).getByRole('group', { name: 'End node' })).toContainText('Person#3');
         });
     });
 

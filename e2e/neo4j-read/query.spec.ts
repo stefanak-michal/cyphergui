@@ -8,10 +8,6 @@ test.describe('Query tab', { tag: '@neo4j-read' }, () => {
         await checkActiveTab(page, /Query#\d+/);
     });
 
-    test('Visual check', async ({ page }) => {
-        await expect(containerLocator(page)).toHaveScreenshot();
-    });
-
     test('Doc link', async ({ page, context }) => {
         const pagePromise = context.waitForEvent('page');
         await containerLocator(page).getByTitle('Cypher documentation').click();

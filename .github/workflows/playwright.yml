@@ -107,7 +107,7 @@ jobs:
       - name: Run Playwright tests (build)
         run: npx playwright test --grep @build
         env:
-          DB_HOSTNAME: 'bolt://localhost:7687'
+          DB_HOSTNAME: 'bolt://neo4j:7687'
           DB_USERNAME: 'neo4j'
           DB_PASSWORD: 'nothing123'
 
@@ -142,7 +142,7 @@ jobs:
       - name: Run Playwright tests (neo4j-write)
         run: npx playwright test --grep @neo4j-write
         env:
-          DB_HOSTNAME: 'bolt://localhost:7687'
+          DB_HOSTNAME: 'bolt://neo4j:7687'
           DB_USERNAME: 'neo4j'
           DB_PASSWORD: 'nothing123'
 
@@ -177,7 +177,7 @@ jobs:
       - name: Run Playwright tests (neo4j-multidb)
         run: npx playwright test --grep @neo4j-multidb
         env:
-          DB_HOSTNAME: 'bolt://localhost:7687'
+          DB_HOSTNAME: 'bolt://neo4j:7687'
           DB_USERNAME: 'neo4j'
           DB_PASSWORD: 'nothing123'
 
@@ -209,4 +209,4 @@ jobs:
       - name: Run Playwright tests (memgraph)
         run: npx playwright test --grep @memgraph
         env:
-          DB_HOSTNAME: 'bolt://localhost:7687'
+          DB_HOSTNAME: 'bolt://memgraph:7687'

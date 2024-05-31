@@ -27,6 +27,7 @@ export interface ISettings {
     temporalValueToStringFunction: string;
     darkMode: boolean;
     confirmCloseUnsavedChanges: boolean;
+    rememberOpenTabs: boolean;
 }
 
 export interface IStashManager {

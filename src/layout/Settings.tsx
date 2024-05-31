@@ -86,6 +86,16 @@ class Settings extends React.Component<{ handleClose: () => void }, ISettingsSta
                         )}
                     </ThemeSwitchContext.Consumer>
                 </div>
+                <div className='mb-3'>
+                    <Checkbox
+                        name='rememberOpenTabs'
+                        onChange={this.handleChange}
+                        label='Remember open tabs'
+                        checked={this.state.settings.rememberOpenTabs}
+                        color='is-link'
+                        help='After successful login app will try open remembered tabs.'
+                    />
+                </div>
                 <div className='field'>
                     <label className='label'>Method when printing out temporal values</label>
                     <div className='control'>
@@ -120,6 +130,7 @@ export function settings(): ISettings {
         temporalValueToStringFunction: 'toString',
         darkMode: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches,
         confirmCloseUnsavedChanges: true,
+        rememberOpenTabs: true,
         ...(localStorage.getItem('settings') ? JSON.parse(localStorage.getItem('settings')) : {}),
     };
 }

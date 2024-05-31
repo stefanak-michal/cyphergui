@@ -1,6 +1,7 @@
 import { Driver, Integer, Node as _Node, QueryResult, Relationship as _Relationship } from 'neo4j-driver-lite';
 import { t_Log } from './utils/types';
 import { Ecosystem } from './utils/enums';
+import mixpanel from 'mixpanel-browser';
 
 class Db {
     private _neo4j = require('neo4j-driver-lite');
@@ -125,6 +126,7 @@ class Db {
     };
 
     query = (stmt: string, params: object = {}, db: string = undefined): Promise<QueryResult> => {
+        mixpanel.track('Executed query');
         return new Promise((resolve, reject) => {
             this._driver
                 .executeQuery(stmt, params, { database: db })

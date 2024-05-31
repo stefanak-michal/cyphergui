@@ -69,6 +69,7 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
     constructor(props) {
         super(props);
 
+        if (!settings().rememberOpenTabs) localStorage.removeItem('tabs');
         const tabs = localStorage.getItem('tabs');
         if (tabs) {
             const parsed = JSON.parse(tabs);
@@ -182,7 +183,7 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
                     contents: state.contents,
                     activeTab: active || !state.activeTab ? id : state.activeTab,
                 };
-                localStorage.setItem('tabs', JSON.stringify(obj));
+                if (settings().rememberOpenTabs) localStorage.setItem('tabs', JSON.stringify(obj));
                 return obj;
             });
 
@@ -212,7 +213,7 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
                     contents: state.contents.filter(content => id !== content.id),
                     activeTab: active,
                 };
-                localStorage.setItem('tabs', JSON.stringify(obj));
+                if (settings().rememberOpenTabs) localStorage.setItem('tabs', JSON.stringify(obj));
                 return obj;
             });
         },
@@ -224,7 +225,7 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
                     contents: state.contents.filter(content => content.id === 'Start'),
                     activeTab: 'Start',
                 };
-                localStorage.setItem('tabs', JSON.stringify(obj));
+                if (settings().rememberOpenTabs) localStorage.setItem('tabs', JSON.stringify(obj));
                 return obj;
             });
         },
@@ -240,14 +241,15 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
         },
         setActive: (id: string) => {
             this.setState(state => {
-                localStorage.setItem(
-                    'tabs',
-                    JSON.stringify({
-                        tabs: state.tabs,
-                        contents: state.contents,
-                        activeTab: id,
-                    })
-                );
+                if (settings().rememberOpenTabs)
+                    localStorage.setItem(
+                        'tabs',
+                        JSON.stringify({
+                            tabs: state.tabs,
+                            contents: state.contents,
+                            activeTab: id,
+                        })
+                    );
                 return {
                     activeTab: id,
                 };

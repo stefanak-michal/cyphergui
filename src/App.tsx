@@ -61,7 +61,7 @@ class App extends React.Component<object, IAppState> {
                 <footer className='footer page-footer'>
                     <div className='content has-text-centered'>
                         <p>
-                            <b>cypherGUI</b> by Michal Stefanak. Awarded author of PHP Bolt driver.
+                            <b>cypherGUI</b> by Michal Štefaňák. Awarded author of PHP Bolt driver.
                         </p>
                         <div className='buttons is-justify-content-center mt-2'>
                             <a
@@ -83,6 +83,16 @@ class App extends React.Component<object, IAppState> {
                                     <i className='fa-brands fa-linkedin' />
                                 </span>
                                 <span>LinkedIn</span>
+                            </a>
+                            <a
+                                href='https://eu.mixpanel.com/p/XtoyTU92SmmpUaweP7DUAn'
+                                target='_blank'
+                                className='button is-small'
+                            >
+                                <span className='icon'>
+                                    <i className='fa-solid fa-chart-simple' />
+                                </span>
+                                <span>Analytics</span>
                             </a>
                         </div>
                     </div>

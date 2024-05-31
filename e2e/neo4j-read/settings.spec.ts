@@ -72,6 +72,25 @@ test.describe('Settings', { tag: '@neo4j-read' }, () => {
         await checkActiveTab(page, '*');
     });
 
+    test('Remember open tabs', async ({ page }) => {
+        await changeSettingAndClose(page, 'Remember open tabs');
+        // open some tab
+        await switchToTab(page, 'Start');
+        await containerLocator(page).getByRole('button', { name: '*' }).first().click();
+        await checkActiveTab(page, '*');
+        // click on log out button should stay at login page
+        await page.getByRole('button', { name: 'Log out' }).click();
+        await expect(page.locator('form#login')).toHaveCount(1);
+        // login again
+        await page.getByLabel('URL').fill(process.env.DB_HOSTNAME || 'bolt://localhost:7687');
+        await page.getByLabel('Username').fill(process.env.DB_USERNAME || '');
+        await page.getByLabel('Password').fill(process.env.DB_PASSWORD || '');
+        await page.getByRole('button', { name: 'Login' }).click();
+        await expect(page.getByLabel('main navigation')).toHaveCount(1);
+        // check amount of open tabs
+        await expect(page.locator('.tabs li')).toHaveCount(1);
+    });
+
     test.describe('Change resolution', () => {
         test.use({ viewport: { width: 1280, height: 800 } });
 

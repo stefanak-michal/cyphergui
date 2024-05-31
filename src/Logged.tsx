@@ -216,6 +216,18 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
                 return obj;
             });
         },
+        closeAll: (e: React.PointerEvent) => {
+            e.stopPropagation();
+            this.setState(state => {
+                const obj = {
+                    tabs: state.tabs.filter(tab => tab.id === 'Start'),
+                    contents: state.contents.filter(content => content.id === 'Start'),
+                    activeTab: 'Start',
+                };
+                localStorage.setItem('tabs', JSON.stringify(obj));
+                return obj;
+            });
+        },
         setChanged: (id: string, changed: boolean, callback?) => {
             this.setState(
                 {
@@ -436,8 +448,7 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
                             <Tab
                                 key={'tab-' + tab.id}
                                 active={tab.id === this.state.activeTab}
-                                handleClick={this.tabManager.setActive}
-                                handleRemove={this.tabManager.close}
+                                tabManager={this.tabManager}
                                 {...tab}
                             />
                         ))}

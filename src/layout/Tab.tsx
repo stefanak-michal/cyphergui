@@ -1,12 +1,12 @@
 import * as React from 'react';
+import { ITabManager } from '../utils/interfaces';
 
 interface ITabProps {
     id: string;
     active: boolean;
     icon?: string;
     title: string;
-    handleClick: (id: string) => void;
-    handleRemove: (id: string, e?: any) => void;
+    tabManager: ITabManager;
 }
 
 /**
@@ -25,9 +25,28 @@ class Tab extends React.Component<ITabProps> {
         return (
             <li
                 className={this.props.active ? 'is-active' : ''}
-                onClick={() => this.props.handleClick(this.props.id)}
+                onClick={e => {
+                    if (this.props.id === 'Start') {
+                        this.props.tabManager.setActive(this.props.id);
+                        return;
+                    }
+                    if (e.ctrlKey) {
+                        this.props.tabManager.close(this.props.id, e as any);
+                        return;
+                    }
+                    if (e.shiftKey) {
+                        this.props.tabManager.closeAll(e as any);
+                        return;
+                    }
+                    this.props.tabManager.setActive(this.props.id);
+                }}
                 onMouseEnter={this.showDelete}
                 onMouseLeave={this.showDelete}
+                title={
+                    this.props.id !== 'Start'
+                        ? 'Ctrl+click close tab\nShift+click close all tabs (ignores unsaved changes)'
+                        : ''
+                }
             >
                 <a>
                     {this.props.icon && (
@@ -39,7 +58,7 @@ class Tab extends React.Component<ITabProps> {
                     {this.props.title !== 'Start' && this.state.delete && (
                         <button
                             className='delete is-small ml-3'
-                            onClick={e => this.props.handleRemove(this.props.id, e)}
+                            onClick={(e: any) => this.props.tabManager.close(this.props.id, e)}
                         />
                     )}
                 </a>

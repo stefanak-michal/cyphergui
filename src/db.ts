@@ -126,7 +126,7 @@ class Db {
     };
 
     query = (stmt: string, params: object = {}, db: string = undefined): Promise<QueryResult> => {
-        mixpanel.track('Executed query');
+        if (typeof process === 'undefined') mixpanel.track('Executed query');
         return new Promise((resolve, reject) => {
             this._driver
                 .executeQuery(stmt, params, { database: db })

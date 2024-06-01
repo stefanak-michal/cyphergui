@@ -19,6 +19,7 @@ Available in [wiki](https://github.com/stefanak-michal/cyphergui/wiki/Screenshot
 -   [Neo4j](https://neo4j.com/)
 -   [Memgraph](https://memgraph.com/)
 -   [Amazon Neptune](https://aws.amazon.com/neptune/) - Not tested. :raising_hand: Looking for somebody who can offer access to it.
+-   [DozerDB](https://dozerdb.org/)
 -   [ONgDB](https://graphfoundation.org/projects/ongdb/) - Latest version v1.0.5 not supported because is based on old version which requires Bolt v2
 
 ## :label: Features

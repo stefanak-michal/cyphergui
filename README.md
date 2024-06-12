@@ -7,8 +7,8 @@ User friendly GUI administration tool for graph databases with bolt protocol sup
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Z8Z5ABMLW)
 
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/stefanak-michal/cyphergui/auto-deploy.yml)](https://github.com/stefanak-michal/cyphergui/actions/workflows/auto-deploy.yml)
-[![GitHub package.json version](https://img.shields.io/github/package-json/v/stefanak-michal/cyphergui)](https://github.com/stefanak-michal/cyphergui/releases)
-[![GitHub commits since latest release](https://img.shields.io/github/commits-since/stefanak-michal/cyphergui/latest)](https://github.com/stefanak-michal/cyphergui/releases/latest)
+[![GitHub package.json version](https://img.shields.io/github/package-json/v/stefanak-michal/cyphergui?cacheSeconds=0)](https://github.com/stefanak-michal/cyphergui/releases)
+[![GitHub commits since latest release](https://img.shields.io/github/commits-since/stefanak-michal/cyphergui/latest?cacheSeconds=0)](https://github.com/stefanak-michal/cyphergui/releases/latest)
 
 ### :camera: Screenshosts
 
@@ -19,7 +19,12 @@ Available in [wiki](https://github.com/stefanak-michal/cyphergui/wiki/Screenshot
 -   [Neo4j](https://neo4j.com/)
 -   [Memgraph](https://memgraph.com/)
 -   [Amazon Neptune](https://aws.amazon.com/neptune/) - Not tested. :raising_hand: Looking for somebody who can offer access to it.
--   [ONgDB](https://graphfoundation.org/projects/ongdb/) - Latest version v1.0.5 not supported because is based on old version which requires Bolt v2
+-   [DozerDB](https://dozerdb.org/)
+
+
+## :heavy_multiplication_x: Not supported
+
+-   [ONgDB](https://graphfoundation.org/projects/ongdb/) - Latest version v1.0.5 not supported because is based on old version which requires Bolt v2. This library use official javascript driver which dropped support for an old version already.
 
 ## :label: Features
 

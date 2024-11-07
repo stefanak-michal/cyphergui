@@ -430,13 +430,13 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
                         handleClose={() => this.setState({ nodeStyleModal: null })}
                         handleStyleSet={this.updateNodeStyle}
                         labelFields={
-                            (this.props.rows.map(record => {
+                            this.props.rows.map(record => {
                                 for (const key of record.keys) {
                                     const item = record.get(key);
                                     if (item instanceof _Node && item.labels[0] === this.state.nodeStyleModal)
                                         return Object.keys(item.properties);
                                 }
-                            })[0] || [])
+                            })[0] || []
                         }
                     />
                 )}
@@ -448,13 +448,13 @@ class Graph extends React.Component<IGraphProps, IGraphState> {
                         handleClose={() => this.setState({ edgeStyleModal: null })}
                         handleStyleSet={this.updateEdgeStyle}
                         labelFields={
-                            (this.props.rows.map(record => {
+                            this.props.rows.map(record => {
                                 for (const key of record.keys) {
                                     const item = record.get(key);
                                     if (item instanceof _Relationship && item.type === this.state.edgeStyleModal)
                                         return Object.keys(item.properties);
                                 }
-                            })[0] || [])
+                            })[0] || []
                         }
                     />
                 )}

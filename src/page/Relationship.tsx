@@ -214,7 +214,11 @@ class Relationship extends React.Component<IRelationshipProps, IRelationshipStat
                     this.props.tabManager.setChanged(this.props.tabId, false, () => {
                         this.props.tabManager.close(this.props.tabId);
                     });
-                } else if (this.create) {
+                } else if (
+                    this.create ||
+                    this.state.rel.start !== this.state.start.identity ||
+                    this.state.rel.end !== this.state.end.identity
+                ) {
                     const rel = response.records[0].get('r');
                     this.props.tabManager.setChanged(this.props.tabId, false, () => {
                         this.props.tabManager.add(

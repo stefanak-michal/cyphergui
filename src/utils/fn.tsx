@@ -9,7 +9,7 @@ import {
     Time as _Time,
 } from 'neo4j-driver-lite';
 import { t_FormProperty, t_FormValue } from './types';
-import * as React from 'react';
+import { ReactElement } from 'react';
 import { Checkbox } from '../components/form';
 
 export function toJSON(data: any[] | object): string {
@@ -251,7 +251,7 @@ export function sanitizeFormValues(properties: t_FormProperty[]): object {
     return props;
 }
 
-export function printProperty(property: any): string | React.ReactElement {
+export function printProperty(property: any): string | ReactElement {
     if (db.isInt(property)) return db.strInt(property);
     if (Array.isArray(property)) return '[' + property.join(', ') + ']';
     if (typeof property === 'boolean') return <Checkbox name='' label='' checked={property} disabled />;

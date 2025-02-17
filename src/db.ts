@@ -113,7 +113,7 @@ class Db {
     };
 
     strInt = (id: Integer | string): string => {
-        return this.isInt(id) ? this._neo4j.integer.toString(id) : id;
+        return id instanceof Integer ? this._neo4j.integer.toString(id) : id;
     };
 
     fromInt = (val: Integer): number => {

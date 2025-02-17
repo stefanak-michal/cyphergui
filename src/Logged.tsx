@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Tab from './layout/Tab';
 import Navbar from './layout/Navbar';
 import Start from './page/Start';
@@ -10,7 +10,7 @@ import Relationship from './page/Relationship';
 import History from './page/History';
 import { EPage } from './utils/enums';
 import { Button } from './components/form';
-import { IStashEntry, IStashManager, ITab, ITabContent, ITabManager } from './utils/interfaces';
+import { IPageProps, IStashEntry, IStashManager, ITab, ITabContent, ITabManager } from './utils/interfaces';
 import { t_ShowPropertiesModalFn, t_StashQuery, t_StashValue, t_StorageStashEntry, t_ToastFn } from './utils/types';
 import db from './db';
 import Stash from './layout/Stash';
@@ -19,44 +19,24 @@ import { ClipboardContext, PropertiesModalContext, ToastContext } from './utils/
 import { Node as _Node, Relationship as _Relationship } from 'neo4j-driver-lite';
 import { CloseConfirmModal, PropertiesModal } from './components/Modal';
 
-interface ILoggedState {
-    activeTab: string | null;
-    tabs: ITab[];
-    contents: ITabContent[];
-    toasts: {
-        key: number;
-        message: string;
-        color: string;
-        delay: number;
-        timeout: NodeJS.Timeout;
-    }[];
-    settingsModal: boolean;
-    stashed: IStashEntry[];
-    propertiesModal: object | null;
-    confirmModal: string | null; //If it holds string it will show ConfirmModal for closing tab. String value is id of tab.
-}
-
 interface ILoggedProps {
     handleLogout: () => void;
     darkMode: boolean;
 }
 
-/**
- * Logged page with tab management
- */
-class Logged extends React.Component<ILoggedProps, ILoggedState> {
-    state: ILoggedState = {
-        activeTab: null,
-        tabs: [],
-        contents: [],
-        toasts: [],
-        settingsModal: false,
-        stashed: [],
-        propertiesModal: null,
-        confirmModal: null,
-    };
+const Logged: React.FC<ILoggedProps> = ({ handleLogout, darkMode }) => {
+    const [activeTab, setActiveTab] = useState<string | null>(null);
+    const [tabs, setTabs] = useState<ITab[]>([]);
+    const [contents, setContents] = useState<ITabContent[]>([]);
+    const [toasts, setToasts] = useState<
+        { key: number; message: string; color: string; delay: number; timeout: NodeJS.Timeout }[]
+    >([]);
+    const [settingsModal, setSettingsModal] = useState<boolean>(false);
+    const [stashed, setStashed] = useState<IStashEntry[]>([]);
+    const [propertiesModal, setPropertiesModal] = useState<object | null>(null);
+    const [confirmModal, setConfirmModal] = useState<string | null>(null);
 
-    components = {
+    const components = {
         [EPage.Start]: Start,
         [EPage.Query]: Query,
         [EPage.Node]: Node,
@@ -66,9 +46,7 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
         [EPage.History]: History,
     };
 
-    constructor(props) {
-        super(props);
-
+    useEffect(() => {
         if (!settings().rememberOpenTabs) localStorage.removeItem('tabs');
         const tabs = localStorage.getItem('tabs');
         if (tabs) {
@@ -80,15 +58,15 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
                 (parsed.contents as []).every(c => 'id' in c && 'page' in c && 'props' in c) &&
                 parsed.tabs.length === parsed.contents.length
             ) {
-                this.state.tabs = parsed.tabs as ITab[];
-                this.state.contents = parsed.contents as ITabContent[];
-                this.state.activeTab = parsed.activeTab;
+                setTabs(parsed.tabs as ITab[]);
+                setContents(parsed.contents as ITabContent[]);
+                setActiveTab(parsed.activeTab);
             }
         }
-    }
+    }, []);
 
-    componentDidMount() {
-        this.tabManager.add('Start', 'fa-solid fa-play', EPage.Start, {}, 'Start', false);
+    useEffect(() => {
+        tabManager.add('Start', 'fa-solid fa-play', EPage.Start, {}, 'Start', false);
 
         const stash = localStorage.getItem('stash');
         if (stash) {
@@ -103,7 +81,7 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
                         .then(response => {
                             if (response.records.length) {
                                 response.records.forEach(rec => {
-                                    this.stashManager.add(rec.get('n'), dbName, i++);
+                                    stashManager.add(rec.get('n'), dbName, i++);
                                 });
                             }
                         })
@@ -116,7 +94,7 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
                         .then(response => {
                             if (response.records.length) {
                                 response.records.forEach(rec => {
-                                    this.stashManager.add(rec.get('r'), dbName, i++);
+                                    stashManager.add(rec.get('r'), dbName, i++);
                                 });
                             }
                         })
@@ -128,12 +106,12 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
             parsed
                 .filter(p => p.type === 'query')
                 .forEach(p => {
-                    this.stashManager.add(new t_StashQuery(p.identity as string, p.database), '', i++);
+                    stashManager.add(new t_StashQuery(p.identity as string, p.database), '', i++);
                 });
         }
-    }
+    }, []);
 
-    tabManager: ITabManager = {
+    const tabManager: ITabManager = {
         /**
          * If already exists is switches on it
          */
@@ -146,45 +124,55 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
             active: boolean = true
         ): string => {
             if (typeof title === 'object') {
-                title = this.tabManager.generateName(title.prefix, title.i);
+                title = tabManager.generateName(title.prefix, title.i);
             }
 
-            if (id.length === 0) id = this.tabManager.generateId(props, title);
+            if (id.length === 0) id = tabManager.generateId(props, title);
 
-            this.setState(state => {
-                if (!state.tabs.find(tab => tab.id === id)) {
+            setTabs(state => {
+                if (!state.find(tab => tab.id === id)) {
                     //open new tab next to current active tab
-                    const i: number = state.tabs.findIndex(t => t.id === state.activeTab);
+                    const i: number = state.findIndex(t => t.id === activeTab);
                     if (i !== -1)
-                        state.tabs.splice(i + 1, 0, {
+                        state.splice(i + 1, 0, {
                             id: id,
                             title: title as string,
                             icon: icon,
                         });
                     else
-                        state.tabs.push({
+                        state.push({
                             id: id,
                             title: title as string,
                             icon: icon,
                         } as ITab);
-                    state.contents.push({
-                        id: id,
-                        page: page,
-                        props: props,
-                    } as ITabContent);
+                    setContents(contents => [
+                        ...contents,
+                        {
+                            id: id,
+                            page: page,
+                            props: props,
+                        } as ITabContent,
+                    ]);
                 } else {
                     //update props of existing tab
-                    const content = state.contents.find(c => c.id === id);
-                    content.props = { ...content.props, ...props };
+                    setContents(contents =>
+                        contents.map(content =>
+                            content.id === id ? { ...content, props: { ...content.props, ...props } } : content
+                        )
+                    );
                 }
 
-                const obj = {
-                    tabs: state.tabs,
-                    contents: state.contents,
-                    activeTab: active || !state.activeTab ? id : state.activeTab,
-                };
-                if (settings().rememberOpenTabs) localStorage.setItem('tabs', JSON.stringify(obj));
-                return obj;
+                if (settings().rememberOpenTabs) {
+                    localStorage.setItem(
+                        'tabs',
+                        JSON.stringify({
+                            tabs: state,
+                            contents: contents,
+                            activeTab: active || !activeTab ? id : activeTab,
+                        })
+                    );
+                }
+                return state;
             });
 
             return id;
@@ -192,68 +180,64 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
         close: (id: string, e: React.PointerEvent = null) => {
             if (e !== null) e.stopPropagation();
 
-            if (
-                settings().confirmCloseUnsavedChanges &&
-                !this.state.confirmModal &&
-                this.state.contents.find(c => c.id === id)?.changed
-            ) {
-                this.setState({ confirmModal: id });
+            if (settings().confirmCloseUnsavedChanges && !confirmModal && contents.find(c => c.id === id)?.changed) {
+                setConfirmModal(id);
                 return;
             }
 
-            this.setState(state => {
-                let active = state.activeTab;
+            setTabs(state => {
+                let active = activeTab;
                 if (active === id) {
-                    const i: number = state.tabs.findIndex(tab => tab.id === id);
-                    if (i > 0) active = state.tabs[i - 1].id;
+                    const i: number = state.findIndex(tab => tab.id === id);
+                    if (i > 0) active = state[i - 1].id;
                 }
 
-                const obj = {
-                    tabs: state.tabs.filter(tab => id !== tab.id),
-                    contents: state.contents.filter(content => id !== content.id),
-                    activeTab: active,
-                };
-                if (settings().rememberOpenTabs) localStorage.setItem('tabs', JSON.stringify(obj));
-                return obj;
+                if (settings().rememberOpenTabs) {
+                    localStorage.setItem(
+                        'tabs',
+                        JSON.stringify({
+                            tabs: state.filter(tab => id !== tab.id),
+                            contents: contents.filter(content => id !== content.id),
+                            activeTab: active,
+                        })
+                    );
+                }
+                return state.filter(tab => id !== tab.id);
             });
         },
         closeAll: (e: React.PointerEvent) => {
             e.stopPropagation();
-            this.setState(state => {
-                const obj = {
-                    tabs: state.tabs.filter(tab => tab.id === 'Start'),
-                    contents: state.contents.filter(content => content.id === 'Start'),
-                    activeTab: 'Start',
-                };
-                if (settings().rememberOpenTabs) localStorage.setItem('tabs', JSON.stringify(obj));
-                return obj;
-            });
-        },
-        setChanged: (id: string, changed: boolean, callback?) => {
-            this.setState(
-                {
-                    contents: this.state.contents.map(content =>
-                        content.id === id ? { ...content, changed: changed } : content
-                    ),
-                },
-                callback
-            );
-        },
-        setActive: (id: string) => {
-            this.setState(state => {
-                if (settings().rememberOpenTabs)
+            setTabs(state => {
+                if (settings().rememberOpenTabs) {
                     localStorage.setItem(
                         'tabs',
                         JSON.stringify({
-                            tabs: state.tabs,
-                            contents: state.contents,
-                            activeTab: id,
+                            tabs: state.filter(tab => tab.id === 'Start'),
+                            contents: contents.filter(content => content.id === 'Start'),
+                            activeTab: 'Start',
                         })
                     );
-                return {
-                    activeTab: id,
-                };
+                }
+                return state.filter(tab => tab.id === 'Start');
             });
+        },
+        setChanged: (id: string, changed: boolean, callback?) => {
+            setContents(contents =>
+                contents.map(content => (content.id === id ? { ...content, changed: changed } : content))
+            );
+            if (callback) callback();
+        },
+        setActive: (id: string) => {
+            setActiveTab(id);
+            if (settings().rememberOpenTabs)
+                localStorage.setItem(
+                    'tabs',
+                    JSON.stringify({
+                        tabs: tabs,
+                        contents: contents,
+                        activeTab: id,
+                    })
+                );
         },
         /**
          * Create tab name with requested prefix and index (it's calculated if omitted)
@@ -263,9 +247,7 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
                 i =
                     Math.max(
                         0,
-                        ...this.state.tabs
-                            .filter(t => t.title.startsWith(prefix))
-                            .map(t => parseInt(t.title.split('#')[1]))
+                        ...tabs.filter(t => t.title.startsWith(prefix)).map(t => parseInt(t.title.split('#')[1]))
                     ) + 1;
             else i = db.strInt(i);
             return prefix + '#' + i;
@@ -280,11 +262,11 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
         },
     };
 
-    saveStashToStorage = () => {
+    const saveStashToStorage = useCallback(() => {
         localStorage.setItem(
             'stash',
             JSON.stringify(
-                this.state.stashed.map<t_StorageStashEntry>(s => {
+                stashed.map<t_StorageStashEntry>(s => {
                     return {
                         database: s.value instanceof t_StashQuery ? s.value.query : s.database, //stash query uses database field for storing query
                         type:
@@ -303,32 +285,29 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
                 })
             )
         );
-    };
+    }, [stashed]);
 
-    stashManager: IStashManager = {
+    useEffect(() => {
+        saveStashToStorage();
+    }, [stashed]);
+
+    const stashManager: IStashManager = {
         add: (value: t_StashValue, database: string, id: number = new Date().getTime()) => {
-            this.setState(state => {
-                return {
-                    stashed:
-                        this.stashManager.indexOf(value, state.stashed) === -1
-                            ? state.stashed.concat({
-                                  id: id,
-                                  value: value,
-                                  database: database,
-                              })
-                            : state.stashed,
-                };
-            }, this.saveStashToStorage);
+            setStashed(state => {
+                return stashManager.indexOf(value, state) === -1
+                    ? state.concat({
+                          id: id,
+                          value: value,
+                          database: database,
+                      })
+                    : state;
+            });
         },
         remove: (id: number) => {
-            this.setState(state => {
-                return {
-                    stashed: state.stashed.filter(s => s.id !== id),
-                };
-            }, this.saveStashToStorage);
+            setStashed(state => state.filter(s => s.id !== id));
         },
         indexOf: (value: t_StashValue, stashed: IStashEntry[] = null): number => {
-            return (stashed || this.state.stashed).findIndex(s => {
+            return (stashed || stashed).findIndex(s => {
                 if (
                     (value instanceof _Node && s.value instanceof _Node) ||
                     (value instanceof _Relationship && s.value instanceof _Relationship)
@@ -339,54 +318,44 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
             });
         },
         empty: () => {
-            if (this.state.stashed.length > 0) this.setState({ stashed: [] });
+            if (stashed.length > 0) setStashed([]);
             localStorage.removeItem('stash');
         },
         button: (value: t_StashValue, database: string, color: string = ''): React.ReactElement => {
-            const i = this.stashManager.indexOf(value);
+            const i = stashManager.indexOf(value);
             return (
                 <Button
                     title={i === -1 ? 'Add to stash' : 'Remove from stash'}
-                    onClick={() =>
-                        i === -1
-                            ? this.stashManager.add(value, database)
-                            : this.stashManager.remove(this.state.stashed[i].id)
-                    }
+                    onClick={() => (i === -1 ? stashManager.add(value, database) : stashManager.remove(stashed[i].id))}
                     color={color}
                     icon={i === -1 ? 'fa-solid fa-folder-plus' : 'fa-solid fa-folder-minus'}
                 />
             );
         },
         get: (): IStashEntry[] => {
-            return this.state.stashed;
+            return stashed;
         },
     };
 
-    toast: t_ToastFn = (message: string, color = 'is-success', delay = 3) => {
+    const toast: t_ToastFn = (message: string, color = 'is-success', delay = 3) => {
         const i: number = new Date().getTime();
-        this.setState({
-            toasts: [
-                {
-                    key: i,
-                    message: message,
-                    color: color,
-                    delay: delay,
-                    timeout: setTimeout(() => this.discardToast(i), delay * 1000),
-                },
-                ...this.state.toasts,
-            ],
-        });
+        setToasts([
+            {
+                key: i,
+                message: message,
+                color: color,
+                delay: delay,
+                timeout: setTimeout(() => discardToast(i), delay * 1000),
+            },
+            ...toasts,
+        ]);
     };
 
-    discardToast = (i: number) => {
-        this.setState(state => {
-            return {
-                toasts: state.toasts.filter(t => t.key !== i),
-            };
-        });
+    const discardToast = (i: number) => {
+        setToasts(state => state.filter(t => t.key !== i));
     };
 
-    handleCopyToClipboard = (e: React.UIEvent) => {
+    const handleCopyToClipboard = (e: React.UIEvent) => {
         const target = e.currentTarget;
         let text = '';
         if (target.hasAttribute('data-copy')) {
@@ -416,119 +385,109 @@ class Logged extends React.Component<ILoggedProps, ILoggedState> {
         }
 
         if (text.length > 0) {
-            navigator.clipboard.writeText(text).then(() => this.toast('Copied to clipboard', 'is-success is-light'));
+            navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard', 'is-success is-light'));
         }
     };
 
-    handleShowPropertiesModal: t_ShowPropertiesModalFn = (properties: object) => {
-        this.setState({ propertiesModal: properties });
+    const handleShowPropertiesModal: t_ShowPropertiesModalFn = (properties: object) => {
+        setPropertiesModal(properties);
     };
 
-    render() {
-        if (this.state.tabs.length === 0 || this.state.activeTab === null) return;
+    if (tabs.length === 0 || activeTab === null) return null;
 
-        const activeContent = this.state.contents.find(c => c.id === this.state.activeTab);
-        document.title =
-            this.state.tabs.find(t => t.id === this.state.activeTab).title +
-            (db.databases.length > 1 && 'database' in activeContent.props
-                ? ' (db: ' + activeContent.props.database + ')'
-                : '') +
-            ' / cypherGUI';
+    const activeContent = contents.find(c => c.id === activeTab);
+    document.title =
+        tabs.find(t => t.id === activeTab).title +
+        (db.databases.length > 1 && 'database' in activeContent.props
+            ? ' (db: ' + activeContent.props.database + ')'
+            : '') +
+        ' / cypherGUI';
 
-        return (
-            <>
-                <Navbar
-                    handleLogout={this.props.handleLogout}
-                    handleOpenSettings={() => this.setState({ settingsModal: true })}
-                    tabManager={this.tabManager}
-                    darkMode={this.props.darkMode}
-                />
+    return (
+        <>
+            <Navbar
+                handleLogout={handleLogout}
+                handleOpenSettings={() => setSettingsModal(true)}
+                tabManager={tabManager}
+                darkMode={darkMode}
+            />
 
-                <section className='tabs is-boxed sticky'>
-                    <ul>
-                        {this.state.tabs.map(tab => (
-                            <Tab
-                                key={'tab-' + tab.id}
-                                active={tab.id === this.state.activeTab}
-                                tabManager={this.tabManager}
-                                {...tab}
-                            />
-                        ))}
-                    </ul>
-                </section>
-
-                <PropertiesModalContext.Provider value={this.handleShowPropertiesModal}>
-                    <ClipboardContext.Provider value={this.handleCopyToClipboard}>
-                        <ToastContext.Provider value={this.toast}>
-                            <section className='container is-fluid'>
-                                {this.state.contents.map(content => {
-                                    const MyComponent: typeof React.Component = this.components[content.page];
-                                    return (
-                                        <div
-                                            key={'content-' + content.id}
-                                            className={content.id === this.state.activeTab ? '' : 'is-hidden'}
-                                        >
-                                            <MyComponent
-                                                active={content.id === this.state.activeTab}
-                                                tabName={this.state.tabs.filter(t => t.id === content.id)[0].title}
-                                                tabId={content.id}
-                                                tabManager={this.tabManager}
-                                                toast={this.toast}
-                                                stashManager={this.stashManager}
-                                                {...content.props}
-                                            />
-                                        </div>
-                                    );
-                                })}
-                            </section>
-                        </ToastContext.Provider>
-                    </ClipboardContext.Provider>
-
-                    <Stash stashed={this.state.stashed} tabManager={this.tabManager} stashManager={this.stashManager} />
-                </PropertiesModalContext.Provider>
-
-                <section className='notifications' aria-label='notifications'>
-                    {this.state.toasts.map(toast => (
-                        <div
-                            key={toast.key}
-                            className={'notification fadeOut pr-6 ' + toast.color}
-                            style={{ animationDelay: toast.delay - 1 + 's' }}
-                        >
-                            <button className='delete' onClick={() => this.discardToast(toast.key)} />
-                            {toast.message}
-                        </div>
+            <section className='tabs is-boxed sticky'>
+                <ul>
+                    {tabs.map(tab => (
+                        <Tab key={'tab-' + tab.id} active={tab.id === activeTab} tabManager={tabManager} {...tab} />
                     ))}
-                </section>
+                </ul>
+            </section>
 
-                {this.state.settingsModal && (
-                    <Settings
-                        handleClose={() => {
-                            this.setState({ settingsModal: false });
-                        }}
-                    />
-                )}
+            <PropertiesModalContext.Provider value={handleShowPropertiesModal}>
+                <ClipboardContext.Provider value={handleCopyToClipboard}>
+                    <ToastContext.Provider value={toast}>
+                        <section className='container is-fluid'>
+                            {contents.map(content => {
+                                const MyComponent: React.FC<IPageProps> = components[content.page];
+                                return (
+                                    <div
+                                        key={'content-' + content.id}
+                                        className={content.id === activeTab ? '' : 'is-hidden'}
+                                    >
+                                        <MyComponent
+                                            active={content.id === activeTab}
+                                            tabName={tabs.filter(t => t.id === content.id)[0].title}
+                                            tabId={content.id}
+                                            tabManager={tabManager}
+                                            toast={toast}
+                                            stashManager={stashManager}
+                                            {...content.props}
+                                        />
+                                    </div>
+                                );
+                            })}
+                        </section>
+                    </ToastContext.Provider>
+                </ClipboardContext.Provider>
 
-                {this.state.propertiesModal && (
-                    <ClipboardContext.Provider value={this.handleCopyToClipboard}>
-                        <PropertiesModal
-                            properties={this.state.propertiesModal}
-                            handleClose={() => this.setState({ propertiesModal: null })}
-                        />
-                    </ClipboardContext.Provider>
-                )}
+                <Stash stashed={stashed} tabManager={tabManager} stashManager={stashManager} />
+            </PropertiesModalContext.Provider>
 
-                {this.state.confirmModal && (
-                    <CloseConfirmModal
-                        handleConfirm={() => {
-                            this.tabManager.close(this.state.confirmModal as string);
-                            this.setState({ confirmModal: null });
-                        }}
-                        handleClose={() => this.setState({ confirmModal: null })}
-                    />
-                )}
-            </>
-        );
-    }
-}
+            <section className='notifications' aria-label='notifications'>
+                {toasts.map(toast => (
+                    <div
+                        key={toast.key}
+                        className={'notification fadeOut pr-6 ' + toast.color}
+                        style={{ animationDelay: toast.delay - 1 + 's' }}
+                    >
+                        <button className='delete' onClick={() => discardToast(toast.key)} />
+                        {toast.message}
+                    </div>
+                ))}
+            </section>
+
+            {settingsModal && (
+                <Settings
+                    handleClose={() => {
+                        setSettingsModal(false);
+                    }}
+                />
+            )}
+
+            {propertiesModal && (
+                <ClipboardContext.Provider value={handleCopyToClipboard}>
+                    <PropertiesModal properties={propertiesModal} handleClose={() => setPropertiesModal(null)} />
+                </ClipboardContext.Provider>
+            )}
+
+            {confirmModal && (
+                <CloseConfirmModal
+                    handleConfirm={() => {
+                        tabManager.close(confirmModal as string);
+                        setConfirmModal(null);
+                    }}
+                    handleClose={() => setConfirmModal(null)}
+                />
+            )}
+        </>
+    );
+};
 
 export default Logged;

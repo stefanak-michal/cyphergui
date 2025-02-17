@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { ReactNode, ReactElement } from 'react';
 import db from '../../db';
 import InlineNode from '../../components/InlineNode';
 import InlineRelationship from '../../components/InlineRelationship';
@@ -26,42 +26,15 @@ interface ITableProps {
     tabManager: ITabManager;
 }
 
-class Table extends React.Component<ITableProps> {
-    render() {
-        return (
-            <div className='table-container'>
-                <table className='table is-bordered is-striped is-narrow is-hoverable'>
-                    <thead>
-                        <tr>
-                            {this.props.keys.map(key => (
-                                <th key={key}>{key}</th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {this.props.rows.map((row, i) => (
-                            <tr key={i}>
-                                {this.props.keys.map(key => (
-                                    <td key={key}>{row.has(key) ? this.printValue(row.get(key)) : ''}</td>
-                                ))}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        );
-    }
-
-    printValue = (value: any): React.ReactElement => {
+const Table: React.FC<ITableProps> = ({ keys, rows, tableSize, tabManager }) => {
+    const printValue = (value: any): ReactElement => {
         if (db.isInt(value)) return <>{db.strInt(value)}</>;
         if (Array.isArray(value))
             return (
                 <>
                     [
                     {value.length
-                        ? value
-                              .map<React.ReactNode>(entry => this.printValue(entry))
-                              .reduce((prev, curr) => [prev, ', ', curr])
+                        ? value.map<ReactNode>(entry => printValue(entry)).reduce((prev, curr) => [prev, ', ', curr])
                         : ''}
                     ]
                 </>
@@ -71,12 +44,10 @@ class Table extends React.Component<ITableProps> {
         if (typeof value === 'string') return <p className='wspace-pre is-inline-block'>{value}</p>;
 
         if (value instanceof _Node) {
-            return <InlineNode node={value} tabManager={this.props.tabManager} small={this.props.tableSize === 1} />;
+            return <InlineNode node={value} tabManager={tabManager} small={tableSize === 1} />;
         }
         if (value instanceof _Relationship) {
-            return (
-                <InlineRelationship rel={value} tabManager={this.props.tabManager} small={this.props.tableSize === 1} />
-            );
+            return <InlineRelationship rel={value} tabManager={tabManager} small={tableSize === 1} />;
         }
         if (value instanceof _Path) {
             let start = value.start;
@@ -89,7 +60,7 @@ class Table extends React.Component<ITableProps> {
                                 {first && (
                                     <>
                                         <span className='is-size-4'>(</span>
-                                        {this.printValue(
+                                        {printValue(
                                             db.strInt(segment.start.identity) === db.strInt(start.identity)
                                                 ? segment.start
                                                 : segment.end
@@ -100,11 +71,11 @@ class Table extends React.Component<ITableProps> {
                                 <span className='is-size-4 wspace-nowrap'>
                                     {db.strInt(segment.start.identity) === db.strInt(start.identity) ? '-' : '<-'}[
                                 </span>
-                                {this.printValue(segment.relationship)}
+                                {printValue(segment.relationship)}
                                 <span className='is-size-4 wspace-nowrap'>
                                     ]{db.strInt(segment.start.identity) === db.strInt(start.identity) ? '->' : '-'}(
                                 </span>
-                                {this.printValue(
+                                {printValue(
                                     db.strInt(segment.start.identity) === db.strInt(start.identity)
                                         ? segment.end
                                         : segment.start
@@ -158,6 +129,29 @@ class Table extends React.Component<ITableProps> {
 
         return value.toString();
     };
-}
+
+    return (
+        <div className='table-container'>
+            <table className='table is-bordered is-striped is-narrow is-hoverable'>
+                <thead>
+                    <tr>
+                        {keys.map(key => (
+                            <th key={key}>{key}</th>
+                        ))}
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows.map((row, i) => (
+                        <tr key={i}>
+                            {keys.map(key => (
+                                <td key={key}>{row.has(key) ? printValue(row.get(key)) : ''}</td>
+                            ))}
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
+};
 
 export default Table;

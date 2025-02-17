@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useState, useEffect, createRef } from 'react';
 import { t_FormProperty, t_FormValue } from '../utils/types';
 import { Ecosystem, EPropertyType } from '../utils/enums';
 import db from '../db';
@@ -20,18 +20,12 @@ interface IPropertiesFormProps {
     updateProperties: (properties: t_FormProperty[]) => void;
 }
 
-interface IPropertiesFormState {
-    focus: string;
-}
+const PropertiesForm: React.FC<IPropertiesFormProps> = ({ properties, updateProperties }) => {
+    const [focus, setFocus] = useState<string>('');
 
-class PropertiesForm extends React.Component<IPropertiesFormProps, IPropertiesFormState> {
-    state: IPropertiesFormState = {
-        focus: '',
-    };
-
-    handleKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const target = e.currentTarget;
-        const props = [...this.props.properties];
+        const props = [...properties];
         const i = props.findIndex(p => target.name.startsWith('key.' + p.name));
         if (i > -1) {
             const parts = target.name.split('.');
@@ -41,13 +35,13 @@ class PropertiesForm extends React.Component<IPropertiesFormProps, IPropertiesFo
                 props[i].key = target.value;
             }
 
-            this.props.updateProperties(props);
-            this.setState({ focus: target.name });
+            updateProperties(props);
+            setFocus(target.name);
         }
     };
 
-    handleValueChange = (name: string, value: any, temp: any = null) => {
-        const props = [...this.props.properties];
+    const handleValueChange = (name: string, value: any, temp: any = null) => {
+        const props = [...properties];
         let i = props.findIndex(p => p.name === name);
         if (i > -1) {
             props[i].temp = temp;
@@ -62,16 +56,16 @@ class PropertiesForm extends React.Component<IPropertiesFormProps, IPropertiesFo
         }
 
         if (i > -1) {
-            this.props.updateProperties(props);
-            this.setState({ focus: name });
+            updateProperties(props);
+            setFocus(name);
         }
     };
 
-    handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const target = e.currentTarget;
-        const value = this.getDefaultValue(EPropertyType[target.value]);
+        const value = getDefaultValue(EPropertyType[target.value]);
         const temp = getPropertyAsTemp(EPropertyType[target.value], value);
-        const props = [...this.props.properties];
+        const props = [...properties];
         let i = props.findIndex(p => 'type.' + p.name === target.name);
         if (i > -1) {
             if (Array.isArray(value))
@@ -103,12 +97,12 @@ class PropertiesForm extends React.Component<IPropertiesFormProps, IPropertiesFo
         }
 
         if (i > -1) {
-            this.props.updateProperties(props);
-            this.setState({ focus: target.name });
+            updateProperties(props);
+            setFocus(target.name);
         }
     };
 
-    getDefaultValue = (type: EPropertyType): any => {
+    const getDefaultValue = (type: EPropertyType): any => {
         const int0 = db.toInt(0);
         switch (type) {
             case EPropertyType.String:
@@ -139,8 +133,8 @@ class PropertiesForm extends React.Component<IPropertiesFormProps, IPropertiesFo
         }
     };
 
-    handleDelete = (name: string) => {
-        const props = [...this.props.properties];
+    const handleDelete = (name: string) => {
+        const props = [...properties];
         let i = props.findIndex(p => p.name === name);
         if (i > -1) {
             props.splice(i, 1);
@@ -152,27 +146,25 @@ class PropertiesForm extends React.Component<IPropertiesFormProps, IPropertiesFo
             }
         }
 
-        if (i > -1) this.props.updateProperties(props);
+        if (i > -1) updateProperties(props);
     };
 
-    handleAdd = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const handleAdd = (e: React.PointerEvent<HTMLButtonElement>) => {
         e.preventDefault();
         const target = e.currentTarget;
-        const props = [...this.props.properties];
+        const props = [...properties];
         if (target.value) {
             const i = props.findIndex(p => p.name === target.value);
             if (i > -1) {
                 const valueType = (props[i].value as t_FormValue[])[props[i].value.length - 1].type;
-                const value = this.getDefaultValue(valueType);
+                const value = getDefaultValue(valueType);
                 (props[i].value as t_FormValue[]).push({
                     type: valueType,
                     value: value,
                     temp: getPropertyAsTemp(valueType, value),
                 } as t_FormValue);
-                this.props.updateProperties(props);
-                this.setState({
-                    focus: props[i].name + '.' + (props[i].value.length - 1),
-                });
+                updateProperties(props);
+                setFocus(props[i].name + '.' + (props[i].value.length - 1));
             }
         } else {
             const i = new Date().getTime().toString();
@@ -183,34 +175,32 @@ class PropertiesForm extends React.Component<IPropertiesFormProps, IPropertiesFo
                 type: EPropertyType.String,
             });
 
-            this.props.updateProperties(props);
-            this.setState({ focus: 'key.' + i });
+            updateProperties(props);
+            setFocus('key.' + i);
         }
     };
 
-    render() {
-        return (
-            <>
-                {this.props.properties.map(p => (
-                    <Property
-                        key={p.name}
-                        focus={this.state.focus}
-                        property={p}
-                        onKeyChange={this.handleKeyChange}
-                        onValueChange={this.handleValueChange}
-                        onTypeChange={this.handleTypeChange}
-                        onDelete={this.handleDelete}
-                        onAdd={this.handleAdd}
-                    />
-                ))}
+    return (
+        <>
+            {properties.map(p => (
+                <Property
+                    key={p.name}
+                    focus={focus}
+                    property={p}
+                    onKeyChange={handleKeyChange}
+                    onValueChange={handleValueChange}
+                    onTypeChange={handleTypeChange}
+                    onDelete={handleDelete}
+                    onAdd={handleAdd}
+                />
+            ))}
 
-                <Button icon='fa-solid fa-plus' color='ml-1' text='Add property' onClick={this.handleAdd} />
-            </>
-        );
-    }
-}
+            <Button icon='fa-solid fa-plus' color='ml-1' text='Add property' onClick={handleAdd} />
+        </>
+    );
+};
 
-class Property extends React.Component<{
+const Property: React.FC<{
     property: t_FormProperty;
     focus: string;
     onKeyChange: (e: React.ChangeEvent) => void;
@@ -218,8 +208,8 @@ class Property extends React.Component<{
     onTypeChange: (e: React.ChangeEvent) => void;
     onDelete: (name: string) => void;
     onAdd: (e: React.PointerEvent) => void;
-}> {
-    components = {
+}> = ({ property, focus, onKeyChange, onValueChange, onTypeChange, onDelete, onAdd }) => {
+    const components = {
         PropertyStringInput: PropertyStringInput,
         PropertyIntegerInput: PropertyIntegerInput,
         PropertyFloatInput: PropertyFloatInput,
@@ -233,241 +223,232 @@ class Property extends React.Component<{
         PropertyPointInput: PropertyPointInput,
     };
 
-    render() {
-        const deleteButton = (
-            <div className='control'>
-                <Button
-                    icon='fa-regular fa-trash-can'
-                    onClick={() => this.props.onDelete(this.props.property.name)}
-                    title='Delete property'
-                />
-            </div>
-        );
+    const deleteButton = (
+        <div className='control'>
+            <Button icon='fa-regular fa-trash-can' onClick={() => onDelete(property.name)} title='Delete property' />
+        </div>
+    );
 
-        const nameInput = (
-            <div className='control'>
-                <input
-                    name={'key.' + this.props.property.name}
-                    autoFocus={this.props.focus === 'key.' + this.props.property.name}
-                    className='input'
-                    type='text'
-                    value={this.props.property.key}
-                    onChange={this.props.onKeyChange}
-                    placeholder='Key'
-                    pattern='^[A-Za-z][A-Za-z_0-9]*$'
-                    required
-                />
-            </div>
-        );
+    const nameInput = (
+        <div className='control'>
+            <input
+                name={'key.' + property.name}
+                autoFocus={focus === 'key.' + property.name}
+                className='input'
+                type='text'
+                value={property.key}
+                onChange={onKeyChange}
+                placeholder='Key'
+                pattern='^[A-Za-z][A-Za-z_0-9]*$'
+                required
+            />
+        </div>
+    );
 
-        if (this.props.property.type === EPropertyType.List) {
-            return (
-                <div className='field is-grouped is-hoverable p-1 mb-1'>
-                    {nameInput}
-
-                    <div className='control is-expanded'>
-                        <div className='field is-grouped'>
-                            <div className='control'>
-                                <PropertyType
-                                    name={this.props.property.name}
-                                    selected={this.props.property.type}
-                                    onTypeChange={this.props.onTypeChange}
-                                    subtype={false}
-                                />
-                            </div>
-                            <div className='control'>
-                                <PropertyType
-                                    name={this.props.property.name}
-                                    selected={
-                                        (this.props.property.value as t_FormValue[])[0]?.type ?? EPropertyType.String
-                                    }
-                                    onTypeChange={this.props.onTypeChange}
-                                    subtype={true}
-                                />
-                            </div>
-                            <div className='control'>
-                                <ClipboardContext.Consumer>
-                                    {copy => (
-                                        <Button
-                                            icon='fa-regular fa-copy'
-                                            onClick={copy}
-                                            value={JSON.stringify(
-                                                (this.props.property.value as t_FormValue[]).map(v =>
-                                                    db.isInt(v.value) ? db.fromInt(v.value) : v.value
-                                                )
-                                            )}
-                                        />
-                                    )}
-                                </ClipboardContext.Consumer>
-                            </div>
-                        </div>
-
-                        {(this.props.property.value as t_FormValue[]).map((v, i) => {
-                            const PropertyInputComponent: typeof APropertyInput =
-                                this.components['Property' + v.type + 'Input'];
-                            const focus = this.props.focus === this.props.property.name + '.' + i;
-                            return (
-                                <div className='field is-grouped' key={i}>
-                                    <PropertyInputComponent
-                                        name={this.props.property.name + '.' + i}
-                                        value={v.value}
-                                        temp={v.temp}
-                                        onValueChange={this.props.onValueChange}
-                                        focus={focus}
-                                    />
-                                    <Button
-                                        icon='fa-solid fa-circle-minus'
-                                        onClick={() => this.props.onDelete(this.props.property.name + '.' + i)}
-                                        title='Remove list entry'
-                                    />
-                                </div>
-                            );
-                        })}
-                        <div className='field'>
-                            <div className='control'>
-                                <Button
-                                    icon='fa-solid fa-circle-plus'
-                                    onClick={this.props.onAdd}
-                                    title='Add list entry'
-                                    value={this.props.property.name}
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {deleteButton}
-                </div>
-            );
-        }
-
-        if (this.props.property.type === EPropertyType.Map) {
-            return (
-                <div className='field is-grouped is-hoverable p-1 mb-1'>
-                    {nameInput}
-
-                    <div className='control is-expanded'>
-                        <div className='field is-grouped'>
-                            <div className='control'>
-                                <PropertyType
-                                    name={this.props.property.name}
-                                    selected={this.props.property.type}
-                                    onTypeChange={this.props.onTypeChange}
-                                    subtype={false}
-                                />
-                            </div>
-                            <div className='control'>
-                                <ClipboardContext.Consumer>
-                                    {copy => (
-                                        <Button
-                                            icon='fa-regular fa-copy'
-                                            onClick={e => {
-                                                const obj = {};
-                                                (this.props.property.value as t_FormValue[]).forEach(v => {
-                                                    obj[v.key] = db.isInt(v.value) ? db.fromInt(v.value) : v.value;
-                                                });
-                                                e.currentTarget.value = JSON.stringify(obj);
-                                                copy(e);
-                                            }}
-                                        />
-                                    )}
-                                </ClipboardContext.Consumer>
-                            </div>
-                        </div>
-
-                        {(this.props.property.value as t_FormValue[]).map((v, i) => {
-                            const PropertyInputComponent: typeof APropertyInput =
-                                this.components['Property' + v.type + 'Input'];
-                            const focus = this.props.focus === this.props.property.name + '.' + i;
-                            return (
-                                <div className='field is-grouped' key={i}>
-                                    <div className='control'>
-                                        <input
-                                            name={'key.' + this.props.property.name + '.' + i}
-                                            autoFocus={this.props.focus === 'key.' + this.props.property.name + '.' + i}
-                                            className='input'
-                                            type='text'
-                                            value={v.key}
-                                            onChange={this.props.onKeyChange}
-                                            placeholder='Key'
-                                            pattern='^[A-Za-z][A-Za-z_0-9]*$'
-                                            required
-                                        />
-                                    </div>
-                                    <PropertyInputComponent
-                                        name={this.props.property.name + '.' + i}
-                                        value={v.value}
-                                        temp={v.temp}
-                                        onValueChange={this.props.onValueChange}
-                                        focus={focus}
-                                    />
-                                    <div className='control'>
-                                        <Button
-                                            icon='fa-solid fa-circle-minus'
-                                            onClick={() => this.props.onDelete(this.props.property.name + '.' + i)}
-                                            title='Remove map entry'
-                                        />
-                                    </div>
-                                    <PropertyType
-                                        name={this.props.property.name + '.' + i}
-                                        selected={v.type}
-                                        onTypeChange={this.props.onTypeChange}
-                                        subtype={true}
-                                    />
-                                </div>
-                            );
-                        })}
-                        <div className='field'>
-                            <div className='control'>
-                                <Button
-                                    icon='fa-solid fa-circle-plus'
-                                    onClick={this.props.onAdd}
-                                    title='Add map entry'
-                                    value={this.props.property.name}
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {deleteButton}
-                </div>
-            );
-        }
-
-        const PropertyInputComponent: typeof APropertyInput =
-            this.components['Property' + this.props.property.type + 'Input'];
+    if (property.type === EPropertyType.List) {
         return (
             <div className='field is-grouped is-hoverable p-1 mb-1'>
                 {nameInput}
-                <PropertyInputComponent
-                    name={this.props.property.name}
-                    value={this.props.property.value}
-                    temp={this.props.property.temp}
-                    onValueChange={this.props.onValueChange}
-                    focus={this.props.focus === this.props.property.name}
-                />
-                <div className='control'>
-                    <PropertyType
-                        name={this.props.property.name}
-                        selected={this.props.property.type}
-                        onTypeChange={this.props.onTypeChange}
-                        subtype={false}
-                    />
+
+                <div className='control is-expanded'>
+                    <div className='field is-grouped'>
+                        <div className='control'>
+                            <PropertyType
+                                name={property.name}
+                                selected={property.type}
+                                onTypeChange={onTypeChange}
+                                subtype={false}
+                            />
+                        </div>
+                        <div className='control'>
+                            <PropertyType
+                                name={property.name}
+                                selected={(property.value as t_FormValue[])[0]?.type ?? EPropertyType.String}
+                                onTypeChange={onTypeChange}
+                                subtype={true}
+                            />
+                        </div>
+                        <div className='control'>
+                            <ClipboardContext.Consumer>
+                                {copy => (
+                                    <Button
+                                        icon='fa-regular fa-copy'
+                                        onClick={copy}
+                                        value={JSON.stringify(
+                                            (property.value as t_FormValue[]).map(v =>
+                                                db.isInt(v.value) ? db.fromInt(v.value) : v.value
+                                            )
+                                        )}
+                                    />
+                                )}
+                            </ClipboardContext.Consumer>
+                        </div>
+                    </div>
+
+                    {(property.value as t_FormValue[]).map((v, i) => {
+                        const PropertyInputComponent: React.FC<PropertyInputProps> =
+                            components['Property' + v.type + 'Input'];
+                        const hasFocus = focus === property.name + '.' + i;
+                        return (
+                            <div className='field is-grouped' key={i}>
+                                <PropertyInputComponent
+                                    name={property.name + '.' + i}
+                                    value={v.value}
+                                    temp={v.temp}
+                                    onValueChange={onValueChange}
+                                    focus={hasFocus}
+                                />
+                                <Button
+                                    icon='fa-solid fa-circle-minus'
+                                    onClick={() => onDelete(property.name + '.' + i)}
+                                    title='Remove list entry'
+                                />
+                            </div>
+                        );
+                    })}
+                    <div className='field'>
+                        <div className='control'>
+                            <Button
+                                icon='fa-solid fa-circle-plus'
+                                onClick={onAdd}
+                                title='Add list entry'
+                                value={property.name}
+                            />
+                        </div>
+                    </div>
                 </div>
+
                 {deleteButton}
             </div>
         );
     }
-}
 
-class PropertyType extends React.Component<{
+    if (property.type === EPropertyType.Map) {
+        return (
+            <div className='field is-grouped is-hoverable p-1 mb-1'>
+                {nameInput}
+
+                <div className='control is-expanded'>
+                    <div className='field is-grouped'>
+                        <div className='control'>
+                            <PropertyType
+                                name={property.name}
+                                selected={property.type}
+                                onTypeChange={onTypeChange}
+                                subtype={false}
+                            />
+                        </div>
+                        <div className='control'>
+                            <ClipboardContext.Consumer>
+                                {copy => (
+                                    <Button
+                                        icon='fa-regular fa-copy'
+                                        onClick={e => {
+                                            const obj = {};
+                                            (property.value as t_FormValue[]).forEach(v => {
+                                                obj[v.key] = db.isInt(v.value) ? db.fromInt(v.value) : v.value;
+                                            });
+                                            e.currentTarget.value = JSON.stringify(obj);
+                                            copy(e);
+                                        }}
+                                    />
+                                )}
+                            </ClipboardContext.Consumer>
+                        </div>
+                    </div>
+
+                    {(property.value as t_FormValue[]).map((v, i) => {
+                        const PropertyInputComponent: React.FC<PropertyInputProps> =
+                            components['Property' + v.type + 'Input'];
+                        const newFocus = focus === property.name + '.' + i;
+                        return (
+                            <div className='field is-grouped' key={i}>
+                                <div className='control'>
+                                    <input
+                                        name={'key.' + property.name + '.' + i}
+                                        autoFocus={focus === 'key.' + property.name + '.' + i}
+                                        className='input'
+                                        type='text'
+                                        value={v.key}
+                                        onChange={onKeyChange}
+                                        placeholder='Key'
+                                        pattern='^[A-Za-z][A-Za-z_0-9]*$'
+                                        required
+                                    />
+                                </div>
+                                <PropertyInputComponent
+                                    name={property.name + '.' + i}
+                                    value={v.value}
+                                    temp={v.temp}
+                                    onValueChange={onValueChange}
+                                    focus={newFocus}
+                                />
+                                <div className='control'>
+                                    <Button
+                                        icon='fa-solid fa-circle-minus'
+                                        onClick={() => onDelete(property.name + '.' + i)}
+                                        title='Remove map entry'
+                                    />
+                                </div>
+                                <PropertyType
+                                    name={property.name + '.' + i}
+                                    selected={v.type}
+                                    onTypeChange={onTypeChange}
+                                    subtype={true}
+                                />
+                            </div>
+                        );
+                    })}
+                    <div className='field'>
+                        <div className='control'>
+                            <Button
+                                icon='fa-solid fa-circle-plus'
+                                onClick={onAdd}
+                                title='Add map entry'
+                                value={property.name}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {deleteButton}
+            </div>
+        );
+    }
+
+    const PropertyInputComponent: React.FC<PropertyInputProps> = components['Property' + property.type + 'Input'];
+    return (
+        <div className='field is-grouped is-hoverable p-1 mb-1'>
+            {nameInput}
+            <PropertyInputComponent
+                name={property.name}
+                value={property.value}
+                temp={property.temp}
+                onValueChange={onValueChange}
+                focus={focus === property.name}
+            />
+            <div className='control'>
+                <PropertyType
+                    name={property.name}
+                    selected={property.type}
+                    onTypeChange={onTypeChange}
+                    subtype={false}
+                />
+            </div>
+            {deleteButton}
+        </div>
+    );
+};
+
+const PropertyType: React.FC<{
     name: string;
     selected: EPropertyType;
     onTypeChange: (e: React.ChangeEvent) => void;
     subtype: boolean;
-}> {
-    getPropertyTypes = () => {
+}> = ({ name, selected, onTypeChange, subtype }) => {
+    const getPropertyTypes = () => {
         return Object.keys(EPropertyType).filter(k => {
-            if (this.props.subtype && (k === EPropertyType.List || k === EPropertyType.Map)) return false;
+            if (subtype && (k === EPropertyType.List || k === EPropertyType.Map)) return false;
             if (
                 db.ecosystem === Ecosystem.Memgraph &&
                 (k === EPropertyType.Point || k === EPropertyType.Time || k === EPropertyType.DateTime)
@@ -478,766 +459,665 @@ class PropertyType extends React.Component<{
         });
     };
 
-    render() {
-        return (
-            <div className='select'>
-                <select
-                    name={(this.props.subtype ? 'subtype.' : 'type.') + this.props.name}
-                    value={this.props.selected}
-                    onChange={this.props.onTypeChange}
-                    title={this.props.subtype ? 'Type of list/map entries' : 'Property type'}
-                >
-                    {this.getPropertyTypes().map(type => (
-                        <option key={type} value={type}>
-                            {type}
-                        </option>
-                    ))}
-                </select>
-            </div>
-        );
-    }
-}
+    return (
+        <div className='select'>
+            <select
+                name={(subtype ? 'subtype.' : 'type.') + name}
+                value={selected}
+                onChange={onTypeChange}
+                title={subtype ? 'Type of list/map entries' : 'Property type'}
+            >
+                {getPropertyTypes().map(type => (
+                    <option key={type} value={type}>
+                        {type}
+                    </option>
+                ))}
+            </select>
+        </div>
+    );
+};
 
-abstract class APropertyInput extends React.Component<{
+interface PropertyInputProps {
     name: string;
     value: any;
     temp: any;
     onValueChange: (name: string, value: any, temp?: any) => void;
     focus: boolean;
-}> {}
-
-class PropertyStringInput extends APropertyInput {
-    render() {
-        return (
-            <div className='control is-expanded has-icons-right'>
-                <Textarea
-                    name={this.props.name}
-                    value={this.props.value}
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                        this.props.onValueChange(this.props.name, e.currentTarget.value)
-                    }
-                    focus={this.props.focus}
-                    placeholder='Value'
-                />
-                <ClipboardContext.Consumer>
-                    {copy => (
-                        <span className='icon is-right is-clickable' onClick={copy}>
-                            <i className='fa-regular fa-copy' />
-                        </span>
-                    )}
-                </ClipboardContext.Consumer>
-            </div>
-        );
-    }
 }
 
-class PropertyBooleanInput extends APropertyInput {
-    render() {
-        return (
-            <div className='control is-expanded'>
-                <label className='switch'>
-                    <input
-                        name={this.props.name}
-                        type='checkbox'
-                        checked={this.props.value}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                            this.props.onValueChange(this.props.name, e.currentTarget.checked)
-                        }
-                        placeholder='Value'
-                        autoFocus={this.props.focus}
-                    />
-                    <span className='slider' />
-                </label>
-            </div>
-        );
-    }
-}
+const PropertyStringInput: React.FC<PropertyInputProps> = ({ name, value, onValueChange, focus }) => {
+    return (
+        <div className='control is-expanded has-icons-right'>
+            <Textarea
+                name={name}
+                value={value}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => onValueChange(name, e.currentTarget.value)}
+                focus={focus}
+                placeholder='Value'
+            />
+            <ClipboardContext.Consumer>
+                {copy => (
+                    <span className='icon is-right is-clickable' onClick={copy}>
+                        <i className='fa-regular fa-copy' />
+                    </span>
+                )}
+            </ClipboardContext.Consumer>
+        </div>
+    );
+};
 
-class PropertyIntegerInput extends APropertyInput {
-    render() {
-        return (
-            <div className='control is-expanded has-icons-right'>
+const PropertyBooleanInput: React.FC<PropertyInputProps> = ({ name, value, onValueChange, focus }) => {
+    return (
+        <div className='control is-expanded'>
+            <label className='switch'>
                 <input
-                    name={this.props.name}
-                    className='input'
-                    type='number'
-                    value={this.props.temp}
-                    step='1'
-                    autoFocus={this.props.focus}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        this.props.onValueChange(
-                            this.props.name,
-                            e.currentTarget.value.length ? db.toInt(e.currentTarget.value) : null,
-                            e.currentTarget.value
-                        )
-                    }
+                    name={name}
+                    type='checkbox'
+                    checked={value}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => onValueChange(name, e.currentTarget.checked)}
                     placeholder='Value'
+                    autoFocus={focus}
                 />
-                <ClipboardContext.Consumer>
-                    {copy => (
-                        <span className='icon is-right is-clickable' onClick={copy}>
-                            <i className='fa-regular fa-copy' />
-                        </span>
-                    )}
-                </ClipboardContext.Consumer>
-            </div>
-        );
-    }
-}
+                <span className='slider' />
+            </label>
+        </div>
+    );
+};
 
-class PropertyFloatInput extends APropertyInput {
-    render() {
-        return (
-            <div className='control is-expanded has-icons-right'>
-                <input
-                    name={this.props.name}
-                    className='input'
-                    type='number'
-                    value={this.props.temp}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        this.props.onValueChange(
-                            this.props.name,
-                            e.currentTarget.valueAsNumber || null,
-                            e.currentTarget.value
-                        )
-                    }
-                    autoFocus={this.props.focus}
-                    placeholder='Value'
-                    step='any'
-                />
-                <ClipboardContext.Consumer>
-                    {copy => (
-                        <span className='icon is-right is-clickable' onClick={copy}>
-                            <i className='fa-regular fa-copy' />
-                        </span>
-                    )}
-                </ClipboardContext.Consumer>
-            </div>
-        );
-    }
-}
+const PropertyIntegerInput: React.FC<PropertyInputProps> = ({ name, value, temp, onValueChange, focus }) => {
+    return (
+        <div className='control is-expanded has-icons-right'>
+            <input
+                name={name}
+                className='input'
+                type='number'
+                value={temp}
+                step='1'
+                autoFocus={focus}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    onValueChange(
+                        name,
+                        e.currentTarget.value.length ? db.toInt(e.currentTarget.value) : null,
+                        e.currentTarget.value
+                    )
+                }
+                placeholder='Value'
+            />
+            <ClipboardContext.Consumer>
+                {copy => (
+                    <span className='icon is-right is-clickable' onClick={copy}>
+                        <i className='fa-regular fa-copy' />
+                    </span>
+                )}
+            </ClipboardContext.Consumer>
+        </div>
+    );
+};
+
+const PropertyFloatInput: React.FC<PropertyInputProps> = ({ name, value, temp, onValueChange, focus }) => {
+    return (
+        <div className='control is-expanded has-icons-right'>
+            <input
+                name={name}
+                className='input'
+                type='number'
+                value={temp}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    onValueChange(name, e.currentTarget.valueAsNumber || null, e.currentTarget.value)
+                }
+                autoFocus={focus}
+                placeholder='Value'
+                step='any'
+            />
+            <ClipboardContext.Consumer>
+                {copy => (
+                    <span className='icon is-right is-clickable' onClick={copy}>
+                        <i className='fa-regular fa-copy' />
+                    </span>
+                )}
+            </ClipboardContext.Consumer>
+        </div>
+    );
+};
 
 /*
  * Temporal types - part controls
  */
 
-class TimeControl extends React.Component<{
+const TimeControl: React.FC<{
     value: string;
     handleChange: () => void;
     inputRef: React.RefObject<HTMLInputElement>;
     invalid?: boolean;
-}> {
-    render() {
-        return (
-            <div className='control is-expanded'>
-                <input
-                    className={'input ' + (this.props.invalid ? 'is-danger' : '')}
-                    type='time'
-                    value={this.props.value}
-                    onChange={this.props.handleChange}
-                    step='1'
-                    ref={this.props.inputRef}
-                    title='Time'
-                />
-            </div>
-        );
-    }
-}
+}> = ({ value, handleChange, inputRef, invalid }) => {
+    return (
+        <div className='control is-expanded'>
+            <input
+                className={'input ' + (invalid ? 'is-danger' : '')}
+                type='time'
+                value={value}
+                onChange={handleChange}
+                step='1'
+                ref={inputRef}
+                title='Time'
+            />
+        </div>
+    );
+};
 
-class NanosecondsControl extends React.Component<{
+const NanosecondsControl: React.FC<{
     value: string;
     handleChange: () => void;
     inputRef: React.RefObject<HTMLInputElement>;
     invalid?: boolean;
-}> {
-    render() {
-        return (
-            <div className='control'>
-                <input
-                    className={'input ' + (this.props.invalid ? 'is-danger' : '')}
-                    type='number'
-                    step='1'
-                    min='0'
-                    max='999999999'
-                    value={this.props.value}
-                    title='Nanoseconds'
-                    ref={this.props.inputRef}
-                    onChange={this.props.handleChange}
-                />
-            </div>
-        );
-    }
-}
+}> = ({ value, handleChange, inputRef, invalid }) => {
+    return (
+        <div className='control'>
+            <input
+                className={'input ' + (invalid ? 'is-danger' : '')}
+                type='number'
+                step='1'
+                min='0'
+                max='999999999'
+                value={value}
+                title='Nanoseconds'
+                ref={inputRef}
+                onChange={handleChange}
+            />
+        </div>
+    );
+};
 
-class DateControl extends React.Component<{
+const DateControl: React.FC<{
     value: string;
     handleChange: () => void;
     inputRef: React.RefObject<HTMLInputElement>;
     invalid?: boolean;
-}> {
-    render() {
-        return (
-            <div className='control is-expanded'>
-                <input
-                    className={'input ' + (this.props.invalid ? 'is-danger' : '')}
-                    type='date'
-                    value={this.props.value}
-                    onChange={this.props.handleChange}
-                    step='1'
-                    ref={this.props.inputRef}
-                    title='Date'
-                />
-            </div>
-        );
-    }
-}
+}> = ({ value, handleChange, inputRef, invalid }) => {
+    return (
+        <div className='control is-expanded'>
+            <input
+                className={'input ' + (invalid ? 'is-danger' : '')}
+                type='date'
+                value={value}
+                onChange={handleChange}
+                step='1'
+                ref={inputRef}
+                title='Date'
+            />
+        </div>
+    );
+};
 
-class TimezoneControl extends React.Component<{
+const TimezoneControl: React.FC<{
     value: number;
     handleChange: () => void;
     selectRef: React.RefObject<HTMLSelectElement>;
     invalid?: boolean;
-}> {
-    render() {
-        const range = [];
-        for (let i = -11; i <= 12; i++) range.push(i);
+}> = ({ value, handleChange, selectRef, invalid }) => {
+    const range = [];
+    for (let i = -11; i <= 12; i++) range.push(i);
 
-        return (
-            <div className='control'>
-                <div className={'select ' + (this.props.invalid ? 'is-danger' : '')}>
-                    <select
-                        title='Timezone'
-                        ref={this.props.selectRef}
-                        value={this.props.value}
-                        onChange={this.props.handleChange}
-                    >
-                        {range.map((offset, i) => (
-                            <option key={i} value={offset}>
-                                {(offset >= 0 ? '+' : '-') + Math.abs(offset).toString().padStart(2, '0') + ':00'}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+    return (
+        <div className='control'>
+            <div className={'select ' + (invalid ? 'is-danger' : '')}>
+                <select title='Timezone' ref={selectRef} value={value} onChange={handleChange}>
+                    {range.map((offset, i) => (
+                        <option key={i} value={offset}>
+                            {(offset >= 0 ? '+' : '-') + Math.abs(offset).toString().padStart(2, '0') + ':00'}
+                        </option>
+                    ))}
+                </select>
             </div>
-        );
-    }
-}
+        </div>
+    );
+};
 
 /*
  * Temporal types
  */
 
-class PropertyDateInput extends APropertyInput {
-    state = {
-        valid: true,
-    };
+const PropertyDateInput: React.FC<{
+    name: string;
+    value: any;
+    temp: any;
+    onValueChange: (name: string, value: any, temp?: any) => void;
+    focus: boolean;
+}> = ({ name, value, temp, onValueChange, focus }) => {
+    const [valid, setValid] = useState(true);
+    const dateRef = createRef<HTMLInputElement>();
 
-    dateRef = React.createRef<HTMLInputElement>();
-
-    handleChange = () => {
-        const valid = this.dateRef.current.valueAsDate !== null;
-        this.props.onValueChange(
-            this.props.name,
+    const handleChange = () => {
+        const valid = dateRef.current.valueAsDate !== null;
+        onValueChange(
+            name,
             valid
                 ? new _Date(
-                      this.dateRef.current.valueAsDate.getUTCFullYear(),
-                      this.dateRef.current.valueAsDate.getUTCMonth() + 1,
-                      this.dateRef.current.valueAsDate.getUTCDate()
+                      dateRef.current.valueAsDate.getUTCFullYear(),
+                      dateRef.current.valueAsDate.getUTCMonth() + 1,
+                      dateRef.current.valueAsDate.getUTCDate()
                   )
                 : null,
-            this.dateRef.current.value
+            dateRef.current.value
         );
-        this.setState({ valid: valid });
+        setValid(valid);
     };
 
-    componentDidMount() {
-        this.setState({
-            valid: this.dateRef.current.valueAsDate !== null,
-        });
-    }
+    useEffect(() => {
+        setValid(dateRef.current.valueAsDate !== null);
+    }, []);
 
-    render() {
-        return (
-            <div className='control is-expanded'>
-                <div className='field has-addons'>
-                    <DateControl
-                        value={this.props.temp}
-                        handleChange={this.handleChange}
-                        inputRef={this.dateRef}
-                        invalid={!this.state.valid}
-                    />
-                    {this.state.valid && (
-                        <div className='control'>
-                            <ClipboardContext.Consumer>
-                                {copy => <Button icon='fa-regular fa-copy' onClick={copy} value={this.props.temp} />}
-                            </ClipboardContext.Consumer>
-                        </div>
-                    )}
-                </div>
+    return (
+        <div className='control is-expanded'>
+            <div className='field has-addons'>
+                <DateControl value={temp} handleChange={handleChange} inputRef={dateRef} invalid={!valid} />
+                {valid && (
+                    <div className='control'>
+                        <ClipboardContext.Consumer>
+                            {copy => <Button icon='fa-regular fa-copy' onClick={copy} value={temp} />}
+                        </ClipboardContext.Consumer>
+                    </div>
+                )}
             </div>
-        );
-    }
-}
+        </div>
+    );
+};
 
-class PropertyTimeInput extends APropertyInput {
-    state = {
-        valid: true,
-    };
+const PropertyTimeInput: React.FC<{
+    name: string;
+    value: any;
+    temp: any;
+    onValueChange: (name: string, value: any, temp?: any) => void;
+    focus: boolean;
+}> = ({ name, value, temp, onValueChange, focus }) => {
+    const [valid, setValid] = useState(true);
+    const timezoneRef = createRef<HTMLSelectElement>();
+    const nanosecondsRef = createRef<HTMLInputElement>();
+    const timeRef = createRef<HTMLInputElement>();
 
-    timezoneRef = React.createRef<HTMLSelectElement>();
-    nanosecondsRef = React.createRef<HTMLInputElement>();
-    timeRef = React.createRef<HTMLInputElement>();
-
-    handleChange = () => {
-        const valid = this.timeRef.current.valueAsDate !== null;
-        this.props.onValueChange(
-            this.props.name,
+    const handleChange = () => {
+        const valid = timeRef.current.valueAsDate !== null;
+        onValueChange(
+            name,
             valid
                 ? new _Time(
-                      this.timeRef.current.valueAsDate.getUTCHours(),
-                      this.timeRef.current.valueAsDate.getUTCMinutes(),
-                      this.timeRef.current.valueAsDate.getUTCSeconds(),
-                      this.nanosecondsRef.current.valueAsNumber,
-                      parseInt(this.timezoneRef.current.value) * 60 * 60
+                      timeRef.current.valueAsDate.getUTCHours(),
+                      timeRef.current.valueAsDate.getUTCMinutes(),
+                      timeRef.current.valueAsDate.getUTCSeconds(),
+                      nanosecondsRef.current.valueAsNumber,
+                      parseInt(timezoneRef.current.value) * 60 * 60
                   )
                 : null,
-            [this.timeRef.current.value, this.nanosecondsRef.current.value, parseInt(this.timezoneRef.current.value)]
+            [timeRef.current.value, nanosecondsRef.current.value, parseInt(timezoneRef.current.value)]
         );
-        this.setState({ valid: valid });
+        setValid(valid);
     };
 
-    componentDidMount() {
-        this.setState({
-            valid: this.timeRef.current.valueAsDate !== null,
-        });
-    }
+    useEffect(() => {
+        setValid(timeRef.current.valueAsDate !== null);
+    }, []);
 
-    render() {
-        return (
-            <div className='control is-expanded'>
-                <div className='field has-addons'>
-                    <TimeControl
-                        value={this.props.temp[0]}
-                        inputRef={this.timeRef}
-                        handleChange={this.handleChange}
-                        invalid={!this.state.valid}
-                    />
-                    <NanosecondsControl
-                        value={this.props.temp[1]}
-                        handleChange={this.handleChange}
-                        inputRef={this.nanosecondsRef}
-                        invalid={!this.state.valid}
-                    />
-                    <TimezoneControl
-                        value={this.props.temp[2]}
-                        handleChange={this.handleChange}
-                        selectRef={this.timezoneRef}
-                        invalid={!this.state.valid}
-                    />
-                    {this.state.valid && (
-                        <div className='control'>
-                            <ClipboardContext.Consumer>
-                                {copy => (
-                                    <Button
-                                        icon='fa-regular fa-copy'
-                                        onClick={copy}
-                                        value={(this.props.value as _Time).toString()}
-                                    />
-                                )}
-                            </ClipboardContext.Consumer>
-                        </div>
-                    )}
-                </div>
+    return (
+        <div className='control is-expanded'>
+            <div className='field has-addons'>
+                <TimeControl value={temp[0]} inputRef={timeRef} handleChange={handleChange} invalid={!valid} />
+                <NanosecondsControl
+                    value={temp[1]}
+                    handleChange={handleChange}
+                    inputRef={nanosecondsRef}
+                    invalid={!valid}
+                />
+                <TimezoneControl value={temp[2]} handleChange={handleChange} selectRef={timezoneRef} invalid={!valid} />
+                {valid && (
+                    <div className='control'>
+                        <ClipboardContext.Consumer>
+                            {copy => (
+                                <Button icon='fa-regular fa-copy' onClick={copy} value={(value as _Time).toString()} />
+                            )}
+                        </ClipboardContext.Consumer>
+                    </div>
+                )}
             </div>
-        );
-    }
-}
+        </div>
+    );
+};
 
-class PropertyDateTimeInput extends APropertyInput {
-    state = {
-        valid: true,
-    };
+const PropertyDateTimeInput: React.FC<{
+    name: string;
+    value: any;
+    temp: any;
+    onValueChange: (name: string, value: any, temp?: any) => void;
+    focus: boolean;
+}> = ({ name, value, temp, onValueChange, focus }) => {
+    const [valid, setValid] = useState(true);
+    const timezoneRef = createRef<HTMLSelectElement>();
+    const nanosecondsRef = createRef<HTMLInputElement>();
+    const timeRef = createRef<HTMLInputElement>();
+    const dateRef = createRef<HTMLInputElement>();
 
-    timezoneRef = React.createRef<HTMLSelectElement>();
-    nanosecondsRef = React.createRef<HTMLInputElement>();
-    timeRef = React.createRef<HTMLInputElement>();
-    dateRef = React.createRef<HTMLInputElement>();
-
-    handleChange = () => {
-        const valid = this.dateRef.current.valueAsDate !== null && this.timeRef.current.valueAsDate !== null;
-        this.props.onValueChange(
-            this.props.name,
+    const handleChange = () => {
+        const valid = dateRef.current.valueAsDate !== null && timeRef.current.valueAsDate !== null;
+        onValueChange(
+            name,
             valid
                 ? new _DateTime(
-                      this.dateRef.current.valueAsDate.getUTCFullYear(),
-                      this.dateRef.current.valueAsDate.getUTCMonth() + 1,
-                      this.dateRef.current.valueAsDate.getUTCDate(),
-                      this.timeRef.current.valueAsDate.getUTCHours(),
-                      this.timeRef.current.valueAsDate.getUTCMinutes(),
-                      this.timeRef.current.valueAsDate.getUTCSeconds(),
-                      this.nanosecondsRef.current.valueAsNumber,
-                      parseInt(this.timezoneRef.current.value) * 60 * 60
+                      dateRef.current.valueAsDate.getUTCFullYear(),
+                      dateRef.current.valueAsDate.getUTCMonth() + 1,
+                      dateRef.current.valueAsDate.getUTCDate(),
+                      timeRef.current.valueAsDate.getUTCHours(),
+                      timeRef.current.valueAsDate.getUTCMinutes(),
+                      timeRef.current.valueAsDate.getUTCSeconds(),
+                      nanosecondsRef.current.valueAsNumber,
+                      parseInt(timezoneRef.current.value) * 60 * 60
                   )
                 : null,
             [
-                this.dateRef.current.value,
-                this.timeRef.current.value,
-                this.nanosecondsRef.current.value,
-                parseInt(this.timezoneRef.current.value),
+                dateRef.current.value,
+                timeRef.current.value,
+                nanosecondsRef.current.value,
+                parseInt(timezoneRef.current.value),
             ]
         );
-        this.setState({ valid: valid });
+        setValid(valid);
     };
 
-    componentDidMount() {
-        this.setState({
-            valid: this.dateRef.current.valueAsDate !== null && this.timeRef.current.valueAsDate !== null,
-        });
-    }
+    useEffect(() => {
+        setValid(dateRef.current.valueAsDate !== null && timeRef.current.valueAsDate !== null);
+    }, []);
 
-    render() {
-        return (
-            <div className='control is-expanded'>
-                <div className='field has-addons'>
-                    <DateControl
-                        value={this.props.temp[0]}
-                        handleChange={this.handleChange}
-                        inputRef={this.dateRef}
-                        invalid={!this.state.valid}
-                    />
-                    <TimeControl
-                        value={this.props.temp[1]}
-                        inputRef={this.timeRef}
-                        handleChange={this.handleChange}
-                        invalid={!this.state.valid}
-                    />
-                    <NanosecondsControl
-                        value={this.props.temp[2]}
-                        handleChange={this.handleChange}
-                        inputRef={this.nanosecondsRef}
-                        invalid={!this.state.valid}
-                    />
-                    <TimezoneControl
-                        value={this.props.temp[3]}
-                        handleChange={this.handleChange}
-                        selectRef={this.timezoneRef}
-                        invalid={!this.state.valid}
-                    />
-                    {this.state.valid && (
-                        <div className='control'>
-                            <ClipboardContext.Consumer>
-                                {copy => (
-                                    <Button
-                                        icon='fa-regular fa-copy'
-                                        onClick={copy}
-                                        value={(this.props.value as _DateTime).toString()}
-                                    />
-                                )}
-                            </ClipboardContext.Consumer>
-                        </div>
-                    )}
-                </div>
-            </div>
-        );
-    }
-}
-
-class PropertyLocalTimeInput extends APropertyInput {
-    state = {
-        valid: true,
-    };
-
-    nanosecondsRef = React.createRef<HTMLInputElement>();
-    timeRef = React.createRef<HTMLInputElement>();
-
-    handleChange = () => {
-        const valid = this.timeRef.current.valueAsDate !== null;
-        this.props.onValueChange(
-            this.props.name,
-            valid
-                ? new _LocalTime(
-                      this.timeRef.current.valueAsDate.getUTCHours(),
-                      this.timeRef.current.valueAsDate.getUTCMinutes(),
-                      this.timeRef.current.valueAsDate.getUTCSeconds(),
-                      this.nanosecondsRef.current.valueAsNumber
-                  )
-                : null,
-            [this.timeRef.current.value, this.nanosecondsRef.current.value]
-        );
-        this.setState({ valid: valid });
-    };
-
-    componentDidMount() {
-        this.setState({ valid: this.timeRef.current.valueAsDate !== null });
-    }
-
-    render() {
-        return (
-            <div className='control is-expanded'>
-                <div className='field has-addons'>
-                    <TimeControl
-                        value={this.props.temp[0]}
-                        inputRef={this.timeRef}
-                        handleChange={this.handleChange}
-                        invalid={!this.state.valid}
-                    />
-                    <NanosecondsControl
-                        value={this.props.temp[1]}
-                        handleChange={this.handleChange}
-                        inputRef={this.nanosecondsRef}
-                        invalid={!this.state.valid}
-                    />
-                    {this.state.valid && (
-                        <div className='control'>
-                            <ClipboardContext.Consumer>
-                                {copy => (
-                                    <Button
-                                        icon='fa-regular fa-copy'
-                                        onClick={copy}
-                                        value={(this.props.value as _LocalTime).toString()}
-                                    />
-                                )}
-                            </ClipboardContext.Consumer>
-                        </div>
-                    )}
-                </div>
-            </div>
-        );
-    }
-}
-
-class PropertyLocalDateTimeInput extends APropertyInput {
-    state = {
-        valid: true,
-    };
-
-    nanosecondsRef = React.createRef<HTMLInputElement>();
-    timeRef = React.createRef<HTMLInputElement>();
-    dateRef = React.createRef<HTMLInputElement>();
-
-    handleChange = () => {
-        const valid = this.dateRef.current.valueAsDate !== null && this.timeRef.current.valueAsDate !== null;
-        this.props.onValueChange(
-            this.props.name,
-            valid
-                ? new _LocalDateTime(
-                      this.dateRef.current.valueAsDate.getUTCFullYear(),
-                      this.dateRef.current.valueAsDate.getUTCMonth() + 1,
-                      this.dateRef.current.valueAsDate.getUTCDate(),
-                      this.timeRef.current.valueAsDate.getUTCHours(),
-                      this.timeRef.current.valueAsDate.getUTCMinutes(),
-                      this.timeRef.current.valueAsDate.getUTCSeconds(),
-                      this.nanosecondsRef.current.valueAsNumber
-                  )
-                : null,
-            [this.dateRef.current.value, this.timeRef.current.value, this.nanosecondsRef.current.value]
-        );
-        this.setState({ valid: valid });
-    };
-
-    componentDidMount() {
-        this.setState({
-            valid: this.dateRef.current.valueAsDate !== null && this.timeRef.current.valueAsDate !== null,
-        });
-    }
-
-    render() {
-        return (
-            <div className='control is-expanded'>
-                <div className='field has-addons'>
-                    <DateControl
-                        value={this.props.temp[0]}
-                        handleChange={this.handleChange}
-                        inputRef={this.dateRef}
-                        invalid={!this.state.valid}
-                    />
-                    <TimeControl
-                        value={this.props.temp[1]}
-                        inputRef={this.timeRef}
-                        handleChange={this.handleChange}
-                        invalid={!this.state.valid}
-                    />
-                    <NanosecondsControl
-                        value={this.props.temp[2]}
-                        handleChange={this.handleChange}
-                        inputRef={this.nanosecondsRef}
-                        invalid={!this.state.valid}
-                    />
-                    {this.state.valid && (
-                        <div className='control'>
-                            <ClipboardContext.Consumer>
-                                {copy => (
-                                    <Button
-                                        icon='fa-regular fa-copy'
-                                        onClick={copy}
-                                        value={(this.props.value as _LocalDateTime).toString()}
-                                    />
-                                )}
-                            </ClipboardContext.Consumer>
-                        </div>
-                    )}
-                </div>
-            </div>
-        );
-    }
-}
-
-class PropertyDurationInput extends APropertyInput {
-    render() {
-        return (
-            <div className='control is-expanded has-icons-right'>
-                <input
-                    className='input'
-                    type='text'
-                    value={this.props.temp}
-                    name={this.props.name}
-                    autoFocus={this.props.focus}
-                    title='Duration'
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        this.props.onValueChange(
-                            this.props.name,
-                            stringToDuration(e.currentTarget.value),
-                            e.currentTarget.value
-                        )
-                    }
-                    pattern='P(\d+Y)?(\d+M)?(\d+D)?(T(\d+H)?(\d+M)?([\d\.]+S)?)?'
+    return (
+        <div className='control is-expanded'>
+            <div className='field has-addons'>
+                <DateControl value={temp[0]} handleChange={handleChange} inputRef={dateRef} invalid={!valid} />
+                <TimeControl value={temp[1]} inputRef={timeRef} handleChange={handleChange} invalid={!valid} />
+                <NanosecondsControl
+                    value={temp[2]}
+                    handleChange={handleChange}
+                    inputRef={nanosecondsRef}
+                    invalid={!valid}
                 />
-                <ClipboardContext.Consumer>
-                    {copy => (
-                        <span className='icon is-right is-clickable' onClick={copy}>
-                            <i className='fa-regular fa-copy' />
-                        </span>
-                    )}
-                </ClipboardContext.Consumer>
-            </div>
-        );
-    }
-}
-
-class PropertyPointInput extends APropertyInput {
-    sridRef = React.createRef<HTMLSelectElement>();
-    xRef = React.createRef<HTMLInputElement>();
-    yRef = React.createRef<HTMLInputElement>();
-    zRef = React.createRef<HTMLInputElement>();
-
-    availableSRID = [
-        ['4326', 'wgs-84'],
-        ['4979', 'wgs-84-3d'],
-        ['7203', 'cartesian'],
-        ['9157', 'cartesian-3d'],
-    ];
-
-    handleChange = () => {
-        const hasZ = ['4979', '9157'].includes(this.sridRef.current.value);
-        this.props.onValueChange(
-            this.props.name,
-            hasZ
-                ? new _Point(
-                      db.toInt(this.sridRef.current.value),
-                      this.xRef.current.valueAsNumber,
-                      this.yRef.current.valueAsNumber,
-                      this.zRef.current.valueAsNumber
-                  )
-                : new _Point(
-                      db.toInt(this.sridRef.current.value),
-                      this.xRef.current.valueAsNumber,
-                      this.yRef.current.valueAsNumber
-                  ),
-            hasZ
-                ? [
-                      this.sridRef.current.value,
-                      this.xRef.current.value,
-                      this.yRef.current.value,
-                      this.zRef.current.value,
-                  ]
-                : [this.sridRef.current.value, this.xRef.current.value, this.yRef.current.value]
-        );
-    };
-
-    render() {
-        return (
-            <div className='control is-expanded'>
-                <div className='field has-addons'>
-                    <div className='control has-icons-left'>
-                        <div className='select'>
-                            <select
-                                ref={this.sridRef}
-                                value={this.props.temp[0]}
-                                onChange={this.handleChange}
-                                title='SRID'
-                            >
-                                {this.availableSRID.map(type => (
-                                    <option key={type[1]} value={type[0]}>
-                                        {type[1]} ({type[0]})
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <span className='icon is-left'>
-                            <i className='fa-solid fa-location-dot' />
-                        </span>
-                    </div>
-                    <div className='control is-expanded has-icons-left'>
-                        <input
-                            type='number'
-                            title='X'
-                            ref={this.xRef}
-                            className='input'
-                            value={this.props.temp[1]}
-                            onChange={this.handleChange}
-                            step='any'
-                        />
-                        <span className='icon is-left'>
-                            <i className='fa-solid fa-x' />
-                        </span>
-                    </div>
-                    <div className='control is-expanded has-icons-left'>
-                        <input
-                            type='number'
-                            title='Y'
-                            ref={this.yRef}
-                            className='input'
-                            value={this.props.temp[2]}
-                            onChange={this.handleChange}
-                            step='any'
-                        />
-                        <span className='icon is-left'>
-                            <i className='fa-solid fa-y' />
-                        </span>
-                    </div>
-                    <div
-                        className={
-                            'control is-expanded has-icons-left ' + (this.props.temp.length === 4 ? '' : 'is-hidden')
-                        }
-                    >
-                        <input
-                            type='number'
-                            title='Z'
-                            ref={this.zRef}
-                            className='input'
-                            value={this.props.temp[3] || 0}
-                            onChange={this.handleChange}
-                            step='any'
-                        />
-                        <span className='icon is-left'>
-                            <i className='fa-solid fa-z' />
-                        </span>
-                    </div>
+                <TimezoneControl value={temp[3]} handleChange={handleChange} selectRef={timezoneRef} invalid={!valid} />
+                {valid && (
                     <div className='control'>
                         <ClipboardContext.Consumer>
                             {copy => (
                                 <Button
                                     icon='fa-regular fa-copy'
                                     onClick={copy}
-                                    value={(this.props.value as _Point).toString()}
+                                    value={(value as _DateTime).toString()}
                                 />
                             )}
                         </ClipboardContext.Consumer>
                     </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+const PropertyLocalTimeInput: React.FC<{
+    name: string;
+    value: any;
+    temp: any;
+    onValueChange: (name: string, value: any, temp?: any) => void;
+    focus: boolean;
+}> = ({ name, value, temp, onValueChange, focus }) => {
+    const [valid, setValid] = useState(true);
+    const nanosecondsRef = createRef<HTMLInputElement>();
+    const timeRef = createRef<HTMLInputElement>();
+
+    const handleChange = () => {
+        const valid = timeRef.current.valueAsDate !== null;
+        onValueChange(
+            name,
+            valid
+                ? new _LocalTime(
+                      timeRef.current.valueAsDate.getUTCHours(),
+                      timeRef.current.valueAsDate.getUTCMinutes(),
+                      timeRef.current.valueAsDate.getUTCSeconds(),
+                      nanosecondsRef.current.valueAsNumber
+                  )
+                : null,
+            [timeRef.current.value, nanosecondsRef.current.value]
+        );
+        setValid(valid);
+    };
+
+    useEffect(() => {
+        setValid(timeRef.current.valueAsDate !== null);
+    }, []);
+
+    return (
+        <div className='control is-expanded'>
+            <div className='field has-addons'>
+                <TimeControl value={temp[0]} inputRef={timeRef} handleChange={handleChange} invalid={!valid} />
+                <NanosecondsControl
+                    value={temp[1]}
+                    handleChange={handleChange}
+                    inputRef={nanosecondsRef}
+                    invalid={!valid}
+                />
+                {valid && (
+                    <div className='control'>
+                        <ClipboardContext.Consumer>
+                            {copy => (
+                                <Button
+                                    icon='fa-regular fa-copy'
+                                    onClick={copy}
+                                    value={(value as _LocalTime).toString()}
+                                />
+                            )}
+                        </ClipboardContext.Consumer>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+const PropertyLocalDateTimeInput: React.FC<{
+    name: string;
+    value: any;
+    temp: any;
+    onValueChange: (name: string, value: any, temp?: any) => void;
+    focus: boolean;
+}> = ({ name, value, temp, onValueChange, focus }) => {
+    const [valid, setValid] = useState(true);
+    const nanosecondsRef = createRef<HTMLInputElement>();
+    const timeRef = createRef<HTMLInputElement>();
+    const dateRef = createRef<HTMLInputElement>();
+
+    const handleChange = () => {
+        const valid = dateRef.current.valueAsDate !== null && timeRef.current.valueAsDate !== null;
+        onValueChange(
+            name,
+            valid
+                ? new _LocalDateTime(
+                      dateRef.current.valueAsDate.getUTCFullYear(),
+                      dateRef.current.valueAsDate.getUTCMonth() + 1,
+                      dateRef.current.valueAsDate.getUTCDate(),
+                      timeRef.current.valueAsDate.getUTCHours(),
+                      timeRef.current.valueAsDate.getUTCMinutes(),
+                      timeRef.current.valueAsDate.getUTCSeconds(),
+                      nanosecondsRef.current.valueAsNumber
+                  )
+                : null,
+            [dateRef.current.value, timeRef.current.value, nanosecondsRef.current.value]
+        );
+        setValid(valid);
+    };
+
+    useEffect(() => {
+        setValid(dateRef.current.valueAsDate !== null && timeRef.current.valueAsDate !== null);
+    }, []);
+
+    return (
+        <div className='control is-expanded'>
+            <div className='field has-addons'>
+                <DateControl value={temp[0]} handleChange={handleChange} inputRef={dateRef} invalid={!valid} />
+                <TimeControl value={temp[1]} inputRef={timeRef} handleChange={handleChange} invalid={!valid} />
+                <NanosecondsControl
+                    value={temp[2]}
+                    handleChange={handleChange}
+                    inputRef={nanosecondsRef}
+                    invalid={!valid}
+                />
+                {valid && (
+                    <div className='control'>
+                        <ClipboardContext.Consumer>
+                            {copy => (
+                                <Button
+                                    icon='fa-regular fa-copy'
+                                    onClick={copy}
+                                    value={(value as _LocalDateTime).toString()}
+                                />
+                            )}
+                        </ClipboardContext.Consumer>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+const PropertyDurationInput: React.FC<{
+    name: string;
+    value: any;
+    temp: any;
+    onValueChange: (name: string, value: any, temp?: any) => void;
+    focus: boolean;
+}> = ({ name, value, temp, onValueChange, focus }) => {
+    return (
+        <div className='control is-expanded has-icons-right'>
+            <input
+                className='input'
+                type='text'
+                value={temp}
+                name={name}
+                autoFocus={focus}
+                title='Duration'
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    onValueChange(name, stringToDuration(e.currentTarget.value), e.currentTarget.value)
+                }
+                pattern='P(\d+Y)?(\d+M)?(\d+D)?(T(\d+H)?(\d+M)?([\d\.]+S)?)?'
+            />
+            <ClipboardContext.Consumer>
+                {copy => (
+                    <span className='icon is-right is-clickable' onClick={copy}>
+                        <i className='fa-regular fa-copy' />
+                    </span>
+                )}
+            </ClipboardContext.Consumer>
+        </div>
+    );
+};
+
+const PropertyPointInput: React.FC<{
+    name: string;
+    value: any;
+    temp: any;
+    onValueChange: (name: string, value: any, temp?: any) => void;
+    focus: boolean;
+}> = ({ name, value, temp, onValueChange, focus }) => {
+    const sridRef = createRef<HTMLSelectElement>();
+    const xRef = createRef<HTMLInputElement>();
+    const yRef = createRef<HTMLInputElement>();
+    const zRef = createRef<HTMLInputElement>();
+
+    const availableSRID = [
+        ['4326', 'wgs-84'],
+        ['4979', 'wgs-84-3d'],
+        ['7203', 'cartesian'],
+        ['9157', 'cartesian-3d'],
+    ];
+
+    const handleChange = () => {
+        const hasZ = ['4979', '9157'].includes(sridRef.current.value);
+        onValueChange(
+            name,
+            hasZ
+                ? new _Point(
+                      db.toInt(sridRef.current.value),
+                      xRef.current.valueAsNumber,
+                      yRef.current.valueAsNumber,
+                      zRef.current.valueAsNumber
+                  )
+                : new _Point(db.toInt(sridRef.current.value), xRef.current.valueAsNumber, yRef.current.valueAsNumber),
+            hasZ
+                ? [sridRef.current.value, xRef.current.value, yRef.current.value, zRef.current.value]
+                : [sridRef.current.value, xRef.current.value, yRef.current.value]
+        );
+    };
+
+    return (
+        <div className='control is-expanded'>
+            <div className='field has-addons'>
+                <div className='control has-icons-left'>
+                    <div className='select'>
+                        <select ref={sridRef} value={temp[0]} onChange={handleChange} title='SRID'>
+                            {availableSRID.map(type => (
+                                <option key={type[1]} value={type[0]}>
+                                    {type[1]} ({type[0]})
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <span className='icon is-left'>
+                        <i className='fa-solid fa-location-dot' />
+                    </span>
+                </div>
+                <div className='control is-expanded has-icons-left'>
+                    <input
+                        type='number'
+                        title='X'
+                        ref={xRef}
+                        className='input'
+                        value={temp[1]}
+                        onChange={handleChange}
+                        step='any'
+                    />
+                    <span className='icon is-left'>
+                        <i className='fa-solid fa-x' />
+                    </span>
+                </div>
+                <div className='control is-expanded has-icons-left'>
+                    <input
+                        type='number'
+                        title='Y'
+                        ref={yRef}
+                        className='input'
+                        value={temp[2]}
+                        onChange={handleChange}
+                        step='any'
+                    />
+                    <span className='icon is-left'>
+                        <i className='fa-solid fa-y' />
+                    </span>
+                </div>
+                <div className={'control is-expanded has-icons-left ' + (temp.length === 4 ? '' : 'is-hidden')}>
+                    <input
+                        type='number'
+                        title='Z'
+                        ref={zRef}
+                        className='input'
+                        value={temp[3] || 0}
+                        onChange={handleChange}
+                        step='any'
+                    />
+                    <span className='icon is-left'>
+                        <i className='fa-solid fa-z' />
+                    </span>
+                </div>
+                <div className='control'>
+                    <ClipboardContext.Consumer>
+                        {copy => (
+                            <Button icon='fa-regular fa-copy' onClick={copy} value={(value as _Point).toString()} />
+                        )}
+                    </ClipboardContext.Consumer>
                 </div>
             </div>
-        );
-    }
-}
+        </div>
+    );
+};
 
 export default PropertiesForm;

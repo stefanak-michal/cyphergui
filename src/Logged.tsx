@@ -32,7 +32,7 @@ const Logged: React.FC<ILoggedProps> = ({ handleLogout, darkMode }) => {
         { key: number; message: string; color: string; delay: number; timeout: NodeJS.Timeout }[]
     >([]);
     const [settingsModal, setSettingsModal] = useState<boolean>(false);
-    const [stashed, setStashed] = useState<IStashEntry[]>([]);
+    const [_stashed, setStashed] = useState<IStashEntry[]>([]);
     const [propertiesModal, setPropertiesModal] = useState<object | null>(null);
     const [confirmModal, setConfirmModal] = useState<string | null>(null);
 
@@ -48,9 +48,9 @@ const Logged: React.FC<ILoggedProps> = ({ handleLogout, darkMode }) => {
 
     useEffect(() => {
         if (!settings().rememberOpenTabs) localStorage.removeItem('tabs');
-        const tabs = localStorage.getItem('tabs');
-        if (tabs) {
-            const parsed = JSON.parse(tabs);
+        const _tabs = localStorage.getItem('tabs');
+        if (_tabs) {
+            const parsed = JSON.parse(_tabs);
             if (
                 Array.isArray(parsed.tabs) &&
                 (parsed.tabs as []).every(t => 'id' in t && 'title' in t && 'icon' in t) &&
@@ -62,11 +62,9 @@ const Logged: React.FC<ILoggedProps> = ({ handleLogout, darkMode }) => {
                 setContents(parsed.contents as ITabContent[]);
                 setActiveTab(parsed.activeTab);
             }
+        } else {
+            tabManager.add('Start', 'fa-solid fa-play', EPage.Start, {}, 'Start', false);
         }
-    }, []);
-
-    useEffect(() => {
-        tabManager.add('Start', 'fa-solid fa-play', EPage.Start, {}, 'Start', false);
 
         const stash = localStorage.getItem('stash');
         if (stash) {
@@ -110,6 +108,48 @@ const Logged: React.FC<ILoggedProps> = ({ handleLogout, darkMode }) => {
                 });
         }
     }, []);
+
+    useEffect(() => {
+        if (tabs.length && tabs.length === contents.length && activeTab !== null && settings().rememberOpenTabs) {
+            localStorage.setItem(
+                'tabs',
+                JSON.stringify({
+                    tabs: tabs,
+                    contents: contents,
+                    activeTab: activeTab,
+                })
+            );
+        }
+    }, [tabs, contents, activeTab]);
+
+    useEffect(() => {
+        if (_stashed.length) {
+            localStorage.setItem(
+                'stash',
+                JSON.stringify(
+                    _stashed.map<t_StorageStashEntry>(s => {
+                        return {
+                            database: s.value instanceof t_StashQuery ? s.value.query : s.database, //stash query uses database field for storing query
+                            type:
+                                s.value instanceof _Node
+                                    ? 'node'
+                                    : s.value instanceof _Relationship
+                                      ? 'rel'
+                                      : s.value instanceof t_StashQuery
+                                        ? 'query'
+                                        : '',
+                            identity:
+                                s.value instanceof _Node || s.value instanceof _Relationship
+                                    ? db.getId(s.value)
+                                    : s.value.identity,
+                        };
+                    })
+                )
+            );
+        } else {
+            localStorage.removeItem('stash');
+        }
+    }, [_stashed]);
 
     const tabManager: ITabManager = {
         /**
@@ -161,17 +201,7 @@ const Logged: React.FC<ILoggedProps> = ({ handleLogout, darkMode }) => {
                         )
                     );
                 }
-
-                if (settings().rememberOpenTabs) {
-                    localStorage.setItem(
-                        'tabs',
-                        JSON.stringify({
-                            tabs: state,
-                            contents: contents,
-                            activeTab: active || !activeTab ? id : activeTab,
-                        })
-                    );
-                }
+                setActiveTab(active || !activeTab ? id : activeTab);
                 return state;
             });
 
@@ -191,35 +221,12 @@ const Logged: React.FC<ILoggedProps> = ({ handleLogout, darkMode }) => {
                     const i: number = state.findIndex(tab => tab.id === id);
                     if (i > 0) active = state[i - 1].id;
                 }
-
-                if (settings().rememberOpenTabs) {
-                    localStorage.setItem(
-                        'tabs',
-                        JSON.stringify({
-                            tabs: state.filter(tab => id !== tab.id),
-                            contents: contents.filter(content => id !== content.id),
-                            activeTab: active,
-                        })
-                    );
-                }
                 return state.filter(tab => id !== tab.id);
             });
         },
         closeAll: (e: React.PointerEvent) => {
             e.stopPropagation();
-            setTabs(state => {
-                if (settings().rememberOpenTabs) {
-                    localStorage.setItem(
-                        'tabs',
-                        JSON.stringify({
-                            tabs: state.filter(tab => tab.id === 'Start'),
-                            contents: contents.filter(content => content.id === 'Start'),
-                            activeTab: 'Start',
-                        })
-                    );
-                }
-                return state.filter(tab => tab.id === 'Start');
-            });
+            setTabs(state => state.filter(tab => tab.id === 'Start'));
         },
         setChanged: (id: string, changed: boolean, callback?) => {
             setContents(contents =>
@@ -229,15 +236,6 @@ const Logged: React.FC<ILoggedProps> = ({ handleLogout, darkMode }) => {
         },
         setActive: (id: string) => {
             setActiveTab(id);
-            if (settings().rememberOpenTabs)
-                localStorage.setItem(
-                    'tabs',
-                    JSON.stringify({
-                        tabs: tabs,
-                        contents: contents,
-                        activeTab: id,
-                    })
-                );
         },
         /**
          * Create tab name with requested prefix and index (it's calculated if omitted)
@@ -262,35 +260,6 @@ const Logged: React.FC<ILoggedProps> = ({ handleLogout, darkMode }) => {
         },
     };
 
-    const saveStashToStorage = useCallback(() => {
-        localStorage.setItem(
-            'stash',
-            JSON.stringify(
-                stashed.map<t_StorageStashEntry>(s => {
-                    return {
-                        database: s.value instanceof t_StashQuery ? s.value.query : s.database, //stash query uses database field for storing query
-                        type:
-                            s.value instanceof _Node
-                                ? 'node'
-                                : s.value instanceof _Relationship
-                                  ? 'rel'
-                                  : s.value instanceof t_StashQuery
-                                    ? 'query'
-                                    : '',
-                        identity:
-                            s.value instanceof _Node || s.value instanceof _Relationship
-                                ? db.getId(s.value)
-                                : s.value.identity,
-                    };
-                })
-            )
-        );
-    }, [stashed]);
-
-    useEffect(() => {
-        saveStashToStorage();
-    }, [stashed]);
-
     const stashManager: IStashManager = {
         add: (value: t_StashValue, database: string, id: number = new Date().getTime()) => {
             setStashed(state => {
@@ -307,7 +276,7 @@ const Logged: React.FC<ILoggedProps> = ({ handleLogout, darkMode }) => {
             setStashed(state => state.filter(s => s.id !== id));
         },
         indexOf: (value: t_StashValue, stashed: IStashEntry[] = null): number => {
-            return (stashed || stashed).findIndex(s => {
+            return (stashed || _stashed).findIndex(s => {
                 if (
                     (value instanceof _Node && s.value instanceof _Node) ||
                     (value instanceof _Relationship && s.value instanceof _Relationship)
@@ -318,22 +287,21 @@ const Logged: React.FC<ILoggedProps> = ({ handleLogout, darkMode }) => {
             });
         },
         empty: () => {
-            if (stashed.length > 0) setStashed([]);
-            localStorage.removeItem('stash');
+            if (_stashed.length > 0) setStashed([]);
         },
         button: (value: t_StashValue, database: string, color: string = ''): React.ReactElement => {
             const i = stashManager.indexOf(value);
             return (
                 <Button
                     title={i === -1 ? 'Add to stash' : 'Remove from stash'}
-                    onClick={() => (i === -1 ? stashManager.add(value, database) : stashManager.remove(stashed[i].id))}
+                    onClick={() => (i === -1 ? stashManager.add(value, database) : stashManager.remove(_stashed[i].id))}
                     color={color}
                     icon={i === -1 ? 'fa-solid fa-folder-plus' : 'fa-solid fa-folder-minus'}
                 />
             );
         },
         get: (): IStashEntry[] => {
-            return stashed;
+            return _stashed;
         },
     };
 
@@ -447,7 +415,7 @@ const Logged: React.FC<ILoggedProps> = ({ handleLogout, darkMode }) => {
                     </ToastContext.Provider>
                 </ClipboardContext.Provider>
 
-                <Stash stashed={stashed} tabManager={tabManager} stashManager={stashManager} />
+                <Stash stashed={_stashed} tabManager={tabManager} stashManager={stashManager} />
             </PropertiesModalContext.Provider>
 
             <section className='notifications' aria-label='notifications'>

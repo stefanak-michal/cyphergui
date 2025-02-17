@@ -1,4 +1,5 @@
 @charset "utf-8"
+@use "sass:list"
 
 $f1: Inter, Helvetica, Arial, sans-serif
 $f2: "Oxygen Mono", monospace
@@ -104,8 +105,8 @@ $colors: ("white": (var(--bulma-white), var(--bulma-black)), "black": (var(--bul
 
   // color variations for switch
   @each $name, $pair in $colors
-    $color: nth($pair, 1)
-    $color-invert: nth($pair, 2)
+    $color: list.nth($pair, 1)
+    $color-invert: list.nth($pair, 2)
     &.is-#{$name}
       input
         &:checked + .slider
@@ -113,9 +114,9 @@ $colors: ("white": (var(--bulma-white), var(--bulma-black)), "black": (var(--bul
         &:focus + .slider
           box-shadow: 0 0 6px 0 rgba($color, 0.5)
 
-      @if length($pair) >= 4
-        $color-light: nth($pair, 3)
-        $color-dark: nth($pair, 4)
+      @if list.length($pair) >= 4
+        $color-light: list.nth($pair, 3)
+        $color-dark: list.nth($pair, 4)
         &.is-light
           input:checked + .slider
             background-color: $color-light
@@ -132,17 +133,17 @@ $colors: ("white": (var(--bulma-white), var(--bulma-black)), "black": (var(--bul
 // color variations for modal card
 .modal .modal-card-head
   @each $name, $pair in $colors
-    $color: nth($pair, 1)
-    $color-invert: nth($pair, 2)
+    $color: list.nth($pair, 1)
+    $color-invert: list.nth($pair, 2)
     &.is-#{$name}
       background-color: $color
 
       > *
         color: $color-invert
 
-      @if length($pair) >= 4
-        $color-light: nth($pair, 3)
-        $color-dark: nth($pair, 4)
+      @if list.length($pair) >= 4
+        $color-light: list.nth($pair, 3)
+        $color-dark: list.nth($pair, 4)
         &.is-light
           background-color: $color-light
 

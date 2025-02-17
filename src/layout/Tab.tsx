@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useState } from 'react';
 import { ITabManager } from '../utils/interfaces';
 
 interface ITabProps {
@@ -12,59 +12,49 @@ interface ITabProps {
 /**
  * Tab header
  */
-class Tab extends React.Component<ITabProps> {
-    state = {
-        delete: false,
+const Tab: React.FC<ITabProps> = ({ id, active, icon, title, tabManager }) => {
+    const [showDelete, setShowDelete] = useState(false);
+
+    const handleMouseEnter = () => setShowDelete(true);
+    const handleMouseLeave = () => setShowDelete(false);
+
+    const handleClick = (e: React.MouseEvent) => {
+        if (id === 'Start') {
+            tabManager.setActive(id);
+            return;
+        }
+        if (e.ctrlKey) {
+            tabManager.close(id, e as any);
+            return;
+        }
+        if (e.shiftKey) {
+            tabManager.closeAll(e as any);
+            return;
+        }
+        tabManager.setActive(id);
     };
 
-    showDelete = (e: React.MouseEvent) => {
-        this.setState({ delete: e.type === 'mouseenter' });
-    };
-
-    render() {
-        return (
-            <li
-                className={this.props.active ? 'is-active' : ''}
-                onClick={e => {
-                    if (this.props.id === 'Start') {
-                        this.props.tabManager.setActive(this.props.id);
-                        return;
-                    }
-                    if (e.ctrlKey) {
-                        this.props.tabManager.close(this.props.id, e as any);
-                        return;
-                    }
-                    if (e.shiftKey) {
-                        this.props.tabManager.closeAll(e as any);
-                        return;
-                    }
-                    this.props.tabManager.setActive(this.props.id);
-                }}
-                onMouseEnter={this.showDelete}
-                onMouseLeave={this.showDelete}
-                title={
-                    this.props.id !== 'Start'
-                        ? 'Ctrl+click close tab\nShift+click close all tabs (ignores unsaved changes)'
-                        : ''
-                }
-            >
-                <a>
-                    {this.props.icon && (
-                        <span className='icon'>
-                            <i className={this.props.icon} aria-hidden='true' />
-                        </span>
-                    )}
-                    <span>{this.props.title}</span>
-                    {this.props.title !== 'Start' && this.state.delete && (
-                        <button
-                            className='delete is-small ml-3'
-                            onClick={(e: any) => this.props.tabManager.close(this.props.id, e)}
-                        />
-                    )}
-                </a>
-            </li>
-        );
-    }
-}
+    return (
+        <li
+            className={active ? 'is-active' : ''}
+            onClick={handleClick}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            title={id !== 'Start' ? 'Ctrl+click close tab\nShift+click close all tabs (ignores unsaved changes)' : ''}
+        >
+            <a>
+                {icon && (
+                    <span className='icon'>
+                        <i className={icon} aria-hidden='true' />
+                    </span>
+                )}
+                <span>{title}</span>
+                {title !== 'Start' && showDelete && (
+                    <button className='delete is-small ml-3' onClick={(e: any) => tabManager.close(id, e)} />
+                )}
+            </a>
+        </li>
+    );
+};
 
 export default Tab;

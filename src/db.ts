@@ -2,9 +2,10 @@ import { Driver, Integer, Node as _Node, QueryResult, Relationship as _Relations
 import { t_Log } from './utils/types';
 import { Ecosystem } from './utils/enums';
 import mixpanel from 'mixpanel-browser';
+import * as neo4j from 'neo4j-driver-lite';
 
 class Db {
-    private _neo4j = require('neo4j-driver-lite');
+    private _neo4j = neo4j;
     private _driver: Driver;
     private activedb: string = undefined;
     private availableDatabases: string[] = [];

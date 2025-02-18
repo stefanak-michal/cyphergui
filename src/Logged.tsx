@@ -225,11 +225,13 @@ const Logged: React.FC<ILoggedProps> = ({ handleLogout, darkMode }) => {
             setTabs(state => 
                  state.filter(tab => id !== tab.id)
             );
+            setContents(state => state.filter(content => id !== content.id));
         },
         closeAll: (e: React.PointerEvent) => {
             e.stopPropagation();
             setActiveTab('Start');
             setTabs(state => state.filter(tab => tab.id === 'Start'));
+            setContents(state => state.filter(content => content.id === 'Start'));
         },
         setChanged: (id: string, changed: boolean, callback?) => {
             setContents(contents =>

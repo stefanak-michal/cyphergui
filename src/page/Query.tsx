@@ -29,10 +29,22 @@ const Query: React.FC<IQueryProps> = props => {
     const [database, setDatabase] = useState<string | null>(null);
     const [showTableSize, setShowTableSize] = useState<boolean>(false);
     const copy = useContext(ClipboardContext);
+    
+    // let showTableSize = false;
 
     useEffect(() => {
         if (props.execute) handleSubmit(null);
     }, []);
+
+    const updateShowTableSize = (value: any) => {
+        if (Array.isArray(value)) {
+            value.forEach(updateShowTableSize);
+        } else if (value !== null && typeof value === 'object') {
+            if (value instanceof _Node || value instanceof _Relationship || value instanceof _Path)
+                setShowTableSize(true);
+            else updateShowTableSize(Object.values(value));
+        }
+    };
 
     const handleSubmit = (e: React.FormEvent | null) => {
         if (e) e.preventDefault();
@@ -56,7 +68,7 @@ const Query: React.FC<IQueryProps> = props => {
                 const keys: Set<string> = new Set();
                 response.records.forEach(r => r.keys.forEach(keys.add, keys));
 
-                setShowTableSize(response.records);
+                updateShowTableSize(response.records);
                 setSummary(response.summary);
                 setRows(response.records);
                 setError(null);

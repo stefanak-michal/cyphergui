@@ -21,7 +21,6 @@ interface INodeProps extends IPageProps {
 
 const Node: React.FC<INodeProps> = props => {
     const [node, setNode] = useState<_Node | null>(null);
-    const [focus, setFocus] = useState<string | null>(null);
     const [labels, setLabels] = useState<string[]>(props.label ? [props.label] : []);
     const [properties, setProperties] = useState<t_FormProperty[]>([]);
     const [labelModal, setLabelModal] = useState<boolean | string[]>(false);
@@ -215,7 +214,7 @@ const Node: React.FC<INodeProps> = props => {
         let removeLabels = !create ? node.labels.filter(l => !labels.includes(l)).join(':') : '';
         if (removeLabels.length > 0) removeLabels = ' REMOVE n:' + removeLabels;
 
-        const props = sanitizeFormValues(properties);
+        const formValues = sanitizeFormValues(properties);
         let query: string = '';
         if (printable) {
             if (!create)
@@ -237,7 +236,7 @@ const Node: React.FC<INodeProps> = props => {
                 ' SET n = $p RETURN n';
         }
 
-        return { query: query, props: props };
+        return { query: query, props: formValues };
     };
 
     const handleDeleteModalConfirm = (id: number | string, detach: boolean) => {

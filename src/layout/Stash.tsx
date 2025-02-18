@@ -21,17 +21,23 @@ const Stash: React.FC<IStashProps> = ({ stashed, tabManager, stashManager }) => 
     const [pulse, setPulse] = useState(false);
 
     useEffect(() => {
-        if (stashed.length !== stashed.length && !pulse) setPulse(true);
+        if (!pulse) setPulse(true);
     }, [stashed]);
 
     const filter = (entry: IStashEntry): boolean => {
+        //tab
         if (tab === 'Nodes' && !(entry.value instanceof _Node)) return false;
         if (tab === 'Relationships' && !(entry.value instanceof _Relationship)) return false;
         if (tab === 'Queries' && !(entry.value instanceof t_StashQuery)) return false;
+        //search
         if (search.length === 0) return true;
         if (db.strInt(entry.value.identity) === search) return true;
-        if ('elementId' in entry.value && db.hasElementId && entry.value.elementId.includes(search)) return true;
-        if (entry.value instanceof _Node && entry.value.labels.filter(x => x.indexOf(search) >= 0).length > 0)
+        if ('elementId' in entry.value && db.hasElementId && entry.value.elementId.includes(search)) 
+            return true;
+        if (
+            entry.value instanceof _Node &&
+            entry.value.labels.filter(x => x.indexOf(search) >= 0).length > 0
+        )
             return true;
         if (entry.value instanceof _Relationship && entry.value.type.indexOf(search) >= 0) return true;
         if (entry.value instanceof t_StashQuery && entry.value.query.indexOf(search) >= 0) return true;

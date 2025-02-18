@@ -77,10 +77,10 @@ const Type: React.FC<ITypeProps> = props => {
                         setRows(response2.records.map(record => record.get('r')));
                         setTotal(cnt);
                         setPage(Math.max(newPage, 1));
-                        setLoading(false);
                     })
                     .catch(err => {
                         setError('[' + err.name + '] ' + err.message);
+                    }).finally(() => {
                         setLoading(false);
                     });
             })
@@ -96,11 +96,18 @@ const Type: React.FC<ITypeProps> = props => {
 
     useEffect(() => {
         if (props.active) requestData();
-    }, [props.active]);
+    }, [props.active, page, sort]);
+
+    useEffect(() => {
+        if (timeout !== null) clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            requestData();
+            timeout = null;
+        }, 300);
+    }, [search]);
 
     const handleChangePage = (newPage: number) => {
         setPage(newPage);
-        requestData();
     };
 
     const handleClearError = () => {
@@ -146,17 +153,11 @@ const Type: React.FC<ITypeProps> = props => {
 
             return copy;
         });
-        requestData();
     };
 
     const handleSearch = (str: string = ''): void => {
         setSearch(str);
         setLoading(true);
-        if (timeout !== null) clearTimeout(timeout);
-        timeout = setTimeout(() => {
-            requestData();
-            timeout = null;
-        }, 300);
     };
 
     const keys = [];

@@ -35,7 +35,7 @@ const Login: React.FC<ILoginProps> = ({ handleLogin, darkMode }) => {
         }
 
         if (isMixedContent(url)) setMixedContentInfo(true);
-    }, [url]);
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -202,7 +202,7 @@ const Login: React.FC<ILoginProps> = ({ handleLogin, darkMode }) => {
                             label='Remember me (not secure)'
                             checked={remember}
                             color='is-primary'
-                            onChange={() => setRemember(!remember)}
+                            onChange={() => setRemember(r => !r)}
                         />
                         {error && <div className='notification is-danger mt-3 mb-0'>{error}</div>}
                         <div className='buttons mt-3 is-justify-content-space-between'>

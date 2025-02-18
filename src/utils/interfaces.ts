@@ -1,5 +1,4 @@
 import { EPage } from './enums';
-import { ReactElement, PointerEvent } from 'react';
 import { t_StashValue, t_ToastFn } from './types';
 import { Integer } from 'neo4j-driver-lite';
 
@@ -12,8 +11,8 @@ export interface ITabManager {
         id?: string,
         active?: boolean
     ) => string;
-    close: (id: string, e?: PointerEvent) => void;
-    closeAll: (e: PointerEvent) => void;
+    close: (id: string, e?: React.PointerEvent) => void;
+    closeAll: (e: React.PointerEvent) => void;
     setActive: (id: string) => void;
     generateName: (prefix: string, i?: Integer | string | number | null) => string;
     generateId: (props: { id?: number | string; database?: string }, title?: string) => string;
@@ -35,7 +34,7 @@ export interface IStashManager {
     remove: (id: number) => void;
     indexOf: (value: t_StashValue, stashed?: IStashEntry[]) => number;
     empty: () => void;
-    button: (value: t_StashValue, database: string, color?: string) => ReactElement;
+    button: (value: t_StashValue, database: string, color?: string) => React.ReactElement;
     get: () => IStashEntry[];
 }
 

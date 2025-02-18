@@ -215,17 +215,20 @@ const Logged: React.FC<ILoggedProps> = ({ handleLogout, darkMode }) => {
                 return;
             }
 
-            setTabs(state => {
-                let active = activeTab;
-                if (active === id) {
-                    const i: number = state.findIndex(tab => tab.id === id);
-                    if (i > 0) active = state[i - 1].id;
-                }
-                return state.filter(tab => id !== tab.id);
-            });
+            let active = activeTab;
+            if (active === id) {
+                const i: number = tabs.findIndex(tab => tab.id === id);
+                if (i > 0) active = tabs[i - 1].id;
+            }
+
+            setActiveTab(active);
+            setTabs(state => 
+                 state.filter(tab => id !== tab.id)
+            );
         },
         closeAll: (e: React.PointerEvent) => {
             e.stopPropagation();
+            setActiveTab('Start');
             setTabs(state => state.filter(tab => tab.id === 'Start'));
         },
         setChanged: (id: string, changed: boolean, callback?) => {
@@ -365,7 +368,7 @@ const Logged: React.FC<ILoggedProps> = ({ handleLogout, darkMode }) => {
 
     const activeContent = contents.find(c => c.id === activeTab);
     document.title =
-        tabs.find(t => t.id === activeTab).title +
+        tabs.find(t => t.id === activeTab)?.title +
         (db.databases.length > 1 && 'database' in activeContent.props
             ? ' (db: ' + activeContent.props.database + ')'
             : '') +
@@ -401,7 +404,7 @@ const Logged: React.FC<ILoggedProps> = ({ handleLogout, darkMode }) => {
                                     >
                                         <MyComponent
                                             active={content.id === activeTab}
-                                            tabName={tabs.filter(t => t.id === content.id)[0].title}
+                                            tabName={tabs.find(t => t.id === content.id)?.title}
                                             tabId={content.id}
                                             tabManager={tabManager}
                                             toast={toast}

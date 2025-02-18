@@ -22,7 +22,6 @@ const Relationship: React.FC<IRelationshipProps> = props => {
     const [rel, setRel] = useState<_Relationship | null>(null);
     const [start, setStart] = useState<_Node | null>(null);
     const [end, setEnd] = useState<_Node | null>(null);
-    const [focus, setFocus] = useState<string | null>(null);
     const [type, setType] = useState<string>(props.type || '');
     const [properties, setProperties] = useState<t_FormProperty[]>([]);
     const [typeModal, setTypeModal] = useState<false | string[]>(false);
@@ -193,7 +192,7 @@ const Relationship: React.FC<IRelationshipProps> = props => {
     };
 
     const generateQuery = (printable: boolean = false): { query: string; props: object } => {
-        const props = sanitizeFormValues(properties);
+        const formValues = sanitizeFormValues(properties);
         let query: string = '';
         const quoteId = (id: number | string): string => {
             if (typeof id === 'number') return id.toString();
@@ -232,7 +231,7 @@ const Relationship: React.FC<IRelationshipProps> = props => {
             query += ' SET r = $p RETURN r';
         }
 
-        return { query: query, props: props };
+        return { query: query, props: formValues };
     };
 
     const handleDeleteModalConfirm = (id: number | string) => {

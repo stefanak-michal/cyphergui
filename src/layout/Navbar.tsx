@@ -25,8 +25,6 @@ const Navbar: React.FC<INavbarProps> = ({ handleLogout, handleOpenSettings, tabM
         db.registerChangeDatabasesCallback((databases: string[]) => {
             setDatabases(databases);
         });
-
-        return () => {};
     }, []);
 
     const handleOpen = () => {

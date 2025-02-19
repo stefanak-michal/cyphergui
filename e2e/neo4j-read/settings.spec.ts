@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures/neo4j-movies';
 import { checkActiveTab, checkNotification, containerLocator, modalLocator, switchToTab } from '../helpers';
-import { Page } from '@playwright/test';
+import { type Page } from '@playwright/test';
 
 async function changeSettingAndClose(page: Page, title: string) {
     await modalLocator(page).getByText(title).click();

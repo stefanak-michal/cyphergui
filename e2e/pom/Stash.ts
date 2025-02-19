@@ -1,4 +1,4 @@
-import { expect, Locator, Page } from '@playwright/test';
+import { expect, Locator, type Page } from '@playwright/test';
 
 export default class Stash {
     constructor(private readonly page: Page) {}

@@ -1,4 +1,4 @@
-import { Page, expect } from '@playwright/test';
+import { type Page, expect } from '@playwright/test';
 
 export function containerLocator(page: Page, selector: string = '') {
     const l = page.locator('.container > div').locator('visible=true');

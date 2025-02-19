@@ -51,7 +51,7 @@ class Db {
                     this.ecosystem = /memgraph/i.test(r.agent) ? Ecosystem.Memgraph : Ecosystem.Neo4j;
                     this.hasElementId = this.ecosystem === Ecosystem.Neo4j && r['protocolVersion'] >= 5;
 
-                    this.query('SHOW DATABASES')
+                    this.query('SHOW DATABASE')
                         .then(response => {
                             if (this.ecosystem === Ecosystem.Memgraph) {
                                 this.activedb = response.records[0].get('Name');
@@ -65,9 +65,9 @@ class Db {
                             const active = localStorage.getItem('activedb');
                             if (active && this.activedb !== active && this.availableDatabases.includes(active))
                                 this.activedb = active;
-                            resolve();
                         })
-                        .catch(reject);
+                        .catch(console.error)
+                        .finally(resolve);
                 })
                 .catch(reject);
         });

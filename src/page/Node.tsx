@@ -190,6 +190,7 @@ const Node: React.FC<INodeProps> = props => {
                 }
                 if (settings().closeEditAfterExecuteSuccess) {
                     props.tabManager.close(props.tabId, null, false);
+                    return;
                 }
                 if (create) {
                     const node = response.records[0].get('n');

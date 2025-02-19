@@ -174,6 +174,7 @@ const Relationship: React.FC<IRelationshipProps> = props => {
                 }
                 if (settings().closeEditAfterExecuteSuccess) {
                     props.tabManager.close(props.tabId, null, false);
+                    return;
                 }
                 if (create || rel.start !== start.identity || rel.end !== end.identity) {
                     const rel = response.records[0].get('r');

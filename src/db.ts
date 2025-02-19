@@ -51,7 +51,7 @@ class Db {
                     this.ecosystem = /memgraph/i.test(r.agent) ? Ecosystem.Memgraph : Ecosystem.Neo4j;
                     this.hasElementId = this.ecosystem === Ecosystem.Neo4j && r['protocolVersion'] >= 5;
 
-                    this.query('SHOW DATABASE')
+                    this.query('SHOW DATABASES')
                         .then(response => {
                             if (this.ecosystem === Ecosystem.Memgraph) {
                                 this.activedb = response.records[0].get('Name');

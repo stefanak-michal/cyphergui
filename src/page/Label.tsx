@@ -81,7 +81,8 @@ const Label: React.FC<ILabelProps> = props => {
                     })
                     .catch(err => {
                         setError('[' + err.name + '] ' + err.message);
-                    }).finally(() => {
+                    })
+                    .finally(() => {
                         setLoading(false);
                     });
             })

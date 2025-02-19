@@ -29,7 +29,7 @@ const Query: React.FC<IQueryProps> = props => {
     const [database, setDatabase] = useState<string | null>(null);
     const [showTableSize, setShowTableSize] = useState<boolean>(false);
     const copy = useContext(ClipboardContext);
-    
+
     // let showTableSize = false;
 
     useEffect(() => {

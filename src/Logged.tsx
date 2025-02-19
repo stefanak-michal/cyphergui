@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import Tab from './layout/Tab';
 import Navbar from './layout/Navbar';
 import Start from './page/Start';
@@ -222,9 +222,7 @@ const Logged: React.FC<ILoggedProps> = ({ handleLogout, darkMode }) => {
             }
 
             setActiveTab(active);
-            setTabs(state => 
-                 state.filter(tab => id !== tab.id)
-            );
+            setTabs(state => state.filter(tab => id !== tab.id));
             setContents(state => state.filter(content => id !== content.id));
         },
         closeAll: (e: React.PointerEvent) => {

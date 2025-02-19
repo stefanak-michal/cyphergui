@@ -32,12 +32,8 @@ const Stash: React.FC<IStashProps> = ({ stashed, tabManager, stashManager }) => 
         //search
         if (search.length === 0) return true;
         if (db.strInt(entry.value.identity) === search) return true;
-        if ('elementId' in entry.value && db.hasElementId && entry.value.elementId.includes(search)) 
-            return true;
-        if (
-            entry.value instanceof _Node &&
-            entry.value.labels.filter(x => x.indexOf(search) >= 0).length > 0
-        )
+        if ('elementId' in entry.value && db.hasElementId && entry.value.elementId.includes(search)) return true;
+        if (entry.value instanceof _Node && entry.value.labels.filter(x => x.indexOf(search) >= 0).length > 0)
             return true;
         if (entry.value instanceof _Relationship && entry.value.type.indexOf(search) >= 0) return true;
         if (entry.value instanceof t_StashQuery && entry.value.query.indexOf(search) >= 0) return true;

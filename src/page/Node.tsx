@@ -33,7 +33,7 @@ const Node: React.FC<INodeProps> = props => {
 
     let rels: _Relationship[] = [];
     let nodes: _Node[] = [];
-    let create: boolean = props.id === null;
+    const create: boolean = props.id === null;
 
     const requestData = () => {
         if (create) return;

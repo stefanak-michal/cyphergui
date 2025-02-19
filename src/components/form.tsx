@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { EPage } from '../utils/enums';
 import { ITabManager } from '../utils/interfaces';
 
@@ -53,7 +53,6 @@ export const Textarea: React.FC<{
 }) => {
     const ref = useRef<HTMLTextAreaElement>(null);
     const highlightRef = useRef<HTMLDivElement>(null);
-    const [height, setHeight] = useState(0);
 
     useEffect(() => {
         resize();

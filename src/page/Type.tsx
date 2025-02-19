@@ -80,7 +80,8 @@ const Type: React.FC<ITypeProps> = props => {
                     })
                     .catch(err => {
                         setError('[' + err.name + '] ' + err.message);
-                    }).finally(() => {
+                    })
+                    .finally(() => {
                         setLoading(false);
                     });
             })

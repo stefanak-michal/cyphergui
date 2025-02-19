@@ -1,4 +1,4 @@
-import { useState, useContext, use } from 'react';
+import { useState, useContext } from 'react';
 import { Button, Checkbox } from './form';
 import { ClipboardContext } from '../utils/contexts';
 import { toJSON } from '../utils/fn';

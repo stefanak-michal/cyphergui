@@ -10,7 +10,7 @@
   },
   "funding": "https://ko-fi.com/michalstefanak",
   "engines": {
-    "node": ">=19"
+    "node": ">=22"
   },
   "type": "module",
   "repository": {
@@ -38,11 +38,10 @@
     "@parcel/transformer-sass": "^2.13.3",
     "@parcel/transformer-webmanifest": "^2.13.3",
     "@playwright/test": "^1.47.1",
-    "eslint": "^8.57.1",
+    "eslint": "^9",
     "parcel": "^2.13.3",
     "prettier": "^3.3.3",
-    "process": "^0.11.10",
-    "typescript-eslint": "^7.18.0"
+    "typescript-eslint": "^8"
   },
   "scripts": {
     "start": "parcel public/index.html --dist-dir build",

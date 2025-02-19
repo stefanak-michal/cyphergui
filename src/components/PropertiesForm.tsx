@@ -514,7 +514,7 @@ const PropertyBooleanInput: React.FC<PropertyInputProps> = ({ name, value, onVal
     );
 };
 
-const PropertyIntegerInput: React.FC<PropertyInputProps> = ({ name, value, temp, onValueChange, focus }) => {
+const PropertyIntegerInput: React.FC<PropertyInputProps> = ({ name, temp, onValueChange, focus }) => {
     const copy = useContext(ClipboardContext);
     return (
         <div className='control is-expanded has-icons-right'>
@@ -541,7 +541,7 @@ const PropertyIntegerInput: React.FC<PropertyInputProps> = ({ name, value, temp,
     );
 };
 
-const PropertyFloatInput: React.FC<PropertyInputProps> = ({ name, value, temp, onValueChange, focus }) => {
+const PropertyFloatInput: React.FC<PropertyInputProps> = ({ name, temp, onValueChange, focus }) => {
     const copy = useContext(ClipboardContext);
     return (
         <div className='control is-expanded has-icons-right'>
@@ -661,7 +661,7 @@ const TimezoneControl: React.FC<{
  * Temporal types
  */
 
-const PropertyDateInput: React.FC<PropertyInputProps> = ({ name, value, temp, onValueChange, focus }) => {
+const PropertyDateInput: React.FC<PropertyInputProps> = ({ name, temp, onValueChange }) => {
     const [valid, setValid] = useState(true);
     const dateRef = createRef<HTMLInputElement>();
     const copy = useContext(ClipboardContext);
@@ -700,7 +700,7 @@ const PropertyDateInput: React.FC<PropertyInputProps> = ({ name, value, temp, on
     );
 };
 
-const PropertyTimeInput: React.FC<PropertyInputProps> = ({ name, value, temp, onValueChange, focus }) => {
+const PropertyTimeInput: React.FC<PropertyInputProps> = ({ name, value, temp, onValueChange }) => {
     const [valid, setValid] = useState(true);
     const timezoneRef = createRef<HTMLSelectElement>();
     const nanosecondsRef = createRef<HTMLInputElement>();
@@ -750,7 +750,7 @@ const PropertyTimeInput: React.FC<PropertyInputProps> = ({ name, value, temp, on
     );
 };
 
-const PropertyDateTimeInput: React.FC<PropertyInputProps> = ({ name, value, temp, onValueChange, focus }) => {
+const PropertyDateTimeInput: React.FC<PropertyInputProps> = ({ name, value, temp, onValueChange }) => {
     const [valid, setValid] = useState(true);
     const timezoneRef = createRef<HTMLSelectElement>();
     const nanosecondsRef = createRef<HTMLInputElement>();
@@ -802,11 +802,7 @@ const PropertyDateTimeInput: React.FC<PropertyInputProps> = ({ name, value, temp
                 <TimezoneControl value={temp[3]} handleChange={handleChange} selectRef={timezoneRef} invalid={!valid} />
                 {valid && (
                     <div className='control'>
-                        <Button
-                            icon='fa-regular fa-copy'
-                            onClick={copy}
-                            value={(value as _DateTime).toString()}
-                        />
+                        <Button icon='fa-regular fa-copy' onClick={copy} value={(value as _DateTime).toString()} />
                     </div>
                 )}
             </div>
@@ -814,7 +810,7 @@ const PropertyDateTimeInput: React.FC<PropertyInputProps> = ({ name, value, temp
     );
 };
 
-const PropertyLocalTimeInput: React.FC<PropertyInputProps> = ({ name, value, temp, onValueChange, focus }) => {
+const PropertyLocalTimeInput: React.FC<PropertyInputProps> = ({ name, value, temp, onValueChange }) => {
     const [valid, setValid] = useState(true);
     const nanosecondsRef = createRef<HTMLInputElement>();
     const timeRef = createRef<HTMLInputElement>();
@@ -853,11 +849,7 @@ const PropertyLocalTimeInput: React.FC<PropertyInputProps> = ({ name, value, tem
                 />
                 {valid && (
                     <div className='control'>
-                        <Button
-                            icon='fa-regular fa-copy'
-                            onClick={copy}
-                            value={(value as _LocalTime).toString()}
-                        />
+                        <Button icon='fa-regular fa-copy' onClick={copy} value={(value as _LocalTime).toString()} />
                     </div>
                 )}
             </div>
@@ -865,7 +857,7 @@ const PropertyLocalTimeInput: React.FC<PropertyInputProps> = ({ name, value, tem
     );
 };
 
-const PropertyLocalDateTimeInput: React.FC<PropertyInputProps> = ({ name, value, temp, onValueChange, focus }) => {
+const PropertyLocalDateTimeInput: React.FC<PropertyInputProps> = ({ name, value, temp, onValueChange }) => {
     const [valid, setValid] = useState(true);
     const nanosecondsRef = createRef<HTMLInputElement>();
     const timeRef = createRef<HTMLInputElement>();
@@ -909,11 +901,7 @@ const PropertyLocalDateTimeInput: React.FC<PropertyInputProps> = ({ name, value,
                 />
                 {valid && (
                     <div className='control'>
-                        <Button
-                            icon='fa-regular fa-copy'
-                            onClick={copy}
-                            value={(value as _LocalDateTime).toString()}
-                        />
+                        <Button icon='fa-regular fa-copy' onClick={copy} value={(value as _LocalDateTime).toString()} />
                     </div>
                 )}
             </div>
@@ -921,7 +909,7 @@ const PropertyLocalDateTimeInput: React.FC<PropertyInputProps> = ({ name, value,
     );
 };
 
-const PropertyDurationInput: React.FC<PropertyInputProps> = ({ name, value, temp, onValueChange, focus }) => {
+const PropertyDurationInput: React.FC<PropertyInputProps> = ({ name, temp, onValueChange, focus }) => {
     const copy = useContext(ClipboardContext);
     return (
         <div className='control is-expanded has-icons-right'>
@@ -944,7 +932,7 @@ const PropertyDurationInput: React.FC<PropertyInputProps> = ({ name, value, temp
     );
 };
 
-const PropertyPointInput: React.FC<PropertyInputProps> = ({ name, value, temp, onValueChange, focus }) => {
+const PropertyPointInput: React.FC<PropertyInputProps> = ({ name, value, temp, onValueChange }) => {
     const sridRef = createRef<HTMLSelectElement>();
     const xRef = createRef<HTMLInputElement>();
     const yRef = createRef<HTMLInputElement>();

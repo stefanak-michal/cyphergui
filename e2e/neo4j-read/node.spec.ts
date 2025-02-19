@@ -148,7 +148,7 @@ test.describe('Node tab', { tag: '@neo4j-read' }, () => {
             await expect(modalLocator(page)).toHaveScreenshot();
             await modalLocator(page).getByRole('button', { name: 'Movie' }).click();
             await expect(modalLocator(page)).toHaveCount(0);
-            await expect(containerLocator(page).getByRole('group', { name: 'Labels' })).toContainText('MoviePerson');
+            await expect(containerLocator(page).getByRole('group', { name: 'Labels' })).toContainText('PersonMovie');
         });
 
         test('Add new label', async ({ page }) => {

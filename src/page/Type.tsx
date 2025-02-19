@@ -128,9 +128,7 @@ const Type: React.FC<ITypeProps> = props => {
                     requestData();
                     props.toast('Relationship deleted');
                     const tabId = props.tabManager.generateId({ id: id, database: props.database });
-                    props.tabManager.setChanged(tabId, false, () => {
-                        props.tabManager.close(tabId);
-                    });
+                    props.tabManager.close(tabId, null, false);
                 }
             })
             .catch(error => {

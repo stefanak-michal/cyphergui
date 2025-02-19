@@ -28,11 +28,10 @@ const Node: React.FC<INodeProps> = props => {
     const [error, setError] = useState<string | null>(null);
     const [deleteState, setDeleteState] = useState<number | string | false>(false);
     const [showAllRels, setShowAllRels] = useState<boolean>(false);
+    const [rels, setRels] = useState<_Relationship[]>([]);
+    const [nodes, setNodes] = useState<_Node[]>([]);
 
     const copy = useContext(ClipboardContext);
-
-    let rels: _Relationship[] = [];
-    let nodes: _Node[] = [];
     const create: boolean = props.id === null;
 
     const requestData = () => {
@@ -90,9 +89,8 @@ const Node: React.FC<INodeProps> = props => {
                 }
                 formProps.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
 
-                rels = response.records[0].get('r');
-                nodes = response.records[0].get('a');
-
+                setRels(response.records[0].get('r') as _Relationship[]);
+                setNodes(response.records[0].get('a') as _Node[]);
                 setNode(node);
                 setLabels([...node.labels]);
                 setProperties(formProps);
@@ -115,10 +113,10 @@ const Node: React.FC<INodeProps> = props => {
             )
                 .then(response => {
                     if (db.fromInt(response.records[0].get('c')) !== 1) {
-                        props.tabManager.close(props.tabId);
+                        props.tabManager.close(props.tabId, null, false);
                     }
                 })
-                .catch(() => props.tabManager.close(props.tabId));
+                .catch(() => props.tabManager.close(props.tabId, null, false));
         }
     }, [props.active]);
 
@@ -188,23 +186,20 @@ const Node: React.FC<INodeProps> = props => {
                     props.toast(create ? 'Node created' : 'Node updated');
                 }
                 if (settings().closeEditAfterExecuteSuccess) {
-                    props.tabManager.setChanged(props.tabId, false, () => {
-                        props.tabManager.close(props.tabId);
-                    });
-                } else if (create) {
+                    props.tabManager.close(props.tabId, null, false);
+                }
+                if (create) {
                     const node = response.records[0].get('n');
-                    props.tabManager.setChanged(props.tabId, false, () => {
-                        props.tabManager.add(
-                            { prefix: 'Node', i: node.identity },
-                            'fa-solid fa-pen-to-square',
-                            EPage.Node,
-                            {
-                                id: db.getId(node),
-                                database: props.database,
-                            }
-                        );
-                        props.tabManager.close(props.tabId);
-                    });
+                    props.tabManager.add(
+                        { prefix: 'Node', i: node.identity },
+                        'fa-solid fa-pen-to-square',
+                        EPage.Node,
+                        {
+                            id: db.getId(node),
+                            database: props.database,
+                        }
+                    );
+                    props.tabManager.close(props.tabId, null, false);
                 }
             })
             .catch(err => setError('[' + err.name + '] ' + err.message));
@@ -251,7 +246,7 @@ const Node: React.FC<INodeProps> = props => {
         )
             .then(response => {
                 if (response.summary.counters.updates().nodesDeleted > 0) {
-                    props.tabManager.setChanged(props.tabId, false, () => props.tabManager.close(props.tabId));
+                    props.tabManager.close(props.tabId, null, false);
                     props.toast('Node deleted');
                 }
             })
@@ -480,7 +475,16 @@ const Node: React.FC<INodeProps> = props => {
                     <div className='control buttons is-justify-content-flex-end'>
                         <Button color='is-success' type='submit' icon='fa-solid fa-check' text='Execute' />
                         {!create && props.stashManager.button(node, props.database)}
-                        {!create && <Button icon='fa-solid fa-refresh' text='Reload' onClick={requestData} />}
+                        {!create && (
+                            <Button
+                                icon='fa-solid fa-refresh'
+                                text='Reload'
+                                onClick={() => {
+                                    requestData();
+                                    props.tabManager.setChanged(props.tabId, false);
+                                }}
+                            />
+                        )}
                         <Button
                             icon='fa-solid fa-xmark'
                             text='Close'

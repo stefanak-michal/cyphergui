@@ -31,7 +31,6 @@ const Relationship: React.FC<IRelationshipProps> = props => {
     const [selectNodeModal, setSelectNodeModal] = useState<number | null>(null);
 
     const copy = useContext(ClipboardContext);
-
     const create = props.id === null;
 
     const requestData = () => {
@@ -102,10 +101,10 @@ const Relationship: React.FC<IRelationshipProps> = props => {
             )
                 .then(response => {
                     if (db.fromInt(response.records[0].get('c')) !== 1) {
-                        props.tabManager.close(props.tabId);
+                        props.tabManager.close(props.tabId, null, false);
                     }
                 })
-                .catch(() => props.tabManager.close(props.tabId));
+                .catch(() => props.tabManager.close(props.tabId, null, false));
         }
     }, [props.active]);
 
@@ -171,23 +170,15 @@ const Relationship: React.FC<IRelationshipProps> = props => {
                     props.toast(create ? 'Relationship created' : 'Relationship updated');
                 }
                 if (settings().closeEditAfterExecuteSuccess) {
-                    props.tabManager.setChanged(props.tabId, false, () => {
-                        props.tabManager.close(props.tabId);
-                    });
-                } else if (create || rel.start !== start.identity || rel.end !== end.identity) {
+                    props.tabManager.close(props.tabId, null, false);
+                }
+                if (create || rel.start !== start.identity || rel.end !== end.identity) {
                     const rel = response.records[0].get('r');
-                    props.tabManager.setChanged(props.tabId, false, () => {
-                        props.tabManager.add(
-                            { prefix: 'Rel', i: rel.identity },
-                            'fa-solid fa-pen-to-square',
-                            EPage.Rel,
-                            {
-                                id: db.getId(rel),
-                                database: props.database,
-                            }
-                        );
-                        props.tabManager.close(props.tabId);
+                    props.tabManager.add({ prefix: 'Rel', i: rel.identity }, 'fa-solid fa-pen-to-square', EPage.Rel, {
+                        id: db.getId(rel),
+                        database: props.database,
                     });
+                    props.tabManager.close(props.tabId, null, false);
                 }
             })
             .catch(err => setError('[' + err.name + '] ' + err.message));
@@ -240,7 +231,7 @@ const Relationship: React.FC<IRelationshipProps> = props => {
         db.query('MATCH ()-[r]-() WHERE ' + db.fnId('r') + ' = $id DELETE r', { id: id }, props.database)
             .then(response => {
                 if (response.summary.counters.updates().nodesDeleted > 0) {
-                    props.tabManager.setChanged(props.tabId, false, () => props.tabManager.close(props.tabId));
+                    props.tabManager.close(props.tabId, null, false);
                     props.toast('Relationship deleted');
                 }
             })
@@ -468,7 +459,16 @@ const Relationship: React.FC<IRelationshipProps> = props => {
                     <div className='control buttons is-justify-content-flex-end'>
                         <Button color='is-success' type='submit' icon='fa-solid fa-check' text='Execute' />
                         {!create && props.stashManager.button(rel, props.database)}
-                        {!create && <Button icon='fa-solid fa-refresh' text='Reload' onClick={requestData} />}
+                        {!create && (
+                            <Button
+                                icon='fa-solid fa-refresh'
+                                text='Reload'
+                                onClick={() => {
+                                    requestData();
+                                    props.tabManager.setChanged(props.tabId, false);
+                                }}
+                            />
+                        )}
                         <Button
                             icon='fa-solid fa-xmark'
                             text='Close'

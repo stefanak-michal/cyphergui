@@ -38,13 +38,15 @@
     "@parcel/transformer-sass": "^2.13.3",
     "@parcel/transformer-webmanifest": "^2.13.3",
     "@playwright/test": "^1.47.1",
+    "dotenv": "^16.4.7",
     "eslint": "^9",
     "parcel": "^2.13.3",
     "prettier": "^3.3.3",
+    "process": "^0.11.10",
     "typescript-eslint": "^8"
   },
   "scripts": {
-    "start": "parcel public/index.html --dist-dir build",
+    "start": "parcel public/index.html",
     "build": "parcel build public/index.html --dist-dir build --no-source-maps --no-cache --no-scope-hoist --public-url ./",
     "deploy": "gh-pages -d build",
     "format": "npx prettier . --write",

@@ -207,10 +207,16 @@ const Logged: React.FC<ILoggedProps> = ({ handleLogout, darkMode }) => {
 
             return id;
         },
-        close: (id: string, e: React.PointerEvent = null) => {
+        close: (id: string, e: React.PointerEvent = null, doConfirmCheck = true) => {
             if (e !== null) e.stopPropagation();
+            if (!tabs.find(t => t.id === id)) return;
 
-            if (settings().confirmCloseUnsavedChanges && !confirmModal && contents.find(c => c.id === id)?.changed) {
+            if (
+                settings().confirmCloseUnsavedChanges &&
+                doConfirmCheck &&
+                !confirmModal &&
+                contents.find(c => c.id === id)?.changed
+            ) {
                 setConfirmModal(id);
                 return;
             }
@@ -231,11 +237,10 @@ const Logged: React.FC<ILoggedProps> = ({ handleLogout, darkMode }) => {
             setTabs(state => state.filter(tab => tab.id === 'Start'));
             setContents(state => state.filter(content => content.id === 'Start'));
         },
-        setChanged: (id: string, changed: boolean, callback?) => {
+        setChanged: (id: string, changed: boolean) => {
             setContents(contents =>
                 contents.map(content => (content.id === id ? { ...content, changed: changed } : content))
             );
-            if (callback) callback();
         },
         setActive: (id: string) => {
             setActiveTab(id);
@@ -451,7 +456,7 @@ const Logged: React.FC<ILoggedProps> = ({ handleLogout, darkMode }) => {
             {confirmModal && (
                 <CloseConfirmModal
                     handleConfirm={() => {
-                        tabManager.close(confirmModal as string);
+                        tabManager.close(confirmModal as string, null, false);
                         setConfirmModal(null);
                     }}
                     handleClose={() => setConfirmModal(null)}

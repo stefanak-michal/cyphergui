@@ -11,12 +11,12 @@ export interface ITabManager {
         id?: string,
         active?: boolean
     ) => string;
-    close: (id: string, e?: React.PointerEvent) => void;
+    close: (id: string, e?: React.PointerEvent, doConfirmCheck?: boolean) => void;
     closeAll: (e: React.PointerEvent) => void;
     setActive: (id: string) => void;
     generateName: (prefix: string, i?: Integer | string | number | null) => string;
     generateId: (props: { id?: number | string; database?: string }, title?: string) => string;
-    setChanged: (id: string, changed: boolean, callback?: () => void) => void;
+    setChanged: (id: string, changed: boolean) => void;
 }
 
 export interface ISettings {

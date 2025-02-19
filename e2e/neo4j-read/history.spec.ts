@@ -8,7 +8,9 @@ test.describe('History tab', { tag: '@neo4j-read' }, () => {
     });
 
     test('Visual check', async ({ page }) => {
-        const cellCount = await containerLocator(page, 'table tbody').getByRole('cell', { name: 'S', exact: true }).count();
+        const cellCount = await containerLocator(page, 'table tbody')
+            .getByRole('cell', { name: 'S', exact: true })
+            .count();
         expect(cellCount).toBeGreaterThanOrEqual(1);
         await expect(containerLocator(page, 'table tbody').getByRole('cell', { name: '{}' })).toHaveCount(cellCount);
         await expect(containerLocator(page, 'table tbody').getByTitle('Open in query tab')).toHaveCount(cellCount);

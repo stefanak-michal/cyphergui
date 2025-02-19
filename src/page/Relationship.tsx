@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useActionState } from 'react';
 import { IPageProps, IStashManager } from '../utils/interfaces';
 import { Node as _Node, Relationship as _Relationship } from 'neo4j-driver-lite';
 import { EPage, EPropertyType } from '../utils/enums';
@@ -123,6 +123,10 @@ const Relationship: React.FC<IRelationshipProps> = props => {
         markChanged();
     };
 
+    const [, typeModalAction, typeModalPending] = useActionState(() => {
+        handleTypeSelect(typeModalInput);
+    }, null);
+
     const handleTypeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         let value: string = e.currentTarget.value;
 
@@ -137,34 +141,33 @@ const Relationship: React.FC<IRelationshipProps> = props => {
         setTypeModal(false);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-
+    const handleSubmit = async (): Promise<void> => {
         if (!type) {
             setError('Not defined relationship type');
-            return false;
+            return;
         }
         if (!start) {
             setError('Not defined start node');
-            return false;
+            return;
         }
         if (!end) {
             setError('Not defined end node');
-            return false;
+            return;
         }
 
         const { query, props: queryProps } = generateQuery();
 
-        db.query(
-            query,
-            {
-                id: rel ? (db.hasElementId ? rel.elementId : rel.identity) : null,
-                a: db.hasElementId ? start.elementId : start.identity,
-                b: db.hasElementId ? end.elementId : end.identity,
-                p: queryProps,
-            },
-            props.database
-        )
+        return db
+            .query(
+                query,
+                {
+                    id: rel ? (db.hasElementId ? rel.elementId : rel.identity) : null,
+                    a: db.hasElementId ? start.elementId : start.identity,
+                    b: db.hasElementId ? end.elementId : end.identity,
+                    p: queryProps,
+                },
+                props.database
+            )
             .then(response => {
                 if (response.summary.counters.containsUpdates()) {
                     props.toast(create ? 'Relationship created' : 'Relationship updated');
@@ -183,6 +186,8 @@ const Relationship: React.FC<IRelationshipProps> = props => {
             })
             .catch(err => setError('[' + err.name + '] ' + err.message));
     };
+
+    const [, formAction, formPending] = useActionState(handleSubmit, null);
 
     const generateQuery = (printable: boolean = false): { query: string; props: object } => {
         const formValues = sanitizeFormValues(properties);
@@ -273,22 +278,16 @@ const Relationship: React.FC<IRelationshipProps> = props => {
             {Array.isArray(typeModal) && (
                 <Modal title='Set type' icon='fa-solid fa-tag' handleClose={handleTypeModalClose}>
                     <div className='buttons'>
-                        {typeModal.map(label => (
+                        {typeModal.map(type => (
                             <Button
-                                text={label}
+                                text={type}
                                 color='is-info is-rounded tag is-medium has-text-white'
-                                key={label}
-                                onClick={() => handleTypeSelect(label)}
+                                key={type}
+                                onClick={() => handleTypeSelect(type)}
                             />
                         ))}
                     </div>
-                    <form
-                        onSubmit={e => {
-                            e.preventDefault();
-                            handleTypeSelect(typeModalInput);
-                            return true;
-                        }}
-                    >
+                    <form action={typeModalAction}>
                         <label className='label'>Or specify new one</label>
                         <div className='field is-grouped'>
                             <div className='control is-expanded'>
@@ -303,7 +302,7 @@ const Relationship: React.FC<IRelationshipProps> = props => {
                                 />
                             </div>
                             <div className='control'>
-                                <Button icon='fa-solid fa-check' type='submit' />
+                                <Button icon='fa-solid fa-check' type='submit' disabled={typeModalPending} />
                             </div>
                         </div>
                     </form>
@@ -329,7 +328,7 @@ const Relationship: React.FC<IRelationshipProps> = props => {
                 />
             )}
 
-            <form onSubmit={handleSubmit}>
+            <form action={formAction}>
                 {!create && (
                     <div className='columns'>
                         <div className={'column ' + (db.hasElementId ? 'is-half-desktop' : '')}>
@@ -457,7 +456,13 @@ const Relationship: React.FC<IRelationshipProps> = props => {
 
                 <div className='field'>
                     <div className='control buttons is-justify-content-flex-end'>
-                        <Button color='is-success' type='submit' icon='fa-solid fa-check' text='Execute' />
+                        <Button
+                            color={'is-success ' + (formPending ? 'is-loading' : '')}
+                            type='submit'
+                            icon='fa-solid fa-check'
+                            text='Execute'
+                            disabled={formPending}
+                        />
                         {!create && props.stashManager.button(rel, props.database)}
                         {!create && (
                             <Button
@@ -498,30 +503,30 @@ const SelectNodeModal: React.FC<{
     const [id, setId] = useState<string>('');
     const [error, setError] = useState<any>(null);
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async (): Promise<void> => {
         const isNum = /^\d+$/.test(id);
 
-        db.query(
-            'MATCH (n) WHERE ' + (isNum ? 'id(n)' : 'elementId(n)') + ' = $id RETURN n',
-            {
-                id: isNum ? db.toInt(id) : id,
-            },
-            database
-        )
+        return db
+            .query(
+                'MATCH (n) WHERE ' + (isNum ? 'id(n)' : 'elementId(n)') + ' = $id RETURN n',
+                {
+                    id: isNum ? db.toInt(id) : id,
+                },
+                database
+            )
             .then(response => {
                 if (response.records.length > 0) {
                     handleNodeSelect(response.records[0].get('n'));
-                    return true;
                 } else {
                     setError('Node not found');
-                    return false;
                 }
             })
             .catch(err => {
                 setError('[' + err.name + '] ' + err.message);
             });
     };
+
+    const [, formAction, formPending] = useActionState(handleSubmit, null);
 
     return (
         <Modal title='Select node' icon='fa-regular fa-circle' handleClose={handleClose} backdrop={true}>
@@ -548,7 +553,7 @@ const SelectNodeModal: React.FC<{
             ) : (
                 <div className='has-text-grey-light mb-3'>none</div>
             )}
-            <form onSubmit={handleSubmit}>
+            <form action={formAction}>
                 <label className='label'>Or enter id {db.hasElementId ? 'or elementId' : ''}</label>
                 <div className='field is-grouped'>
                     <div className='control is-expanded'>
@@ -566,7 +571,12 @@ const SelectNodeModal: React.FC<{
                         />
                     </div>
                     <div className='control'>
-                        <Button icon='fa-solid fa-check' type='submit' />
+                        <Button
+                            icon='fa-solid fa-check'
+                            type='submit'
+                            disabled={formPending}
+                            color={formPending ? 'is-loading' : ''}
+                        />
                     </div>
                 </div>
                 {error && <div className='notification is-danger'>{error}</div>}

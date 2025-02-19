@@ -41,36 +41,36 @@ class Db {
         return this.availableDatabases;
     }
 
-    setDriver = (driver: Driver, callback: (error?: Error) => void) => {
-        this._driver = driver;
+    setDriver = (driver: Driver): Promise<void> => {
+        return new Promise((resolve, reject) => {
+            this._driver = driver;
 
-        driver
-            .getServerInfo()
-            .then(r => {
-                this.ecosystem = /memgraph/i.test(r.agent) ? Ecosystem.Memgraph : Ecosystem.Neo4j;
-                this.hasElementId = this.ecosystem === Ecosystem.Neo4j && r['protocolVersion'] >= 5;
+            driver
+                .getServerInfo()
+                .then(r => {
+                    this.ecosystem = /memgraph/i.test(r.agent) ? Ecosystem.Memgraph : Ecosystem.Neo4j;
+                    this.hasElementId = this.ecosystem === Ecosystem.Neo4j && r['protocolVersion'] >= 5;
 
-                this.query('SHOW DATABASES')
-                    .then(response => {
-                        if (this.ecosystem === Ecosystem.Memgraph) {
-                            this.activedb = response.records[0].get('Name');
-                            this.availableDatabases = response.records.map(row => row.get('Name'));
-                        } else {
-                            this.activedb = response.records.find(row => row.get('default')).get('name');
-                            this.availableDatabases = response.records
-                                .filter(row => row.get('type') !== 'system')
-                                .map(row => row.get('name'));
-                        }
-                        const active = localStorage.getItem('activedb');
-                        if (active && this.activedb !== active && this.availableDatabases.includes(active))
-                            this.activedb = active;
-                        callback();
-                    })
-                    .catch(() => {
-                        callback();
-                    });
-            })
-            .catch(callback);
+                    this.query('SHOW DATABASES')
+                        .then(response => {
+                            if (this.ecosystem === Ecosystem.Memgraph) {
+                                this.activedb = response.records[0].get('Name');
+                                this.availableDatabases = response.records.map(row => row.get('Name'));
+                            } else {
+                                this.activedb = response.records.find(row => row.get('default')).get('name');
+                                this.availableDatabases = response.records
+                                    .filter(row => row.get('type') !== 'system')
+                                    .map(row => row.get('name'));
+                            }
+                            const active = localStorage.getItem('activedb');
+                            if (active && this.activedb !== active && this.availableDatabases.includes(active))
+                                this.activedb = active;
+                            resolve();
+                        })
+                        .catch(reject);
+                })
+                .catch(reject);
+        });
     };
 
     get driver(): Driver {

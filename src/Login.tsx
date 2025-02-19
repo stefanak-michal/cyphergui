@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useActionState } from 'react';
 import { Button, Checkbox } from './components/form';
 import db from './db';
 import { Driver } from 'neo4j-driver-lite';
@@ -16,38 +16,37 @@ const Login: React.FC<ILoginProps> = ({ handleLogin, darkMode }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [remember, setRemember] = useState(false);
-    const [submitted, setSubmitted] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const [mixedContentInfo, setMixedContentInfo] = useState(false);
     const themeSwitch = useContext(ThemeSwitchContext);
 
     useEffect(() => {
-        const login = localStorage.getItem('login');
-        if (login) {
-            try {
-                const parsed = JSON.parse(login);
-                tryConnect(url, parsed.username, parsed.password, () => {
+        const initialize = async () => {
+            const login = localStorage.getItem('login');
+            if (login) {
+                try {
+                    const parsed = JSON.parse(login);
+                    await tryConnect(url, parsed.username, parsed.password);
+                } catch (err) {
                     localStorage.removeItem('login');
-                });
-            } catch (err) {
-                console.error(err);
+                    console.error(err);
+                }
             }
-        }
+        };
 
-        if (isMixedContent(url)) setMixedContentInfo(true);
+        initialize();
     }, []);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setSubmitted(true);
-
-        tryConnect(url, username, password, err => {
-            setSubmitted(false);
-            setError(err);
-        });
+    const handleSubmit = async (): Promise<string | void> => {
+        try {
+            await tryConnect(url, username, password);
+        } catch (err) {
+            return err.message;
+        }
     };
 
-    const tryConnect = (url: string, username: string, password: string, onError: (error: string) => void) => {
+    const [formState, formAction, formPending] = useActionState(handleSubmit, null);
+
+    const tryConnect = async (url: string, username: string, password: string): Promise<void> => {
         let driver: Driver;
         try {
             driver = db.neo4j.driver(
@@ -58,26 +57,25 @@ const Login: React.FC<ILoginProps> = ({ handleLogin, darkMode }) => {
                 }
             );
         } catch (err) {
-            onError('[' + err.name + '] ' + err.message);
-            return;
+            throw new Error('[' + err.name + '] ' + err.message);
         }
 
-        db.setDriver(driver, err => {
-            if (err) {
-                onError('[' + err.name + '] ' + err.message);
-            } else {
-                localStorage.setItem('host', url);
-                if (remember)
-                    localStorage.setItem(
-                        'login',
-                        JSON.stringify({
-                            username: username,
-                            password: password,
-                        })
-                    );
-                handleLogin();
+        try {
+            await db.setDriver(driver);
+            localStorage.setItem('host', url);
+            if (remember) {
+                localStorage.setItem(
+                    'login',
+                    JSON.stringify({
+                        username: username,
+                        password: password,
+                    })
+                );
             }
-        });
+            handleLogin();
+        } catch (err) {
+            throw new Error('[' + err.name + '] ' + err.message);
+        }
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -118,7 +116,7 @@ const Login: React.FC<ILoginProps> = ({ handleLogin, darkMode }) => {
                         <img src={darkMode ? logo_dark : logo} alt='cypherGUI' />
                     </h1>
 
-                    <form id='login' className='mt-6 box' onSubmit={handleSubmit}>
+                    <form id='login' className='mt-6 box' action={formAction}>
                         <div className='field'>
                             <label className='label' htmlFor='input-url'>
                                 URL
@@ -204,13 +202,14 @@ const Login: React.FC<ILoginProps> = ({ handleLogin, darkMode }) => {
                             color='is-primary'
                             onChange={() => setRemember(r => !r)}
                         />
-                        {error && <div className='notification is-danger mt-3 mb-0'>{error}</div>}
+                        {formState && <div className='notification is-danger mt-3 mb-0'>{formState}</div>}
                         <div className='buttons mt-3 is-justify-content-space-between'>
                             <Button
                                 text='Login'
                                 icon='fa-solid fa-check'
-                                color={'is-primary ' + (submitted ? 'is-loading' : '')}
+                                color={'is-primary ' + (formPending ? 'is-loading' : '')}
                                 type='submit'
+                                disabled={formPending}
                             />
                             <Button
                                 icon='fa-solid fa-circle-half-stroke'

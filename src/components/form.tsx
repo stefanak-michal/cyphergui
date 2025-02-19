@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { EPage } from '../utils/enums';
 import { ITabManager } from '../utils/interfaces';
 
@@ -54,7 +54,7 @@ export const Textarea: React.FC<{
     const ref = useRef<HTMLTextAreaElement>(null);
     const highlightRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         resize();
         highlightText();
     }, [value]);
@@ -119,9 +119,17 @@ export const Button: React.FC<{
     title?: string;
     value?: string;
     children?: React.ReactNode;
-}> = ({ text, icon, color, onClick, type = 'button', title, value, children }) => {
+    disabled?: boolean;
+}> = ({ text, icon, color, onClick, type = 'button', title, value, children, disabled }) => {
     return (
-        <button className={'button ' + (color || '')} onClick={onClick} type={type} title={title || ''} value={value}>
+        <button
+            className={'button ' + (color || '')}
+            onClick={onClick}
+            type={type}
+            title={title || ''}
+            value={value}
+            disabled={disabled || false}
+        >
             {icon && (
                 <span className='icon'>
                     <i className={icon} />

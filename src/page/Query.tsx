@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useActionState } from 'react';
 import { Button, Textarea } from '../components/form';
 import { IPageProps } from '../utils/interfaces';
 import db from '../db';
@@ -24,7 +24,6 @@ const Query: React.FC<IQueryProps> = props => {
     const [rows, setRows] = useState<Record[]>([]);
     const [summary, setSummary] = useState<ResultSummary | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [loading, setLoading] = useState<boolean>(false);
     const [keys, setKeys] = useState<string[]>([]);
     const [database, setDatabase] = useState<string | null>(null);
     const [showTableSize, setShowTableSize] = useState<boolean>(false);
@@ -33,7 +32,7 @@ const Query: React.FC<IQueryProps> = props => {
     // let showTableSize = false;
 
     useEffect(() => {
-        if (props.execute) handleSubmit(null);
+        if (props.execute) handleSubmit();
     }, []);
 
     const updateShowTableSize = (value: any) => {
@@ -46,14 +45,13 @@ const Query: React.FC<IQueryProps> = props => {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent | null) => {
-        if (e) e.preventDefault();
+    const handleSubmit = async (): Promise<void> => {
         setShowTableSize(false);
-        setLoading(true);
         setRows([]);
         setSummary(null);
 
-        db.query(query, {}, db.database)
+        return db
+            .query(query, {}, db.database)
             .then(response => {
                 if (/\s*(CREATE|DROP)\s+(COMPOSITE\s+)?DATABASE/i.test(query)) {
                     db.query('SHOW DATABASES')
@@ -72,7 +70,6 @@ const Query: React.FC<IQueryProps> = props => {
                 setSummary(response.summary);
                 setRows(response.records);
                 setError(null);
-                setLoading(false);
                 setView(response.records.length === 0 ? EQueryView.Summary : view);
                 setKeys(Array.from(keys));
                 setDatabase(db.database);
@@ -81,9 +78,10 @@ const Query: React.FC<IQueryProps> = props => {
                 setRows([]);
                 setSummary(null);
                 setError('[' + err.name + '] ' + err.message);
-                setLoading(false);
             });
     };
+
+    const [, formAction, formPending] = useActionState(handleSubmit, null);
 
     const changeView = (i: EQueryView) => {
         setView(i);
@@ -96,7 +94,7 @@ const Query: React.FC<IQueryProps> = props => {
 
     return (
         <>
-            <form onSubmit={handleSubmit} className='block'>
+            <form action={formAction} className='block'>
                 <div className='field'>
                     <div className='control has-icons-right has-icons-left'>
                         <Textarea
@@ -116,7 +114,7 @@ const Query: React.FC<IQueryProps> = props => {
                             color='is-family-code is-pre-wrap'
                             focus={true}
                             onKeyDown={(e: React.KeyboardEvent) => {
-                                if (e.key === 'Enter' && e.ctrlKey) handleSubmit(null);
+                                if (e.key === 'Enter' && e.ctrlKey) formAction();
                             }}
                             highlight={{
                                 mark: [
@@ -169,10 +167,11 @@ const Query: React.FC<IQueryProps> = props => {
                 <div className='field'>
                     <div className='buttons is-justify-content-flex-end'>
                         <Button
-                            color={'is-success ' + (loading ? 'is-loading' : '')}
+                            color={'is-success ' + (formPending ? 'is-loading' : '')}
                             type='submit'
                             icon='fa-solid fa-check'
                             text='Execute'
+                            disabled={formPending}
                         />
                         <a
                             href={

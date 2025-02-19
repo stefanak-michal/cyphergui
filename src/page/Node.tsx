@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useActionState } from 'react';
 import { Button } from '../components/form';
 import { Node as _Node, Relationship as _Relationship } from 'neo4j-driver-lite';
 import { EPage, EPropertyType } from '../utils/enums';
@@ -141,6 +141,10 @@ const Node: React.FC<INodeProps> = props => {
         markChanged();
     };
 
+    const [, labelModalAction, labelModalPending] = useActionState(() => {
+        handleLabelSelect(labelModalInput);
+    }, null);
+
     const handleLabelInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         let value: string = e.currentTarget.value;
 
@@ -168,19 +172,18 @@ const Node: React.FC<INodeProps> = props => {
         setLabelModal(false);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-
+    const handleSubmit = async (): Promise<void> => {
         const { query, props: queryProps } = generateQuery();
 
-        db.query(
-            query,
-            {
-                id: props.id,
-                p: queryProps,
-            },
-            props.database
-        )
+        return db
+            .query(
+                query,
+                {
+                    id: props.id,
+                    p: queryProps,
+                },
+                props.database
+            )
             .then(response => {
                 if (response.summary.counters.containsUpdates()) {
                     props.toast(create ? 'Node created' : 'Node updated');
@@ -204,6 +207,8 @@ const Node: React.FC<INodeProps> = props => {
             })
             .catch(err => setError('[' + err.name + '] ' + err.message));
     };
+
+    const [, formAction, formPending] = useActionState(handleSubmit, null);
 
     const generateQuery = (printable: boolean = false): { query: string; props: object } => {
         let setLabels = !create ? labels.filter(l => !node.labels.includes(l)).join(':') : labels.join(':');
@@ -296,13 +301,7 @@ const Node: React.FC<INodeProps> = props => {
                             />
                         ))}
                     </div>
-                    <form
-                        onSubmit={e => {
-                            e.preventDefault();
-                            handleLabelSelect(labelModalInput);
-                            return true;
-                        }}
-                    >
+                    <form action={labelModalAction}>
                         <label className='label'>Or specify new one</label>
                         <div className='field is-grouped'>
                             <div className='control is-expanded'>
@@ -317,14 +316,14 @@ const Node: React.FC<INodeProps> = props => {
                                 />
                             </div>
                             <div className='control'>
-                                <Button icon='fa-solid fa-check' type='submit' />
+                                <Button icon='fa-solid fa-check' type='submit' disabled={labelModalPending} />
                             </div>
                         </div>
                     </form>
                 </Modal>
             )}
 
-            <form onSubmit={handleSubmit}>
+            <form action={formAction}>
                 {!create && (
                     <div className='columns'>
                         <div className={'column ' + (db.hasElementId ? 'is-half-desktop' : '')}>
@@ -473,7 +472,13 @@ const Node: React.FC<INodeProps> = props => {
 
                 <div className='field'>
                     <div className='control buttons is-justify-content-flex-end'>
-                        <Button color='is-success' type='submit' icon='fa-solid fa-check' text='Execute' />
+                        <Button
+                            color={'is-success ' + (formPending ? 'is-loading' : '')}
+                            type='submit'
+                            icon='fa-solid fa-check'
+                            text='Execute'
+                            disabled={formPending}
+                        />
                         {!create && props.stashManager.button(node, props.database)}
                         {!create && (
                             <Button

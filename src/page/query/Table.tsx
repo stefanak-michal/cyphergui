@@ -1,4 +1,4 @@
-import { ReactNode, ReactElement } from 'react';
+import { ReactNode, ReactElement, useContext } from 'react';
 import db from '../../db';
 import InlineNode from '../../components/InlineNode';
 import InlineRelationship from '../../components/InlineRelationship';
@@ -110,18 +110,15 @@ const Table: React.FC<ITableProps> = ({ keys, rows, tableSize, tabManager }) => 
         if (value instanceof _Duration) return <p className='wspace-nowrap'>{durationToString(value)}</p>;
 
         if (typeof value === 'object') {
+            const copy = useContext(ClipboardContext);
             return (
                 <>
                     {value.constructor.name || ''}
                     <div className='control has-icons-right'>
                         <pre>{toJSON(value)}</pre>
-                        <ClipboardContext.Consumer>
-                            {copy => (
-                                <span className='icon is-right is-clickable' onClick={copy}>
-                                    <i className='fa-regular fa-copy' />
-                                </span>
-                            )}
-                        </ClipboardContext.Consumer>
+                        <span className='icon is-right is-clickable' onClick={copy}>
+                            <i className='fa-regular fa-copy' />
+                        </span>
                     </div>
                 </>
             );

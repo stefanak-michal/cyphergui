@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { IPageProps, IStashManager } from '../utils/interfaces';
 import { Node as _Node, Relationship as _Relationship } from 'neo4j-driver-lite';
 import { EPage, EPropertyType } from '../utils/enums';
@@ -29,6 +29,8 @@ const Relationship: React.FC<IRelationshipProps> = props => {
     const [error, setError] = useState<string | null>(null);
     const [deleteId, setDeleteId] = useState<number | string | false>(false);
     const [selectNodeModal, setSelectNodeModal] = useState<number | null>(null);
+
+    const copy = useContext(ClipboardContext);
 
     const create = props.id === null;
 
@@ -338,46 +340,42 @@ const Relationship: React.FC<IRelationshipProps> = props => {
 
             <form onSubmit={handleSubmit}>
                 {!create && (
-                    <ClipboardContext.Consumer>
-                        {copy => (
-                            <div className='columns'>
-                                <div className={'column ' + (db.hasElementId ? 'is-half-desktop' : '')}>
-                                    <div className='field'>
-                                        <label className='label' htmlFor='rel-identity'>
-                                            identity
-                                        </label>
-                                        <div className='control' onClick={copy}>
-                                            <input
-                                                id='rel-identity'
-                                                className='input is-copyable'
-                                                readOnly
-                                                type='text'
-                                                value={db.strInt(rel.identity)}
-                                            />
-                                        </div>
+                    <div className='columns'>
+                        <div className={'column ' + (db.hasElementId ? 'is-half-desktop' : '')}>
+                            <div className='field'>
+                                <label className='label' htmlFor='rel-identity'>
+                                    identity
+                                </label>
+                                <div className='control' onClick={copy}>
+                                    <input
+                                        id='rel-identity'
+                                        className='input is-copyable'
+                                        readOnly
+                                        type='text'
+                                        value={db.strInt(rel.identity)}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        {db.hasElementId && (
+                            <div className='column is-half-desktop'>
+                                <div className='field'>
+                                    <label className='label' htmlFor='rel-elementId'>
+                                        elementId
+                                    </label>
+                                    <div className='control' onClick={copy}>
+                                        <input
+                                            id='rel-elementId'
+                                            className='input is-copyable'
+                                            readOnly
+                                            type='text'
+                                            value={rel.elementId}
+                                        />
                                     </div>
                                 </div>
-                                {db.hasElementId && (
-                                    <div className='column is-half-desktop'>
-                                        <div className='field'>
-                                            <label className='label' htmlFor='rel-elementId'>
-                                                elementId
-                                            </label>
-                                            <div className='control' onClick={copy}>
-                                                <input
-                                                    id='rel-elementId'
-                                                    className='input is-copyable'
-                                                    readOnly
-                                                    type='text'
-                                                    value={rel.elementId}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                         )}
-                    </ClipboardContext.Consumer>
+                    </div>
                 )}
 
                 <fieldset className='box'>
@@ -450,13 +448,9 @@ const Relationship: React.FC<IRelationshipProps> = props => {
                         <span className='icon'>
                             <i className='fa-solid fa-terminal' aria-hidden='true' />
                         </span>
-                        <ClipboardContext.Consumer>
-                            {copy => (
-                                <span className='is-family-code is-pre-wrap is-copyable' onClick={copy}>
-                                    {generateQuery(true).query}
-                                </span>
-                            )}
-                        </ClipboardContext.Consumer>
+                        <span className='is-family-code is-pre-wrap is-copyable' onClick={copy}>
+                            {generateQuery(true).query}
+                        </span>
                     </span>
                 </div>
 

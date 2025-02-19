@@ -4,6 +4,7 @@ import { Button, TypeButton } from './form';
 import db from '../db';
 import { EPage } from '../utils/enums';
 import { PropertiesModalContext } from '../utils/contexts';
+import { useContext } from 'react';
 
 const InlineRelationship: React.FC<{
     rel: _Relationship;
@@ -11,6 +12,7 @@ const InlineRelationship: React.FC<{
     database?: string;
     small?: boolean;
 }> = ({ rel, tabManager, database, small }) => {
+    const pmc = useContext(PropertiesModalContext);
     return (
         <div className='is-flex is-align-items-center'>
             <TypeButton
@@ -31,16 +33,12 @@ const InlineRelationship: React.FC<{
                 text={'#' + db.strInt(rel.identity)}
             />
             {Object.keys(rel.properties).length > 0 && (
-                <PropertiesModalContext.Consumer>
-                    {fn => (
-                        <Button
-                            icon='fa-solid fa-rectangle-list'
-                            onClick={() => fn(rel.properties)}
-                            color={'ml-1 ' + (small ? 'is-small' : '')}
-                            title='Properties'
-                        />
-                    )}
-                </PropertiesModalContext.Consumer>
+                <Button
+                    icon='fa-solid fa-rectangle-list'
+                    onClick={() => pmc(rel.properties)}
+                    color={'ml-1 ' + (small ? 'is-small' : '')}
+                    title='Properties'
+                />
             )}
         </div>
     );

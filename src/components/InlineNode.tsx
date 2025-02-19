@@ -4,6 +4,7 @@ import { EPage } from '../utils/enums';
 import { Node as _Node } from 'neo4j-driver-lite';
 import { ITabManager } from '../utils/interfaces';
 import { PropertiesModalContext } from '../utils/contexts';
+import { useContext } from 'react';
 
 const InlineNode: React.FC<{
     node: _Node;
@@ -11,6 +12,7 @@ const InlineNode: React.FC<{
     database?: string;
     small?: boolean;
 }> = ({ node, tabManager, database, small }) => {
+    const pmc = useContext(PropertiesModalContext);
     return (
         <div className='is-flex is-align-items-center'>
             {node.labels.map(label => (
@@ -33,16 +35,12 @@ const InlineNode: React.FC<{
                 color={small ? 'is-small' : ''}
                 text={'#' + db.strInt(node.identity)}
             />
-            <PropertiesModalContext.Consumer>
-                {fn => (
-                    <Button
-                        icon='fa-solid fa-rectangle-list'
-                        onClick={() => fn(node.properties)}
-                        color={'ml-1 ' + (small ? 'is-small' : '')}
-                        title='Properties'
-                    />
-                )}
-            </PropertiesModalContext.Consumer>
+            <Button
+                icon='fa-solid fa-rectangle-list'
+                onClick={() => pmc(node.properties)}
+                color={'ml-1 ' + (small ? 'is-small' : '')}
+                title='Properties'
+            />
         </div>
     );
 };

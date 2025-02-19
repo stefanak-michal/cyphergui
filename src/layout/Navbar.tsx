@@ -50,6 +50,7 @@ const Navbar: React.FC<INavbarProps> = ({ handleLogout, handleOpenSettings, tabM
                     <span aria-hidden='true'></span>
                     <span aria-hidden='true'></span>
                     <span aria-hidden='true'></span>
+                    <span aria-hidden='true'></span>
                 </a>
             </div>
 

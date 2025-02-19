@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { Button } from '../components/form';
 import { Node as _Node, Relationship as _Relationship } from 'neo4j-driver-lite';
 import { EPage, EPropertyType } from '../utils/enums';
@@ -28,6 +28,8 @@ const Node: React.FC<INodeProps> = props => {
     const [error, setError] = useState<string | null>(null);
     const [deleteState, setDeleteState] = useState<number | string | false>(false);
     const [showAllRels, setShowAllRels] = useState<boolean>(false);
+
+    const copy = useContext(ClipboardContext);
 
     let rels: _Relationship[] = [];
     let nodes: _Node[] = [];
@@ -329,46 +331,42 @@ const Node: React.FC<INodeProps> = props => {
 
             <form onSubmit={handleSubmit}>
                 {!create && (
-                    <ClipboardContext.Consumer>
-                        {copy => (
-                            <div className='columns'>
-                                <div className={'column ' + (db.hasElementId ? 'is-half-desktop' : '')}>
-                                    <div className='field'>
-                                        <label className='label' htmlFor='node-identity'>
-                                            identity
-                                        </label>
-                                        <div className='control' onClick={copy}>
-                                            <input
-                                                id='node-identity'
-                                                className='input is-copyable'
-                                                readOnly
-                                                type='text'
-                                                value={db.strInt(node.identity)}
-                                            />
-                                        </div>
+                    <div className='columns'>
+                        <div className={'column ' + (db.hasElementId ? 'is-half-desktop' : '')}>
+                            <div className='field'>
+                                <label className='label' htmlFor='node-identity'>
+                                    identity
+                                </label>
+                                <div className='control' onClick={copy}>
+                                    <input
+                                        id='node-identity'
+                                        className='input is-copyable'
+                                        readOnly
+                                        type='text'
+                                        value={db.strInt(node.identity)}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        {db.hasElementId && (
+                            <div className='column is-half-desktop'>
+                                <div className='field'>
+                                    <label className='label' htmlFor='node-elementId'>
+                                        elementId
+                                    </label>
+                                    <div className='control' onClick={copy}>
+                                        <input
+                                            id='node-elementId'
+                                            className='input is-copyable'
+                                            readOnly
+                                            type='text'
+                                            value={node.elementId}
+                                        />
                                     </div>
                                 </div>
-                                {db.hasElementId && (
-                                    <div className='column is-half-desktop'>
-                                        <div className='field'>
-                                            <label className='label' htmlFor='node-elementId'>
-                                                elementId
-                                            </label>
-                                            <div className='control' onClick={copy}>
-                                                <input
-                                                    id='node-elementId'
-                                                    className='input is-copyable'
-                                                    readOnly
-                                                    type='text'
-                                                    value={node.elementId}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                         )}
-                    </ClipboardContext.Consumer>
+                    </div>
                 )}
 
                 <fieldset className='box'>
@@ -462,13 +460,9 @@ const Node: React.FC<INodeProps> = props => {
                         <span className='icon'>
                             <i className='fa-solid fa-terminal' aria-hidden='true' />
                         </span>
-                        <ClipboardContext.Consumer>
-                            {copy => (
-                                <span className='is-family-code is-pre-wrap is-copyable' onClick={copy}>
-                                    {generateQuery(true).query}
-                                </span>
-                            )}
-                        </ClipboardContext.Consumer>
+                        <span className='is-family-code is-pre-wrap is-copyable' onClick={copy}>
+                            {generateQuery(true).query}
+                        </span>
                     </span>
                 </div>
 

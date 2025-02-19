@@ -1,4 +1,4 @@
-import { useState, useEffect, createRef } from 'react';
+import { useState, useEffect, createRef, useContext } from 'react';
 import { t_FormProperty, t_FormValue } from '../utils/types';
 import { Ecosystem, EPropertyType } from '../utils/enums';
 import db from '../db';
@@ -209,6 +209,7 @@ const Property: React.FC<{
     onDelete: (name: string) => void;
     onAdd: (e: React.PointerEvent) => void;
 }> = ({ property, focus, onKeyChange, onValueChange, onTypeChange, onDelete, onAdd }) => {
+    const copy = useContext(ClipboardContext);
     const components = {
         PropertyStringInput: PropertyStringInput,
         PropertyIntegerInput: PropertyIntegerInput,
@@ -269,19 +270,15 @@ const Property: React.FC<{
                             />
                         </div>
                         <div className='control'>
-                            <ClipboardContext.Consumer>
-                                {copy => (
-                                    <Button
-                                        icon='fa-regular fa-copy'
-                                        onClick={copy}
-                                        value={JSON.stringify(
-                                            (property.value as t_FormValue[]).map(v =>
-                                                db.isInt(v.value) ? db.fromInt(v.value) : v.value
-                                            )
-                                        )}
-                                    />
+                            <Button
+                                icon='fa-regular fa-copy'
+                                onClick={copy}
+                                value={JSON.stringify(
+                                    (property.value as t_FormValue[]).map(v =>
+                                        db.isInt(v.value) ? db.fromInt(v.value) : v.value
+                                    )
                                 )}
-                            </ClipboardContext.Consumer>
+                            />
                         </div>
                     </div>
 
@@ -339,21 +336,17 @@ const Property: React.FC<{
                             />
                         </div>
                         <div className='control'>
-                            <ClipboardContext.Consumer>
-                                {copy => (
-                                    <Button
-                                        icon='fa-regular fa-copy'
-                                        onClick={e => {
-                                            const obj = {};
-                                            (property.value as t_FormValue[]).forEach(v => {
-                                                obj[v.key] = db.isInt(v.value) ? db.fromInt(v.value) : v.value;
-                                            });
-                                            e.currentTarget.value = JSON.stringify(obj);
-                                            copy(e);
-                                        }}
-                                    />
-                                )}
-                            </ClipboardContext.Consumer>
+                            <Button
+                                icon='fa-regular fa-copy'
+                                onClick={e => {
+                                    const obj = {};
+                                    (property.value as t_FormValue[]).forEach(v => {
+                                        obj[v.key] = db.isInt(v.value) ? db.fromInt(v.value) : v.value;
+                                    });
+                                    e.currentTarget.value = JSON.stringify(obj);
+                                    copy(e);
+                                }}
+                            />
                         </div>
                     </div>
 
@@ -486,6 +479,7 @@ interface PropertyInputProps {
 }
 
 const PropertyStringInput: React.FC<PropertyInputProps> = ({ name, value, onValueChange, focus }) => {
+    const copy = useContext(ClipboardContext);
     return (
         <div className='control is-expanded has-icons-right'>
             <Textarea
@@ -495,13 +489,9 @@ const PropertyStringInput: React.FC<PropertyInputProps> = ({ name, value, onValu
                 focus={focus}
                 placeholder='Value'
             />
-            <ClipboardContext.Consumer>
-                {copy => (
-                    <span className='icon is-right is-clickable' onClick={copy}>
-                        <i className='fa-regular fa-copy' />
-                    </span>
-                )}
-            </ClipboardContext.Consumer>
+            <span className='icon is-right is-clickable' onClick={copy}>
+                <i className='fa-regular fa-copy' />
+            </span>
         </div>
     );
 };
@@ -525,6 +515,7 @@ const PropertyBooleanInput: React.FC<PropertyInputProps> = ({ name, value, onVal
 };
 
 const PropertyIntegerInput: React.FC<PropertyInputProps> = ({ name, value, temp, onValueChange, focus }) => {
+    const copy = useContext(ClipboardContext);
     return (
         <div className='control is-expanded has-icons-right'>
             <input
@@ -543,18 +534,15 @@ const PropertyIntegerInput: React.FC<PropertyInputProps> = ({ name, value, temp,
                 }
                 placeholder='Value'
             />
-            <ClipboardContext.Consumer>
-                {copy => (
-                    <span className='icon is-right is-clickable' onClick={copy}>
-                        <i className='fa-regular fa-copy' />
-                    </span>
-                )}
-            </ClipboardContext.Consumer>
+            <span className='icon is-right is-clickable' onClick={copy}>
+                <i className='fa-regular fa-copy' />
+            </span>
         </div>
     );
 };
 
 const PropertyFloatInput: React.FC<PropertyInputProps> = ({ name, value, temp, onValueChange, focus }) => {
+    const copy = useContext(ClipboardContext);
     return (
         <div className='control is-expanded has-icons-right'>
             <input
@@ -569,13 +557,9 @@ const PropertyFloatInput: React.FC<PropertyInputProps> = ({ name, value, temp, o
                 placeholder='Value'
                 step='any'
             />
-            <ClipboardContext.Consumer>
-                {copy => (
-                    <span className='icon is-right is-clickable' onClick={copy}>
-                        <i className='fa-regular fa-copy' />
-                    </span>
-                )}
-            </ClipboardContext.Consumer>
+            <span className='icon is-right is-clickable' onClick={copy}>
+                <i className='fa-regular fa-copy' />
+            </span>
         </div>
     );
 };
@@ -677,15 +661,10 @@ const TimezoneControl: React.FC<{
  * Temporal types
  */
 
-const PropertyDateInput: React.FC<{
-    name: string;
-    value: any;
-    temp: any;
-    onValueChange: (name: string, value: any, temp?: any) => void;
-    focus: boolean;
-}> = ({ name, value, temp, onValueChange, focus }) => {
+const PropertyDateInput: React.FC<PropertyInputProps> = ({ name, value, temp, onValueChange, focus }) => {
     const [valid, setValid] = useState(true);
     const dateRef = createRef<HTMLInputElement>();
+    const copy = useContext(ClipboardContext);
 
     const handleChange = () => {
         const valid = dateRef.current.valueAsDate !== null;
@@ -713,9 +692,7 @@ const PropertyDateInput: React.FC<{
                 <DateControl value={temp} handleChange={handleChange} inputRef={dateRef} invalid={!valid} />
                 {valid && (
                     <div className='control'>
-                        <ClipboardContext.Consumer>
-                            {copy => <Button icon='fa-regular fa-copy' onClick={copy} value={temp} />}
-                        </ClipboardContext.Consumer>
+                        <Button icon='fa-regular fa-copy' onClick={copy} value={temp} />
                     </div>
                 )}
             </div>
@@ -723,17 +700,12 @@ const PropertyDateInput: React.FC<{
     );
 };
 
-const PropertyTimeInput: React.FC<{
-    name: string;
-    value: any;
-    temp: any;
-    onValueChange: (name: string, value: any, temp?: any) => void;
-    focus: boolean;
-}> = ({ name, value, temp, onValueChange, focus }) => {
+const PropertyTimeInput: React.FC<PropertyInputProps> = ({ name, value, temp, onValueChange, focus }) => {
     const [valid, setValid] = useState(true);
     const timezoneRef = createRef<HTMLSelectElement>();
     const nanosecondsRef = createRef<HTMLInputElement>();
     const timeRef = createRef<HTMLInputElement>();
+    const copy = useContext(ClipboardContext);
 
     const handleChange = () => {
         const valid = timeRef.current.valueAsDate !== null;
@@ -770,11 +742,7 @@ const PropertyTimeInput: React.FC<{
                 <TimezoneControl value={temp[2]} handleChange={handleChange} selectRef={timezoneRef} invalid={!valid} />
                 {valid && (
                     <div className='control'>
-                        <ClipboardContext.Consumer>
-                            {copy => (
-                                <Button icon='fa-regular fa-copy' onClick={copy} value={(value as _Time).toString()} />
-                            )}
-                        </ClipboardContext.Consumer>
+                        <Button icon='fa-regular fa-copy' onClick={copy} value={(value as _Time).toString()} />
                     </div>
                 )}
             </div>
@@ -782,18 +750,13 @@ const PropertyTimeInput: React.FC<{
     );
 };
 
-const PropertyDateTimeInput: React.FC<{
-    name: string;
-    value: any;
-    temp: any;
-    onValueChange: (name: string, value: any, temp?: any) => void;
-    focus: boolean;
-}> = ({ name, value, temp, onValueChange, focus }) => {
+const PropertyDateTimeInput: React.FC<PropertyInputProps> = ({ name, value, temp, onValueChange, focus }) => {
     const [valid, setValid] = useState(true);
     const timezoneRef = createRef<HTMLSelectElement>();
     const nanosecondsRef = createRef<HTMLInputElement>();
     const timeRef = createRef<HTMLInputElement>();
     const dateRef = createRef<HTMLInputElement>();
+    const copy = useContext(ClipboardContext);
 
     const handleChange = () => {
         const valid = dateRef.current.valueAsDate !== null && timeRef.current.valueAsDate !== null;
@@ -839,15 +802,11 @@ const PropertyDateTimeInput: React.FC<{
                 <TimezoneControl value={temp[3]} handleChange={handleChange} selectRef={timezoneRef} invalid={!valid} />
                 {valid && (
                     <div className='control'>
-                        <ClipboardContext.Consumer>
-                            {copy => (
-                                <Button
-                                    icon='fa-regular fa-copy'
-                                    onClick={copy}
-                                    value={(value as _DateTime).toString()}
-                                />
-                            )}
-                        </ClipboardContext.Consumer>
+                        <Button
+                            icon='fa-regular fa-copy'
+                            onClick={copy}
+                            value={(value as _DateTime).toString()}
+                        />
                     </div>
                 )}
             </div>
@@ -855,16 +814,11 @@ const PropertyDateTimeInput: React.FC<{
     );
 };
 
-const PropertyLocalTimeInput: React.FC<{
-    name: string;
-    value: any;
-    temp: any;
-    onValueChange: (name: string, value: any, temp?: any) => void;
-    focus: boolean;
-}> = ({ name, value, temp, onValueChange, focus }) => {
+const PropertyLocalTimeInput: React.FC<PropertyInputProps> = ({ name, value, temp, onValueChange, focus }) => {
     const [valid, setValid] = useState(true);
     const nanosecondsRef = createRef<HTMLInputElement>();
     const timeRef = createRef<HTMLInputElement>();
+    const copy = useContext(ClipboardContext);
 
     const handleChange = () => {
         const valid = timeRef.current.valueAsDate !== null;
@@ -899,15 +853,11 @@ const PropertyLocalTimeInput: React.FC<{
                 />
                 {valid && (
                     <div className='control'>
-                        <ClipboardContext.Consumer>
-                            {copy => (
-                                <Button
-                                    icon='fa-regular fa-copy'
-                                    onClick={copy}
-                                    value={(value as _LocalTime).toString()}
-                                />
-                            )}
-                        </ClipboardContext.Consumer>
+                        <Button
+                            icon='fa-regular fa-copy'
+                            onClick={copy}
+                            value={(value as _LocalTime).toString()}
+                        />
                     </div>
                 )}
             </div>
@@ -915,17 +865,12 @@ const PropertyLocalTimeInput: React.FC<{
     );
 };
 
-const PropertyLocalDateTimeInput: React.FC<{
-    name: string;
-    value: any;
-    temp: any;
-    onValueChange: (name: string, value: any, temp?: any) => void;
-    focus: boolean;
-}> = ({ name, value, temp, onValueChange, focus }) => {
+const PropertyLocalDateTimeInput: React.FC<PropertyInputProps> = ({ name, value, temp, onValueChange, focus }) => {
     const [valid, setValid] = useState(true);
     const nanosecondsRef = createRef<HTMLInputElement>();
     const timeRef = createRef<HTMLInputElement>();
     const dateRef = createRef<HTMLInputElement>();
+    const copy = useContext(ClipboardContext);
 
     const handleChange = () => {
         const valid = dateRef.current.valueAsDate !== null && timeRef.current.valueAsDate !== null;
@@ -964,15 +909,11 @@ const PropertyLocalDateTimeInput: React.FC<{
                 />
                 {valid && (
                     <div className='control'>
-                        <ClipboardContext.Consumer>
-                            {copy => (
-                                <Button
-                                    icon='fa-regular fa-copy'
-                                    onClick={copy}
-                                    value={(value as _LocalDateTime).toString()}
-                                />
-                            )}
-                        </ClipboardContext.Consumer>
+                        <Button
+                            icon='fa-regular fa-copy'
+                            onClick={copy}
+                            value={(value as _LocalDateTime).toString()}
+                        />
                     </div>
                 )}
             </div>
@@ -980,13 +921,8 @@ const PropertyLocalDateTimeInput: React.FC<{
     );
 };
 
-const PropertyDurationInput: React.FC<{
-    name: string;
-    value: any;
-    temp: any;
-    onValueChange: (name: string, value: any, temp?: any) => void;
-    focus: boolean;
-}> = ({ name, value, temp, onValueChange, focus }) => {
+const PropertyDurationInput: React.FC<PropertyInputProps> = ({ name, value, temp, onValueChange, focus }) => {
+    const copy = useContext(ClipboardContext);
     return (
         <div className='control is-expanded has-icons-right'>
             <input
@@ -1001,28 +937,19 @@ const PropertyDurationInput: React.FC<{
                 }
                 pattern='P(\d+Y)?(\d+M)?(\d+D)?(T(\d+H)?(\d+M)?([\d\.]+S)?)?'
             />
-            <ClipboardContext.Consumer>
-                {copy => (
-                    <span className='icon is-right is-clickable' onClick={copy}>
-                        <i className='fa-regular fa-copy' />
-                    </span>
-                )}
-            </ClipboardContext.Consumer>
+            <span className='icon is-right is-clickable' onClick={copy}>
+                <i className='fa-regular fa-copy' />
+            </span>
         </div>
     );
 };
 
-const PropertyPointInput: React.FC<{
-    name: string;
-    value: any;
-    temp: any;
-    onValueChange: (name: string, value: any, temp?: any) => void;
-    focus: boolean;
-}> = ({ name, value, temp, onValueChange, focus }) => {
+const PropertyPointInput: React.FC<PropertyInputProps> = ({ name, value, temp, onValueChange, focus }) => {
     const sridRef = createRef<HTMLSelectElement>();
     const xRef = createRef<HTMLInputElement>();
     const yRef = createRef<HTMLInputElement>();
     const zRef = createRef<HTMLInputElement>();
+    const copy = useContext(ClipboardContext);
 
     const availableSRID = [
         ['4326', 'wgs-84'],
@@ -1109,11 +1036,7 @@ const PropertyPointInput: React.FC<{
                     </span>
                 </div>
                 <div className='control'>
-                    <ClipboardContext.Consumer>
-                        {copy => (
-                            <Button icon='fa-regular fa-copy' onClick={copy} value={(value as _Point).toString()} />
-                        )}
-                    </ClipboardContext.Consumer>
+                    <Button icon='fa-regular fa-copy' onClick={copy} value={(value as _Point).toString()} />
                 </div>
             </div>
         </div>

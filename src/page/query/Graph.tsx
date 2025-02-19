@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { IEdgeBase, IEdgeStyle, INodeBase, INodeStyle, NodeShapeType, Orb, OrbEventType, Color } from '@memgraph/orb';
 import db from '../../db';
 import { Node as _Node, Record, Relationship as _Relationship } from 'neo4j-driver-lite';
@@ -36,11 +36,11 @@ interface IGraphProps {
 }
 
 const Graph: React.FC<IGraphProps> = ({ rows, tabManager, stashManager, database }) => {
-    const [sidebarVisible, setSidebarVisible] = useState(1);
-    const [labels, setLabels] = useState<{ [key: string]: number }>({});
-    const [types, setTypes] = useState<{ [key: string]: number }>({});
-    const [detail, setDetail] = useState<_Node | _Relationship | null>(null);
-    const [detailHover, setDetailHover] = useState<_Node | _Relationship | null>(null);
+    const [sidebarVisible, setSidebarVisible] = useState(1); // 1 - visible, 0 - hidden, 2 - animate in, 3 - animate out
+    const [labels, setLabels] = useState<{ [key: string]: number }>({}); // label: amount of nodes with it
+    const [types, setTypes] = useState<{ [key: string]: number }>({}); // type: amount of rels with it
+    const [detail, setDetail] = useState<_Node | _Relationship | null>(null); // clicked node/rel to see details in sidebar
+    const [detailHover, setDetailHover] = useState<_Node | _Relationship | null>(null); // hovered node to see details in sidebar
     const [nodeStyleModal, setNodeStyleModal] = useState<string | null>(null);
     const [edgeStyleModal, setEdgeStyleModal] = useState<string | null>(null);
     const [nodeStyles, setNodeStyles] = useState<IStyle>(
@@ -52,10 +52,9 @@ const Graph: React.FC<IGraphProps> = ({ rows, tabManager, stashManager, database
 
     const graphContainer = useRef<HTMLDivElement>(null);
     const graphElement = useRef<HTMLDivElement>(null);
-    const orb = useRef<Orb<MyNode, MyEdge> | null>(null);
+    const orb = useRef<Orb<MyNode, MyEdge>>(null);
 
     useEffect(() => {
-        initGraphView();
         const rootElement = document.getElementById('root');
         rootElement?.addEventListener('input', listenForDarkMode);
         return () => {
@@ -63,11 +62,13 @@ const Graph: React.FC<IGraphProps> = ({ rows, tabManager, stashManager, database
         };
     }, []);
 
-    const initGraphView = () => {
-        const current = graphElement.current;
-        if (!current) return;
+    useLayoutEffect(() => {
+        initGraphView();
+    }, []);
 
+    const initGraphView = () => {
         initializeOrb();
+        if (!orb.current) return;
 
         const nodes: MyNode[] = [];
         const edges: MyEdge[] = [];
@@ -77,14 +78,17 @@ const Graph: React.FC<IGraphProps> = ({ rows, tabManager, stashManager, database
             for (const key of row.keys) {
                 const value = row.get(key);
                 if (value instanceof _Node && !nodes.find(n => n.id === db.strInt(value.identity))) {
+                    //prepare data for orb
                     nodes.push({
                         id: db.strInt(value.identity),
                         label: ':' + value.labels.join(':'),
                         element: value,
                     });
+                    //collect labels with counts
                     if (!(value.labels[0] in labels)) labels[value.labels[0]] = 0;
                     labels[value.labels[0]]++;
                 } else if (value instanceof _Relationship && !edges.find(e => e.id === db.strInt(value.identity))) {
+                    //prepare data for orb
                     edges.push({
                         id: db.strInt(value.identity),
                         start: db.strInt(value.start),
@@ -92,6 +96,7 @@ const Graph: React.FC<IGraphProps> = ({ rows, tabManager, stashManager, database
                         label: ':' + value.type,
                         element: value,
                     });
+                    //collect type with count
                     if (!(value.type in types)) types[value.type] = 0;
                     types[value.type]++;
                 }
@@ -101,24 +106,24 @@ const Graph: React.FC<IGraphProps> = ({ rows, tabManager, stashManager, database
         setLabels(labels);
         setTypes(types);
 
-        orb.current?.data.setup({ nodes, edges });
+        orb.current.data.setup({ nodes, edges });
         applyNodeStyles(Object.keys(labels));
         applyEdgeStyles(Object.keys(types));
 
-        orb.current?.view.setSettings({
+        orb.current.view.setSettings({
             render: {
                 shadowIsEnabled: false,
                 shadowOnEventIsEnabled: true,
                 contextAlphaOnEvent: 0.5,
             },
         });
-        orb.current?.view.render(() => {
-            orb.current?.view.recenter();
+        orb.current.view.render(() => {
+            orb.current.view.recenter();
         });
     };
 
     const initializeOrb = () => {
-        if (!orb.current) {
+        if (!orb.current && graphElement.current) {
             orb.current = new Orb<MyNode, MyEdge>(graphElement.current);
             orb.current.data.setDefaultStyle({
                 getNodeStyle(node): INodeStyle {
@@ -159,10 +164,14 @@ const Graph: React.FC<IGraphProps> = ({ rows, tabManager, stashManager, database
     };
 
     const applyNodeStyles = (labels: string[]) => {
+        if (!orb.current) return;
+
         const tmpNodeStyles = { ...nodeStyles };
+        //remove unused styles
         Object.keys(tmpNodeStyles).forEach(label => {
             if (!labels.includes(label)) delete tmpNodeStyles[label];
         });
+        //define missing styles for labels
         labels.forEach(label => {
             if (!(label in tmpNodeStyles)) {
                 tmpNodeStyles[label] = {
@@ -173,7 +182,8 @@ const Graph: React.FC<IGraphProps> = ({ rows, tabManager, stashManager, database
             }
         });
 
-        orb.current?.data.getNodes().forEach(node => {
+        //apply label styles
+        orb.current.data.getNodes().forEach(node => {
             node.style.color = tmpNodeStyles[node.data.element.labels[0]].color;
             if ('shape' in tmpNodeStyles[node.data.element.labels[0]])
                 node.style.shape = tmpNodeStyles[node.data.element.labels[0]].shape;
@@ -194,10 +204,14 @@ const Graph: React.FC<IGraphProps> = ({ rows, tabManager, stashManager, database
     };
 
     const applyEdgeStyles = (types: string[]) => {
+        if (!orb.current) return;
+
         const tmpEdgeStyles = { ...edgeStyles };
+        //remove unused styles
         Object.keys(tmpEdgeStyles).forEach(type => {
             if (!types.includes(type)) delete tmpEdgeStyles[type];
         });
+        //define missing styles for types
         types.forEach(type => {
             if (!(type in tmpEdgeStyles)) {
                 tmpEdgeStyles[type] = {
@@ -208,7 +222,8 @@ const Graph: React.FC<IGraphProps> = ({ rows, tabManager, stashManager, database
             }
         });
 
-        orb.current?.data.getEdges().forEach(edge => {
+        //apply type styles
+        orb.current.data.getEdges().forEach(edge => {
             edge.style.color = tmpEdgeStyles[edge.data.element.type].color;
             if ('width' in tmpEdgeStyles[edge.data.element.type])
                 edge.style.width = tmpEdgeStyles[edge.data.element.type].width;
@@ -228,14 +243,14 @@ const Graph: React.FC<IGraphProps> = ({ rows, tabManager, stashManager, database
 
     const listenForDarkMode = (event: Event) => {
         event.preventDefault();
-        if ((event.target as HTMLInputElement).matches('input[type="checkbox"][name="darkMode"]')) {
-            orb.current?.data.getNodes().forEach(node => {
+        if ((event.target as HTMLInputElement).matches('input[type="checkbox"][name="darkMode"]') && orb.current) {
+            orb.current.data.getNodes().forEach(node => {
                 node.style.fontColor = settings().darkMode ? 'white' : 'black';
             });
-            orb.current?.data.getEdges().forEach(edge => {
+            orb.current.data.getEdges().forEach(edge => {
                 edge.style.fontColor = settings().darkMode ? 'white' : 'black';
             });
-            orb.current?.view.render();
+            orb.current.view.render();
         }
     };
 
@@ -265,18 +280,20 @@ const Graph: React.FC<IGraphProps> = ({ rows, tabManager, stashManager, database
             return newState;
         });
 
-        orb.current?.data.getNodes().forEach(node => {
-            if (node.data.element.labels[0] === label) {
-                let tmpValue = value;
-                if (property === 'label') {
-                    if (value in node.data.element.properties) tmpValue = node.data.element.properties[value];
-                    else if (value === '#id') tmpValue = node.data.id;
-                    else tmpValue = node.data.label;
+        if (orb.current) {
+            orb.current.data.getNodes().forEach(node => {
+                if (node.data.element.labels[0] === label) {
+                    let tmpValue = value;
+                    if (property === 'label') {
+                        if (value in node.data.element.properties) tmpValue = node.data.element.properties[value];
+                        else if (value === '#id') tmpValue = node.data.id;
+                        else tmpValue = node.data.label;
+                    }
+                    node.style[property] = tmpValue;
                 }
-                node.style[property] = tmpValue;
-            }
-        });
-        orb.current?.view.render();
+            });
+            orb.current.view.render();
+        }
     };
 
     const updateEdgeStyle = (type: string, property: string, value: string | number) => {
@@ -287,18 +304,20 @@ const Graph: React.FC<IGraphProps> = ({ rows, tabManager, stashManager, database
             return newState;
         });
 
-        orb.current?.data.getEdges().forEach(edge => {
-            if (edge.data.element.type === type) {
-                let tmpValue = value;
-                if (property === 'label') {
-                    if (value in edge.data.element.properties) tmpValue = edge.data.element.properties[value];
-                    else if (value === '#id') tmpValue = edge.data.id;
-                    else tmpValue = edge.data.label;
+        if (orb.current) {
+            orb.current.data.getEdges().forEach(edge => {
+                if (edge.data.element.type === type) {
+                    let tmpValue = value;
+                    if (property === 'label') {
+                        if (value in edge.data.element.properties) tmpValue = edge.data.element.properties[value];
+                        else if (value === '#id') tmpValue = edge.data.id;
+                        else tmpValue = edge.data.label;
+                    }
+                    edge.style[property] = tmpValue;
                 }
-                edge.style[property] = tmpValue;
-            }
-        });
-        orb.current?.view.render();
+            });
+            orb.current.view.render();
+        }
     };
 
     return (

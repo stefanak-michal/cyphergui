@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useContext, use } from 'react';
 import { Button, Checkbox } from './form';
 import { ClipboardContext } from '../utils/contexts';
 import { toJSON } from '../utils/fn';
@@ -107,17 +107,14 @@ export const PropertiesModal: React.FC<{ properties: object; handleClose: () => 
     properties,
     handleClose,
 }) => {
+    const copy = useContext(ClipboardContext);
     return (
         <Modal title='Properties' handleClose={handleClose} icon='fa-solid fa-rectangle-list' backdrop={true}>
             <div className='control has-icons-right'>
                 <pre>{toJSON(properties)}</pre>
-                <ClipboardContext.Consumer>
-                    {copy => (
-                        <span className='icon is-right is-clickable' onClick={copy}>
-                            <i className='fa-regular fa-copy' />
-                        </span>
-                    )}
-                </ClipboardContext.Consumer>
+                <span className='icon is-right is-clickable' onClick={copy}>
+                    <i className='fa-regular fa-copy' />
+                </span>
             </div>
         </Modal>
     );

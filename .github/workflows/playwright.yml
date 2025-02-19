@@ -27,11 +27,11 @@ jobs:
         options: >-
           --name "neo4j_service"
           --health-cmd "wget --spider http://localhost:7474 || exit 1"
-    strategy:
-      fail-fast: false
-      matrix:
-        shardIndex: [1, 2, 3, 4, 5, 6, 7, 8]
-        shardTotal: [8]
+    # strategy:
+    #   fail-fast: false
+    #   matrix:
+    #     shardIndex: [1, 2, 3, 4, 5, 6, 7, 8]
+    #     shardTotal: [8]
 
     steps:
       - name: Load movies dataset
@@ -50,7 +50,8 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
       - name: Run Playwright tests (neo4j-read)
-        run: npx playwright test --grep @neo4j-read --reporter=blob --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+        run: npx playwright test --grep @neo4j-read 
+        #--reporter=blob --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
         env:
           DB_HOSTNAME: 'bolt://localhost:7687'
           DB_USERNAME: 'neo4j'
@@ -61,13 +62,13 @@ jobs:
       #          name: playwright-report
       #          path: playwright-report/
       #          retention-days: 1
-      - name: Upload blob report to GitHub Actions Artifacts
-        if: ${{ failure() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: blob-report-${{ matrix.shardIndex }}
-          path: blob-report
-          retention-days: 1
+      # - name: Upload blob report to GitHub Actions Artifacts
+      #   if: ${{ failure() }}
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: blob-report-${{ matrix.shardIndex }}
+      #     path: blob-report
+      #     retention-days: 1
 
   build:
     timeout-minutes: 60

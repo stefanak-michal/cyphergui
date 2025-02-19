@@ -29,7 +29,7 @@ test.describe('Label tab', { tag: '@neo4j-read' }, () => {
         await containerLocator(page).getByLabel('Goto next page').click();
         await expect(containerLocator(page).getByLabel('Goto page 3')).toHaveAttribute('aria-current', 'page');
         await containerLocator(page).getByLabel('pagination').getByRole('button', { name: /\d+/ }).last().click();
-        await expect(containerLocator(page).getByLabel('pagination').getByLabel('Goto next page')).toBeDisabled();
+        await expect(containerLocator(page).getByLabel('Goto next page')).toBeDisabled();
     });
 
     test('Copy query', async ({ page }) => {

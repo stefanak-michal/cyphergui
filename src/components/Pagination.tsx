@@ -1,3 +1,5 @@
+import { useCallback } from 'react';
+
 const Pagination: React.FC<{
     pages: number;
     page: number;
@@ -5,20 +7,24 @@ const Pagination: React.FC<{
 }> = ({ pages, page, action }) => {
     if (pages <= 1) return null;
 
-    const links = [];
-    if (page >= 4) {
-        links.push(1, 'e', page - 1);
-    } else {
-        for (let i = 1; i < page; i++) links.push(i);
-    }
+    const getLinks = useCallback(() => {
+        const newLinks = [];
+        if (page >= 4) {
+            newLinks.push(1, 'e', page - 1);
+        } else {
+            for (let i = 1; i < page; i++) newLinks.push(i);
+        }
 
-    links.push(page);
+        newLinks.push(page);
 
-    if (page <= pages - 3) {
-        links.push(page + 1, 'e', pages);
-    } else {
-        for (let i = page + 1; i <= pages; i++) links.push(i);
-    }
+        if (page <= pages - 3) {
+            newLinks.push(page + 1, 'e', pages);
+        } else {
+            for (let i = page + 1; i <= pages; i++) newLinks.push(i);
+        }
+
+        return newLinks;
+    }, [page, pages]);
 
     return (
         <nav className='pagination is-centered' role='navigation' aria-label='pagination'>
@@ -43,7 +49,7 @@ const Pagination: React.FC<{
                 </span>
             </button>
             <ul className='pagination-list'>
-                {links.map((value, i) => (
+                {getLinks().map((value, i) => (
                     <li key={'li' + i}>
                         {value === 'e' && <span className='pagination-ellipsis'>&hellip;</span>}
                         {typeof value === 'number' && (

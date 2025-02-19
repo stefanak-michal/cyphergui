@@ -44,7 +44,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: '22'
       - name: Install dependencies
         run: npm ci
       - name: Install Playwright Browsers
@@ -128,7 +128,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: '22'
       - name: Install dependencies
         run: npm ci
       - name: Install Playwright Browsers
@@ -163,7 +163,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: '22'
       - name: Install dependencies
         run: npm ci
       - name: Install Playwright Browsers
@@ -195,7 +195,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: '22'
       - name: Install dependencies
         run: npm ci
       - name: Install Playwright Browsers

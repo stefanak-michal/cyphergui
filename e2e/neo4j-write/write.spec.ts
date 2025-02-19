@@ -1,6 +1,6 @@
 import { expect, test } from '../fixtures/login';
 import { checkActiveTab, checkNotification, containerLocator, modalLocator, switchToTab } from '../helpers';
-import { Locator, type Page } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 
 function propertyLocatorByKey(page: Page, key: string): Locator {
     return containerLocator(page)

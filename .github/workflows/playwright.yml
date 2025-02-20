@@ -48,13 +48,15 @@ jobs:
       - name: Load movies dataset
         run: node e2e/load-dataset.js
         env:
+          DB_HOSTNAME: 'bolt://neo4j:7687'
+          DB_USERNAME: 'neo4j'
           DB_PASSWORD: 'nothing123'
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
       - name: Run Playwright tests (neo4j-read)
         run: npx playwright test --grep @neo4j-read --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
         env:
-          DB_HOSTNAME: 'bolt://localhost:7687'
+          DB_HOSTNAME: 'bolt://neo4j:7687'
           DB_USERNAME: 'neo4j'
           DB_PASSWORD: 'nothing123'
 

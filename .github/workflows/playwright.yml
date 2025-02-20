@@ -40,9 +40,14 @@ jobs:
     steps:
       - name: Load movies dataset
         run: |
-          docker exec neo4j_service wget -O /tmp/movies.cypher https://raw.githubusercontent.com/neo4j-graph-examples/movies/main/scripts/movies.cypher
-          docker exec neo4j_service cypher-shell -a bolt://localhost:7687 -u "neo4j" -p "nothing123" "MATCH (n) DETACH DELETE n"
-          docker exec neo4j_service cypher-shell -a bolt://localhost:7687 -u "neo4j" -p "nothing123" -f /tmp/movies.cypher
+          curl -X POST http://localhost:7474/db/neo4j/tx/commit \
+            -H "Accept: application/json;charset=UTF-8" \
+            -H "Content-Type: application/json" \
+            -u neo4j:nothing123 \
+            -d '{"statements":[ \
+              { "statement": "MATCH (n) DETACH DELETE n" }, \
+              { "statement": "LOAD CSV FROM \"https://raw.githubusercontent.com/neo4j-graph-examples/movies/main/scripts/movies.cypher\"" } \
+              ]}'
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup node

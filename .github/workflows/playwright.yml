@@ -28,7 +28,6 @@ jobs:
           - 7687:7687
           - 7474:7474
         options: >-
-          --name "neo4j_service"
           --health-cmd "wget --spider http://localhost:7474 || exit 1"
 
     strategy:

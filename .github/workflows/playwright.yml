@@ -40,10 +40,10 @@ jobs:
     steps:
       - name: Set up Neo4j apt repository
         run: |
-          sudo add-apt-repository universe
-          wget -O - https://debian.neo4j.com/neotechnology.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/neotechnology.gpg
-          echo 'deb [signed-by=/etc/apt/keyrings/neotechnology.gpg] https://debian.neo4j.com stable latest' | sudo tee -a /etc/apt/sources.list.d/neo4j.list
-          sudo apt-get update
+          add-apt-repository universe
+          wget -O - https://debian.neo4j.com/neotechnology.gpg.key | gpg --dearmor -o /etc/apt/keyrings/neotechnology.gpg
+          echo 'deb [signed-by=/etc/apt/keyrings/neotechnology.gpg] https://debian.neo4j.com stable latest' | tee -a /etc/apt/sources.list.d/neo4j.list
+          apt-get update
       - name: Install Cypher Shell
         run: sudo apt-get install -y cypher-shell
       - name: Load movies dataset

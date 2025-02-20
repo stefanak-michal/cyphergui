@@ -11,20 +11,24 @@ const cypherUrl = 'https://raw.githubusercontent.com/neo4j-graph-examples/movies
 async function loadAndRunCypherQueries() {
     let session, driver;
     try {
-        driver = neo4j.driver(uri, username.length > 0 && password.length > 0 ? neo4j.auth.basic(username, password) : undefined, {
-            userAgent: 'stefanak-michal/cypherGUI',
-            telemetryDisabled: true
-        });
-        const serverInfo = await driver.getServerInfo()
-        console.log('Connection established')
-        console.log(serverInfo)
+        driver = neo4j.driver(
+            uri,
+            username.length > 0 && password.length > 0 ? neo4j.auth.basic(username, password) : undefined,
+            {
+                userAgent: 'stefanak-michal/cypherGUI',
+                telemetryDisabled: true,
+            }
+        );
+        const serverInfo = await driver.getServerInfo();
+        console.log('Connection established');
+        console.log(serverInfo);
 
         const response = await fetch(cypherUrl);
         const cypherQueries = await response.text();
         const queries = cypherQueries.split(';').filter(query => query.trim() !== '');
 
         session = driver.session({
-            defaultAccessMode: neo4j.session.WRITE
+            defaultAccessMode: neo4j.session.WRITE,
         });
         for (const query of queries) {
             await session.run(query);

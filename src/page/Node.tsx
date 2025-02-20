@@ -36,7 +36,7 @@ const Node: React.FC<INodeProps> = props => {
 
     const requestData = async () => {
         if (create) return;
-        
+
         latestRequest.current?.abort();
         const ac: AbortController = new AbortController();
         latestRequest.current = ac;
@@ -98,13 +98,14 @@ const Node: React.FC<INodeProps> = props => {
             formProps.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
 
             if (ac.signal.aborted) return;
-            
+
             setRels(response.records[0].get('r') as _Relationship[]);
             setNodes(response.records[0].get('a') as _Node[]);
             setNode(node);
             setLabels([...node.labels]);
             setProperties(formProps);
         } catch (err) {
+            console.info(err);
             props.tabManager.close(props.tabId);
         }
     };

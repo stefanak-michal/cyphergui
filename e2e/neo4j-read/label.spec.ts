@@ -27,7 +27,10 @@ test.describe('Label tab', { tag: '@neo4j-read' }, () => {
         await expect(containerLocator(page).getByLabel('Goto previous page')).toBeEnabled();
         await expect(containerLocator(page, 'table tbody')).not.toHaveText(text);
         await containerLocator(page).getByLabel('Goto next page').click();
-        await expect(containerLocator(page).getByLabel('Goto page 3', { exact: true })).toHaveAttribute('aria-current', 'page');
+        await expect(containerLocator(page).getByLabel('Goto page 3', { exact: true })).toHaveAttribute(
+            'aria-current',
+            'page'
+        );
         await containerLocator(page).getByLabel('pagination').getByRole('button', { name: /\d+/ }).last().click();
         await expect(containerLocator(page).getByLabel('Goto next page')).toBeDisabled();
     });

@@ -41,8 +41,12 @@ const Relationship: React.FC<IRelationshipProps> = props => {
         latestRequest.current = ac;
 
         try {
-            const response= await db.query('MATCH (a)-[r]->(b) WHERE ' + db.fnId('r') + ' = $id RETURN r, a, b', { id: props.id }, props.database);
-            
+            const response = await db.query(
+                'MATCH (a)-[r]->(b) WHERE ' + db.fnId('r') + ' = $id RETURN r, a, b',
+                { id: props.id },
+                props.database
+            );
+
             if (response.records.length === 0) {
                 props.tabManager.close(props.tabId);
                 return;
@@ -89,13 +93,14 @@ const Relationship: React.FC<IRelationshipProps> = props => {
             formProps.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
 
             if (ac.signal.aborted) return;
-            
+
             setRel(rel);
             setStart(response.records[0].get('a') as _Node);
             setEnd(response.records[0].get('b') as _Node);
             setType(rel.type);
             setProperties(formProps);
         } catch (err) {
+            console.info(err);
             props.tabManager.close(props.tabId);
         }
     };

@@ -69,10 +69,7 @@ const Label: React.FC<ILabelProps> = props => {
             const newPage: number = Math.min(page, Math.ceil(cnt / perPage));
 
             const response2 = await db.query(
-                query +
-                    ' RETURN n ' +
-                    (sort.length ? 'ORDER BY ' + sort.join(', ') : '') +
-                    ' SKIP $skip LIMIT $limit',
+                query + ' RETURN n ' + (sort.length ? 'ORDER BY ' + sort.join(', ') : '') + ' SKIP $skip LIMIT $limit',
                 {
                     skip: db.toInt(Math.max(newPage - 1, 0) * perPage),
                     limit: db.toInt(perPage),

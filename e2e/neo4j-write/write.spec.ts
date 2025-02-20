@@ -158,6 +158,7 @@ test.describe('Write flow', { tag: '@neo4j-write' }, () => {
             await containerLocator(page).getByRole('button', { name: 'Execute' }).click();
             await checkNotification(page, 'Node created');
 
+            await switchToTab(page, 'Start');
             await containerLocator(page).getByRole('button', { name: ':Test' }).click();
             await checkActiveTab(page, 'Test');
             await expect(containerLocator(page, 'table tbody tr')).toHaveCount(1);
@@ -209,6 +210,7 @@ test.describe('Write flow', { tag: '@neo4j-write' }, () => {
             // check and save
             await containerLocator(page).getByRole('button', { name: 'Execute' }).click();
             await checkNotification(page, 'Node created');
+            await switchToTab(page, 'Test');
             await expect(containerLocator(page, 'table tbody tr')).toHaveCount(2);
         });
 

@@ -1,27 +1,22 @@
 import { toJSON } from '../../utils/fn';
 import { ClipboardContext } from '../../utils/contexts';
-import * as React from 'react';
 import { ResultSummary } from 'neo4j-driver-lite';
+import { useContext } from 'react';
 
 interface ISummaryProps {
     summary: ResultSummary;
 }
 
-class Summary extends React.Component<ISummaryProps> {
-    render() {
-        return (
-            <div className='control has-icons-right'>
-                <pre>{toJSON(this.props.summary)}</pre>
-                <ClipboardContext.Consumer>
-                    {copy => (
-                        <span className='icon is-right is-clickable' onClick={copy}>
-                            <i className='fa-regular fa-copy' />
-                        </span>
-                    )}
-                </ClipboardContext.Consumer>
-            </div>
-        );
-    }
-}
+const Summary: React.FC<ISummaryProps> = ({ summary }) => {
+    const copy = useContext(ClipboardContext);
+    return (
+        <div className='control has-icons-right'>
+            <pre>{toJSON(summary)}</pre>
+            <span className='icon is-right is-clickable' onClick={copy}>
+                <i className='fa-regular fa-copy' />
+            </span>
+        </div>
+    );
+};
 
 export default Summary;

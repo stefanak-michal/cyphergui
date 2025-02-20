@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useState, useEffect } from 'react';
 import db from '../db';
 import { Button } from '../components/form';
 import { ITabManager } from '../utils/interfaces';
@@ -13,129 +13,93 @@ interface INavbarProps {
     darkMode: boolean;
 }
 
-interface INavbarState {
-    open: boolean;
-    databases: string[];
-    activeDb: string;
-}
+const Navbar: React.FC<INavbarProps> = ({ handleLogout, handleOpenSettings, tabManager, darkMode }) => {
+    const [open, setOpen] = useState(false);
+    const [databases, setDatabases] = useState<string[]>([]);
+    const [activeDb, setActiveDb] = useState('');
 
-/**
- * Navbar
- */
-class Navbar extends React.Component<INavbarProps, INavbarState> {
-    state: INavbarState = {
-        open: false,
-        databases: [],
-        activeDb: '',
+    useEffect(() => {
+        setDatabases(db.databases);
+        setActiveDb(db.database);
+
+        db.registerChangeDatabasesCallback((databases: string[]) => {
+            setDatabases(databases);
+        });
+    }, []);
+
+    const handleOpen = () => {
+        setOpen(!open);
     };
 
-    componentDidMount() {
-        this.setState({
-            databases: db.databases,
-            activeDb: db.database,
-        });
+    return (
+        <nav className='navbar' role='navigation' aria-label='main navigation'>
+            <div className='navbar-brand'>
+                <span className='navbar-item'>
+                    <img src={darkMode ? logo_dark : logo} alt='cypherGUI' />
+                </span>
 
-        db.registerChangeDatabasesCallback(databases => {
-            this.setState({ databases: databases });
-        });
-    }
+                <a
+                    href='#'
+                    role='button'
+                    className={'navbar-burger ' + (open ? 'is-active' : '')}
+                    aria-label='menu'
+                    aria-expanded='false'
+                    data-target='basicNavbar'
+                    onClick={handleOpen}
+                >
+                    <span aria-hidden='true'></span>
+                    <span aria-hidden='true'></span>
+                    <span aria-hidden='true'></span>
+                    <span aria-hidden='true'></span>
+                </a>
+            </div>
 
-    handleOpen = () => {
-        this.setState(state => {
-            return {
-                open: !state.open,
-            };
-        });
-    };
-
-    render() {
-        return (
-            <nav className='navbar' role='navigation' aria-label='main navigation'>
-                <div className='navbar-brand'>
-                    <span className='navbar-item'>
-                        <img src={this.props.darkMode ? logo_dark : logo} alt='cypherGUI' />
-                    </span>
-
-                    <a
-                        href='#'
-                        role='button'
-                        className={'navbar-burger ' + (this.state.open ? 'is-active' : '')}
-                        aria-label='menu'
-                        aria-expanded='false'
-                        data-target='basicNavbar'
-                        onClick={this.handleOpen}
-                    >
-                        <span aria-hidden='true'></span>
-                        <span aria-hidden='true'></span>
-                        <span aria-hidden='true'></span>
-                    </a>
+            <div id='basicNavbar' className={'navbar-menu ' + (open ? 'is-active' : '')}>
+                <div className='navbar-start'>
+                    {databases.length > 1 && (
+                        <div className='navbar-item has-dropdown is-hoverable'>
+                            <a className='navbar-link'>{activeDb}</a>
+                            <div className='navbar-dropdown'>
+                                {databases.map(name => (
+                                    <a
+                                        key={'navbar-item-' + name}
+                                        className={(activeDb === name ? 'is-active' : '') + ' navbar-item'}
+                                        onClick={() => {
+                                            db.database = name;
+                                            setActiveDb(name);
+                                        }}
+                                    >
+                                        {name}
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
-
-                <div id='basicNavbar' className={'navbar-menu ' + (this.state.open ? 'is-active' : '')}>
-                    <div className='navbar-start'>
-                        {this.state.databases.length > 1 && (
-                            <div className='navbar-item has-dropdown is-hoverable'>
-                                <a className='navbar-link'>{this.state.activeDb}</a>
-                                <div className='navbar-dropdown'>
-                                    {this.state.databases.map(name => (
-                                        <a
-                                            key={'navbar-item-' + name}
-                                            className={
-                                                (this.state.activeDb === name ? 'is-active' : '') + ' navbar-item'
-                                            }
-                                            onClick={() => {
-                                                db.database = name;
-                                                this.setState({
-                                                    activeDb: name,
-                                                });
-                                            }}
-                                        >
-                                            {name}
-                                        </a>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                    <div className='navbar-end'>
-                        <div className='navbar-item'>
-                            <div className='buttons'>
-                                <Button
-                                    icon='fa-regular fa-plus'
-                                    text='Query'
-                                    onClick={() =>
-                                        this.props.tabManager.add(
-                                            { prefix: 'Query' },
-                                            'fa-solid fa-terminal',
-                                            EPage.Query
-                                        )
-                                    }
-                                    color='is-link'
-                                />
-                                <Button
-                                    icon='fa-solid fa-clock-rotate-left'
-                                    title='Open history'
-                                    onClick={() =>
-                                        this.props.tabManager.add(
-                                            'History',
-                                            'fa-solid fa-clock-rotate-left',
-                                            EPage.History
-                                        )
-                                    }
-                                />
-                                <Button
-                                    icon='fa-solid fa-gears'
-                                    onClick={this.props.handleOpenSettings}
-                                    title='Open settings'
-                                />
-                                <Button onClick={this.props.handleLogout} text='Log out' />
-                            </div>
+                <div className='navbar-end'>
+                    <div className='navbar-item'>
+                        <div className='buttons'>
+                            <Button
+                                icon='fa-regular fa-plus'
+                                text='Query'
+                                onClick={() => tabManager.add({ prefix: 'Query' }, 'fa-solid fa-terminal', EPage.Query)}
+                                color='is-link'
+                            />
+                            <Button
+                                icon='fa-solid fa-clock-rotate-left'
+                                title='Open history'
+                                onClick={() =>
+                                    tabManager.add('History', 'fa-solid fa-clock-rotate-left', EPage.History)
+                                }
+                            />
+                            <Button icon='fa-solid fa-gears' onClick={handleOpenSettings} title='Open settings' />
+                            <Button onClick={handleLogout} text='Log out' />
                         </div>
                     </div>
                 </div>
-            </nav>
-        );
-    }
-}
+            </div>
+        </nav>
+    );
+};
 
 export default Navbar;

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useState, useEffect, useContext, useActionState, useRef } from 'react';
 import { IPageProps, IStashManager } from '../utils/interfaces';
 import { Node as _Node, Relationship as _Relationship } from 'neo4j-driver-lite';
 import { EPage, EPropertyType } from '../utils/enums';
@@ -18,681 +18,589 @@ interface IRelationshipProps extends IPageProps {
     id: number | string | null;
 }
 
-interface IRelationshipState {
-    rel: _Relationship | null;
-    start: _Node | null;
-    end: _Node | null;
-    focus: string | null;
-    type: string;
-    properties: t_FormProperty[];
-    typeModal: false | string[];
-    typeModalInput: string;
-    error: string | null;
-    delete: number | string | false;
-    selectNodeModal: number | null; // null - hide, 1 - start node, 2 - end node
-}
+const Relationship: React.FC<IRelationshipProps> = props => {
+    const [rel, setRel] = useState<_Relationship | null>(null);
+    const [start, setStart] = useState<_Node | null>(null);
+    const [end, setEnd] = useState<_Node | null>(null);
+    const [type, setType] = useState<string>(props.type || '');
+    const [properties, setProperties] = useState<t_FormProperty[]>([]);
+    const [typeModal, setTypeModal] = useState<false | string[]>(false);
+    const [typeModalInput, setTypeModalInput] = useState<string>('');
+    const [error, setError] = useState<string | null>(null);
+    const [deleteId, setDeleteId] = useState<number | string | false>(false);
+    const [selectNodeModal, setSelectNodeModal] = useState<number | null>(null);
+    const latestRequest = useRef<AbortController>(null);
+    const copy = useContext(ClipboardContext);
+    const create = props.id === null;
 
-/**
- * Edit relationship by ID
- */
-class Relationship extends React.Component<IRelationshipProps, IRelationshipState> {
-    state: IRelationshipState = {
-        rel: null,
-        start: null,
-        end: null,
-        focus: null,
-        type: this.props.type || '',
-        properties: [],
-        typeModal: false,
-        typeModalInput: '',
-        error: null,
-        delete: false,
-        selectNodeModal: null,
-    };
+    const requestData = async () => {
+        if (create) return;
 
-    create: boolean = this.props.id === null;
+        latestRequest.current?.abort();
+        const ac: AbortController = new AbortController();
+        latestRequest.current = ac;
 
-    requestData = () => {
-        if (this.create) return;
-        db.query(
-            'MATCH (a)-[r]->(b) WHERE ' + db.fnId('r') + ' = $id RETURN r, a, b',
-            {
-                id: this.props.id,
-            },
-            this.props.database
-        )
-            .then(response => {
-                if (response.records.length === 0) {
-                    this.props.tabManager.close(this.props.tabId);
-                    return;
-                }
+        try {
+            const response = await db.query(
+                'MATCH (a)-[r]->(b) WHERE ' + db.fnId('r') + ' = $id RETURN r, a, b',
+                { id: props.id },
+                props.database
+            );
 
-                const rel: _Relationship = response.records[0].get('r');
-                const props: t_FormProperty[] = [];
-                const t = new Date().getTime();
-                for (const key in rel.properties) {
-                    const type = resolvePropertyType(rel.properties[key]);
-                    if (type === EPropertyType.List) {
-                        const subtype = resolvePropertyType(rel.properties[key][0]);
-                        rel.properties[key] = (rel.properties[key] as []).map(p => {
-                            return {
-                                value: p,
-                                type: subtype,
-                                temp: getPropertyAsTemp(subtype, p),
-                            } as t_FormValue;
-                        });
-                    }
-                    if (type === EPropertyType.Map) {
-                        const mapAsFormValue: t_FormValue[] = [];
-                        for (const k in rel.properties[key] as object) {
-                            const subtype = resolvePropertyType(rel.properties[key][k]);
-                            mapAsFormValue.push({
-                                key: k,
-                                value: rel.properties[key][k],
-                                type: subtype,
-                                temp: getPropertyAsTemp(subtype, rel.properties[key][k]),
-                            } as t_FormValue);
-                        }
-                        rel.properties[key] = mapAsFormValue;
-                    }
-                    props.push({
-                        name: key + t,
-                        key: key,
-                        value: rel.properties[key],
-                        type: type,
-                        temp: getPropertyAsTemp(type, rel.properties[key]),
+            if (response.records.length === 0) {
+                props.tabManager.close(props.tabId);
+                return;
+            }
+
+            if (ac.signal.aborted) return;
+
+            const rel: _Relationship = response.records[0].get('r');
+            const formProps: t_FormProperty[] = [];
+            const t = new Date().getTime();
+            for (const key in rel.properties) {
+                const type = resolvePropertyType(rel.properties[key]);
+                if (type === EPropertyType.List) {
+                    const subtype = resolvePropertyType(rel.properties[key][0]);
+                    rel.properties[key] = (rel.properties[key] as []).map(p => {
+                        return {
+                            value: p,
+                            type: subtype,
+                            temp: getPropertyAsTemp(subtype, p),
+                        } as t_FormValue;
                     });
                 }
-                props.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
-                this.setState({
-                    rel: rel,
-                    start: response.records[0].get('a') as _Node,
-                    end: response.records[0].get('b') as _Node,
-                    type: rel.type,
-                    properties: props,
+                if (type === EPropertyType.Map) {
+                    const mapAsFormValue: t_FormValue[] = [];
+                    for (const k in rel.properties[key] as object) {
+                        const subtype = resolvePropertyType(rel.properties[key][k]);
+                        mapAsFormValue.push({
+                            key: k,
+                            value: rel.properties[key][k],
+                            type: subtype,
+                            temp: getPropertyAsTemp(subtype, rel.properties[key][k]),
+                        } as t_FormValue);
+                    }
+                    rel.properties[key] = mapAsFormValue;
+                }
+                formProps.push({
+                    name: key + t,
+                    key: key,
+                    value: rel.properties[key],
+                    type: type,
+                    temp: getPropertyAsTemp(type, rel.properties[key]),
                 });
-            })
-            .catch(() => this.props.tabManager.close(this.props.tabId));
+            }
+            formProps.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+
+            if (ac.signal.aborted) return;
+
+            setRel(rel);
+            setStart(response.records[0].get('a') as _Node);
+            setEnd(response.records[0].get('b') as _Node);
+            setType(rel.type);
+            setProperties(formProps);
+        } catch (err) {
+            console.info(err);
+            props.tabManager.close(props.tabId);
+        }
     };
 
-    componentDidMount() {
-        this.requestData();
-    }
+    useEffect(() => {
+        requestData();
+    }, []);
 
-    /**
-     * Check if node still exists when switching on this tab
-     */
-    componentDidUpdate(prevProps: Readonly<IRelationshipProps>) {
-        if (!this.create && this.props.active && this.props.active !== prevProps.active) {
+    useEffect(() => {
+        if (!create && props.active) {
             db.query(
                 'MATCH ()-[r]->() WHERE ' + db.fnId('r') + ' = $id RETURN COUNT(r) AS c',
-                {
-                    id: this.props.id,
-                },
-                this.props.database
+                { id: props.id },
+                props.database
             )
                 .then(response => {
                     if (db.fromInt(response.records[0].get('c')) !== 1) {
-                        this.props.tabManager.close(this.props.tabId);
+                        props.tabManager.close(props.tabId, null, false);
                     }
                 })
-                .catch(() => this.props.tabManager.close(this.props.tabId));
+                .catch(() => props.tabManager.close(props.tabId, null, false));
         }
-        return true;
-    }
+    }, [props.active]);
 
-    handleTypeOpenModal = () => {
-        db.query('MATCH ()-[r]->() RETURN collect(DISTINCT type(r)) AS c', {}, this.props.database)
+    const handleTypeOpenModal = () => {
+        db.query('MATCH ()-[r]->() RETURN collect(DISTINCT type(r)) AS c', {}, props.database)
             .then(response => {
-                this.setState({
-                    typeModal: (response.records[0].get('c') as string[]).filter(t => this.state.type !== t),
-                });
+                setTypeModal((response.records[0].get('c') as string[]).filter(t => type !== t));
             })
-            .catch(err => this.setState({ error: '[' + err.name + '] ' + err.message }));
+            .catch(err => setError('[' + err.name + '] ' + err.message));
     };
 
-    handleTypeSelect = (type: string) => {
-        this.setState(
-            {
-                type: type,
-                typeModal: false,
-                typeModalInput: '',
-            },
-            this.markChanged
-        );
+    const handleTypeSelect = (type: string) => {
+        setType(type);
+        setTypeModal(false);
+        setTypeModalInput('');
+        markChanged();
     };
 
-    handleTypeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const [, typeModalAction, typeModalPending] = useActionState(() => {
+        handleTypeSelect(typeModalInput);
+    }, null);
+
+    const handleTypeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         let value: string = e.currentTarget.value;
 
         if (settings().forceNamingRecommendations) {
             value = value.replace(/^[^a-zA-Z]*/, '').replace(/[a-z]/, x => x.toUpperCase());
         }
 
-        this.setState({ typeModalInput: value });
+        setTypeModalInput(value);
     };
 
-    handleTypeModalClose = () => {
-        this.setState({
-            typeModal: false,
-        });
+    const handleTypeModalClose = () => {
+        setTypeModal(false);
     };
 
-    handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!this.state.type) {
-            this.setState({ error: 'Not defined relationship type' });
-            return false;
+    const handleSubmit = async (): Promise<void> => {
+        if (!type) {
+            setError('Not defined relationship type');
+            return;
         }
-        if (!this.state.start) {
-            this.setState({ error: 'Not defined start node' });
-            return false;
+        if (!start) {
+            setError('Not defined start node');
+            return;
         }
-        if (!this.state.end) {
-            this.setState({ error: 'Not defined end node' });
-            return false;
+        if (!end) {
+            setError('Not defined end node');
+            return;
         }
 
-        const { query, props } = this.generateQuery();
+        const { query, props: queryProps } = generateQuery();
 
-        db.query(
-            query,
-            {
-                id: this.state.rel ? (db.hasElementId ? this.state.rel.elementId : this.state.rel.identity) : null,
-                a: db.hasElementId ? this.state.start.elementId : this.state.start.identity,
-                b: db.hasElementId ? this.state.end.elementId : this.state.end.identity,
-                p: props,
-            },
-            this.props.database
-        )
+        return db
+            .query(
+                query,
+                {
+                    id: rel ? (db.hasElementId ? rel.elementId : rel.identity) : null,
+                    a: db.hasElementId ? start.elementId : start.identity,
+                    b: db.hasElementId ? end.elementId : end.identity,
+                    p: queryProps,
+                },
+                props.database
+            )
             .then(response => {
                 if (response.summary.counters.containsUpdates()) {
-                    this.props.toast(this.create ? 'Relationship created' : 'Relationship updated');
+                    props.toast(create ? 'Relationship created' : 'Relationship updated');
                 }
                 if (settings().closeEditAfterExecuteSuccess) {
-                    this.props.tabManager.setChanged(this.props.tabId, false, () => {
-                        this.props.tabManager.close(this.props.tabId);
-                    });
-                } else if (
-                    this.create ||
-                    this.state.rel.start !== this.state.start.identity ||
-                    this.state.rel.end !== this.state.end.identity
-                ) {
+                    props.tabManager.close(props.tabId, null, false);
+                    return;
+                }
+                if (create || rel.start !== start.identity || rel.end !== end.identity) {
                     const rel = response.records[0].get('r');
-                    this.props.tabManager.setChanged(this.props.tabId, false, () => {
-                        this.props.tabManager.add(
-                            { prefix: 'Rel', i: rel.identity },
-                            'fa-solid fa-pen-to-square',
-                            EPage.Rel,
-                            {
-                                id: db.getId(rel),
-                                database: this.props.database,
-                            }
-                        );
-                        this.props.tabManager.close(this.props.tabId);
+                    props.tabManager.add({ prefix: 'Rel', i: rel.identity }, 'fa-solid fa-pen-to-square', EPage.Rel, {
+                        id: db.getId(rel),
+                        database: props.database,
                     });
+                    props.tabManager.close(props.tabId, null, false);
                 }
             })
-            .catch(err => this.setState({ error: '[' + err.name + '] ' + err.message }));
+            .catch(err => setError('[' + err.name + '] ' + err.message));
     };
 
-    generateQuery = (printable: boolean = false): { query: string; props: object } => {
-        const props = sanitizeFormValues(this.state.properties);
+    const [, formAction, formPending] = useActionState(handleSubmit, null);
+
+    const generateQuery = (printable: boolean = false): { query: string; props: object } => {
+        const formValues = sanitizeFormValues(properties);
         let query: string = '';
         const quoteId = (id: number | string): string => {
             if (typeof id === 'number') return id.toString();
             else return "'" + id + "'";
         };
 
-        if (this.create) {
+        if (create) {
             query +=
                 'MATCH (a) WHERE ' +
                 db.fnId('a') +
                 ' = ' +
-                (this.state.start ? (printable ? quoteId(db.getId(this.state.start)) : '$a') : '');
+                (start ? (printable ? quoteId(db.getId(start)) : '$a') : '');
             query +=
-                ' MATCH (b) WHERE ' +
-                db.fnId('b') +
-                ' = ' +
-                (this.state.end ? (printable ? quoteId(db.getId(this.state.end)) : '$b') : '');
-            query += ' CREATE (a)-[r:' + this.state.type + ']->(b)';
+                ' MATCH (b) WHERE ' + db.fnId('b') + ' = ' + (end ? (printable ? quoteId(db.getId(end)) : '$b') : '');
+            query += ' CREATE (a)-[r:' + type + ']->(b)';
         } else {
-            const newStart = db.getId(this.state.rel, 'startNodeElementId', 'start') !== db.getId(this.state.start);
-            const newEnd = db.getId(this.state.rel, 'endNodeElementId', 'end') !== db.getId(this.state.end);
-            const willDelete = newStart || newEnd || this.state.rel.type !== this.state.type;
+            const newStart = db.getId(rel, 'startNodeElementId', 'start') !== db.getId(start);
+            const newEnd = db.getId(rel, 'endNodeElementId', 'end') !== db.getId(end);
+            const willDelete = newStart || newEnd || rel.type !== type;
 
             query += 'MATCH ' + (newStart ? '()' : '(a)') + '-[r]->' + (newEnd ? '()' : '(b)');
-            query += ' WHERE ' + db.fnId('r') + ' = ' + (printable ? quoteId(this.props.id) : '$id');
+            query += ' WHERE ' + db.fnId('r') + ' = ' + (printable ? quoteId(props.id) : '$id');
             if (newStart)
-                query +=
-                    ' MATCH (a) WHERE ' +
-                    db.fnId('a') +
-                    ' = ' +
-                    (printable ? quoteId(db.getId(this.state.start)) : '$a');
+                query += ' MATCH (a) WHERE ' + db.fnId('a') + ' = ' + (printable ? quoteId(db.getId(start)) : '$a');
             if (newEnd)
-                query +=
-                    ' MATCH (b) WHERE ' + db.fnId('b') + ' = ' + (printable ? quoteId(db.getId(this.state.end)) : '$b');
+                query += ' MATCH (b) WHERE ' + db.fnId('b') + ' = ' + (printable ? quoteId(db.getId(end)) : '$b');
             if (willDelete) query += ' DELETE r';
-            if (willDelete) query += ' WITH a, b CREATE (a)-[r:' + this.state.type + ']->(b)';
+            if (willDelete) query += ' WITH a, b CREATE (a)-[r:' + type + ']->(b)';
         }
 
         if (printable) {
-            if (this.state.properties.length) {
-                query += ' SET r = ' + cypherPrintProperties(this.state.properties);
+            if (properties.length) {
+                query += ' SET r = ' + cypherPrintProperties(properties);
             }
         } else {
             query += ' SET r = $p RETURN r';
         }
 
-        return { query: query, props: props };
+        return { query: query, props: formValues };
     };
 
-    handleDeleteModalConfirm = (id: number | string) => {
-        db.query(
-            'MATCH ()-[r]-() WHERE ' + db.fnId('r') + ' = $id DELETE r',
-            {
-                id: id,
-            },
-            this.props.database
-        )
+    const handleDeleteModalConfirm = (id: number | string) => {
+        db.query('MATCH ()-[r]-() WHERE ' + db.fnId('r') + ' = $id DELETE r', { id: id }, props.database)
             .then(response => {
                 if (response.summary.counters.updates().nodesDeleted > 0) {
-                    this.props.tabManager.setChanged(this.props.tabId, false, () =>
-                        this.props.tabManager.close(this.props.tabId)
-                    );
-                    this.props.toast('Relationship deleted');
+                    props.tabManager.close(props.tabId, null, false);
+                    props.toast('Relationship deleted');
                 }
             })
             .catch(error => {
-                this.setState({
-                    error: error.message,
-                });
+                setError(error.message);
             });
     };
 
-    markChanged = () => {
-        this.props.tabManager.setChanged(
-            this.props.tabId,
-            this.create ||
-                this.state.rel.type !== this.state.type ||
-                this.state.rel.start !== this.state.start.identity ||
-                this.state.rel.end !== this.state.end.identity ||
-                Object.keys(this.state.rel.properties).sort().toString() !==
-                    this.state.properties
+    const markChanged = () => {
+        props.tabManager.setChanged(
+            props.tabId,
+            create ||
+                rel.type !== type ||
+                rel.start !== start.identity ||
+                rel.end !== end.identity ||
+                Object.keys(rel.properties).sort().toString() !==
+                    properties
                         .map(p => p.key)
                         .sort()
                         .toString() ||
-                this.state.properties.some(p => p.value.toString() !== this.state.rel.properties[p.key].toString())
+                properties.some(p => p.value.toString() !== rel.properties[p.key].toString())
         );
     };
 
-    render() {
-        if (!this.create && this.state.rel === null) {
-            return <span className='has-text-grey-light'>Loading...</span>;
-        }
+    if (!create && rel === null) {
+        return <span className='has-text-grey-light'>Loading...</span>;
+    }
 
-        return (
-            <>
-                {this.state.delete && (
-                    <DeleteModal
-                        delete={this.state.delete}
-                        handleConfirm={this.handleDeleteModalConfirm}
-                        handleClose={() => this.setState({ delete: false })}
-                    />
-                )}
+    return (
+        <>
+            {deleteId && (
+                <DeleteModal
+                    delete={deleteId}
+                    handleConfirm={handleDeleteModalConfirm}
+                    handleClose={() => setDeleteId(false)}
+                />
+            )}
 
-                {Array.isArray(this.state.typeModal) && (
-                    <Modal title='Set type' icon='fa-solid fa-tag' handleClose={this.handleTypeModalClose}>
-                        <div className='buttons'>
-                            {this.state.typeModal.map(label => (
-                                <Button
-                                    text={label}
-                                    color='is-info is-rounded tag is-medium has-text-white'
-                                    key={label}
-                                    onClick={() => this.handleTypeSelect(label)}
+            {Array.isArray(typeModal) && (
+                <Modal title='Set type' icon='fa-solid fa-tag' handleClose={handleTypeModalClose}>
+                    <div className='buttons'>
+                        {typeModal.map(type => (
+                            <Button
+                                text={type}
+                                color='is-info is-rounded tag is-medium has-text-white'
+                                key={type}
+                                onClick={() => handleTypeSelect(type)}
+                            />
+                        ))}
+                    </div>
+                    <form action={typeModalAction}>
+                        <label className='label'>Or specify new one</label>
+                        <div className='field is-grouped'>
+                            <div className='control is-expanded'>
+                                <input
+                                    autoFocus
+                                    pattern='^[A-Za-z][A-Za-z_0-9]*$'
+                                    required
+                                    className='input'
+                                    type='text'
+                                    value={typeModalInput}
+                                    onChange={handleTypeInput}
                                 />
-                            ))}
+                            </div>
+                            <div className='control'>
+                                <Button icon='fa-solid fa-check' type='submit' disabled={typeModalPending} />
+                            </div>
                         </div>
-                        <form
-                            onSubmit={e => {
-                                e.preventDefault();
-                                this.handleTypeSelect(this.state.typeModalInput);
-                                return true;
-                            }}
-                        >
-                            <label className='label'>Or specify new one</label>
-                            <div className='field is-grouped'>
-                                <div className='control is-expanded'>
+                    </form>
+                </Modal>
+            )}
+
+            {selectNodeModal && (
+                <SelectNodeModal
+                    stashManager={props.stashManager}
+                    handleNodeSelect={node => {
+                        if (selectNodeModal === 1) {
+                            setStart(node);
+                            setSelectNodeModal(null);
+                            markChanged();
+                        } else {
+                            setEnd(node);
+                            setSelectNodeModal(null);
+                            markChanged();
+                        }
+                    }}
+                    handleClose={() => setSelectNodeModal(null)}
+                    database={props.database}
+                />
+            )}
+
+            <form action={formAction}>
+                {!create && (
+                    <div className='columns'>
+                        <div className={'column ' + (db.hasElementId ? 'is-half-desktop' : '')}>
+                            <div className='field'>
+                                <label className='label' htmlFor='rel-identity'>
+                                    identity
+                                </label>
+                                <div className='control' onClick={copy}>
                                     <input
-                                        autoFocus
-                                        pattern='^[A-Za-z][A-Za-z_0-9]*$'
-                                        required
-                                        className='input'
+                                        id='rel-identity'
+                                        className='input is-copyable'
+                                        readOnly
                                         type='text'
-                                        value={this.state.typeModalInput}
-                                        onChange={this.handleTypeInput}
+                                        value={db.strInt(rel.identity)}
                                     />
                                 </div>
-                                <div className='control'>
-                                    <Button icon='fa-solid fa-check' type='submit' />
-                                </div>
                             </div>
-                        </form>
-                    </Modal>
-                )}
-
-                {this.state.selectNodeModal && (
-                    <SelectNodeModal
-                        stashManager={this.props.stashManager}
-                        handleNodeSelect={node => {
-                            if (this.state.selectNodeModal === 1) {
-                                this.setState(
-                                    {
-                                        start: node,
-                                        selectNodeModal: null,
-                                    },
-                                    this.markChanged
-                                );
-                            } else {
-                                this.setState(
-                                    {
-                                        end: node,
-                                        selectNodeModal: null,
-                                    },
-                                    this.markChanged
-                                );
-                            }
-                        }}
-                        handleClose={() => this.setState({ selectNodeModal: null })}
-                        database={this.props.database}
-                    />
-                )}
-
-                <form onSubmit={this.handleSubmit}>
-                    {!this.create && (
-                        <ClipboardContext.Consumer>
-                            {copy => (
-                                <div className='columns'>
-                                    <div className={'column ' + (db.hasElementId ? 'is-half-desktop' : '')}>
-                                        <div className='field'>
-                                            <label className='label' htmlFor='rel-identity'>
-                                                identity
-                                            </label>
-                                            <div className='control' onClick={copy}>
-                                                <input
-                                                    id='rel-identity'
-                                                    className='input is-copyable'
-                                                    readOnly
-                                                    type='text'
-                                                    value={db.strInt(this.state.rel.identity)}
-                                                />
-                                            </div>
-                                        </div>
+                        </div>
+                        {db.hasElementId && (
+                            <div className='column is-half-desktop'>
+                                <div className='field'>
+                                    <label className='label' htmlFor='rel-elementId'>
+                                        elementId
+                                    </label>
+                                    <div className='control' onClick={copy}>
+                                        <input
+                                            id='rel-elementId'
+                                            className='input is-copyable'
+                                            readOnly
+                                            type='text'
+                                            value={rel.elementId}
+                                        />
                                     </div>
-                                    {db.hasElementId && (
-                                        <div className='column is-half-desktop'>
-                                            <div className='field'>
-                                                <label className='label' htmlFor='rel-elementId'>
-                                                    elementId
-                                                </label>
-                                                <div className='control' onClick={copy}>
-                                                    <input
-                                                        id='rel-elementId'
-                                                        className='input is-copyable'
-                                                        readOnly
-                                                        type='text'
-                                                        value={this.state.rel.elementId}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
-                            )}
-                        </ClipboardContext.Consumer>
-                    )}
-
-                    <fieldset className='box'>
-                        <legend className='tag is-link is-light'>
-                            <i className='fa-solid fa-tags mr-2' />
-                            Type
-                        </legend>
-                        <div className='buttons tags'>
-                            {this.state.type && (
-                                <span className='tag is-info is-medium is-rounded'>
-                                    <a
-                                        className='has-text-white mr-1'
-                                        onClick={() =>
-                                            this.props.tabManager.add(
-                                                this.state.type,
-                                                'fa-regular fa-circle',
-                                                EPage.Type,
-                                                {
-                                                    type: this.state.type,
-                                                    database: this.props.database,
-                                                }
-                                            )
-                                        }
-                                    >
-                                        {this.state.type}
-                                    </a>
-                                </span>
-                            )}
-                            <Button icon='fa-solid fa-pen-clip' onClick={this.handleTypeOpenModal} />
-                        </div>
-                    </fieldset>
-
-                    <fieldset className='box'>
-                        <legend className='tag is-link is-light'>
-                            <i className='fa-solid fa-rectangle-list mr-2' />
-                            Properties
-                        </legend>
-                        <PropertiesForm
-                            properties={this.state.properties}
-                            updateProperties={properties => {
-                                this.setState({ properties: properties }, this.markChanged);
-                            }}
-                        />
-                    </fieldset>
-
-                    <fieldset className='box'>
-                        <legend className='tag is-link is-light'>
-                            <i className='fa-solid fa-circle-nodes mr-2' />
-                            Start node
-                        </legend>
-                        <div className='is-flex is-align-items-center is-justify-content-flex-start mb-3 mb-last-none'>
-                            {this.state.start && (
-                                <InlineNode node={this.state.start} tabManager={this.props.tabManager} />
-                            )}
-                            <span className='ml-auto'>
-                                <Button
-                                    icon='fa-solid fa-shuffle'
-                                    text='Change'
-                                    onClick={() => this.setState({ selectNodeModal: 1 })}
-                                />
-                            </span>
-                        </div>
-                    </fieldset>
-
-                    <fieldset className='box'>
-                        <legend className='tag is-link is-light'>
-                            <i className='fa-solid fa-circle-nodes mr-2' />
-                            End node
-                        </legend>
-                        <div className='is-flex is-align-items-center is-justify-content-flex-start mb-3 mb-last-none'>
-                            {this.state.end && <InlineNode node={this.state.end} tabManager={this.props.tabManager} />}
-                            <span className='ml-auto'>
-                                <Button
-                                    icon='fa-solid fa-shuffle'
-                                    text='Change'
-                                    onClick={() => this.setState({ selectNodeModal: 2 })}
-                                />
-                            </span>
-                        </div>
-                    </fieldset>
-
-                    <div className='mb-3' style={{ overflowY: 'auto' }}>
-                        <span className='icon-text is-flex-wrap-nowrap'>
-                            <span className='icon'>
-                                <i className='fa-solid fa-terminal' aria-hidden='true' />
-                            </span>
-                            <ClipboardContext.Consumer>
-                                {copy => (
-                                    <span className='is-family-code is-pre-wrap is-copyable' onClick={copy}>
-                                        {this.generateQuery(true).query}
-                                    </span>
-                                )}
-                            </ClipboardContext.Consumer>
-                        </span>
-                    </div>
-
-                    {this.state.error && (
-                        <div className='message is-danger'>
-                            <div className='message-header'>
-                                <p>Error</p>
-                                <button
-                                    className='delete'
-                                    aria-label='delete'
-                                    onClick={() => this.setState({ error: null })}
-                                />
                             </div>
-                            <div className='message-body'>{this.state.error}</div>
-                        </div>
-                    )}
+                        )}
+                    </div>
+                )}
 
-                    <div className='field'>
-                        <div className='control buttons is-justify-content-flex-end'>
-                            <Button color='is-success' type='submit' icon='fa-solid fa-check' text='Execute' />
-                            {!this.create && this.props.stashManager.button(this.state.rel, this.props.database)}
-                            {!this.create && (
-                                <Button icon='fa-solid fa-refresh' text='Reload' onClick={this.requestData} />
-                            )}
-                            <Button
-                                icon='fa-solid fa-xmark'
-                                text='Close'
-                                onClick={e => this.props.tabManager.close(this.props.tabId, e)}
-                            />
-                            {!this.create && (
-                                <Button
-                                    icon='fa-regular fa-trash-can'
-                                    color='is-danger'
-                                    text='Delete'
+                <fieldset className='box'>
+                    <legend className='tag is-link is-light'>
+                        <i className='fa-solid fa-tags mr-2' />
+                        Type
+                    </legend>
+                    <div className='buttons tags'>
+                        {type && (
+                            <span className='tag is-info is-medium is-rounded'>
+                                <a
+                                    className='has-text-white mr-1'
                                     onClick={() =>
-                                        this.setState({
-                                            delete: db.getId(this.state.rel),
+                                        props.tabManager.add(type, 'fa-regular fa-circle', EPage.Type, {
+                                            type: type,
+                                            database: props.database,
                                         })
                                     }
-                                />
-                            )}
-                        </div>
+                                >
+                                    {type}
+                                </a>
+                            </span>
+                        )}
+                        <Button icon='fa-solid fa-pen-clip' onClick={handleTypeOpenModal} />
                     </div>
-                </form>
-            </>
-        );
-    }
-}
+                </fieldset>
 
-class SelectNodeModal extends React.Component<
-    {
-        stashManager: IStashManager;
-        handleNodeSelect: (node: _Node) => void;
-        handleClose: () => void;
-        database: string;
-    },
-    {
-        id: string;
-        error: any;
-    }
-> {
-    state = {
-        id: '',
-        error: null,
-    };
+                <fieldset className='box'>
+                    <legend className='tag is-link is-light'>
+                        <i className='fa-solid fa-rectangle-list mr-2' />
+                        Properties
+                    </legend>
+                    <PropertiesForm
+                        properties={properties}
+                        updateProperties={properties => {
+                            setProperties(properties);
+                            markChanged();
+                        }}
+                    />
+                </fieldset>
 
-    handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        const isNum = /^\d+$/.test(this.state.id);
+                <fieldset className='box'>
+                    <legend className='tag is-link is-light'>
+                        <i className='fa-solid fa-circle-nodes mr-2' />
+                        Start node
+                    </legend>
+                    <div className='is-flex is-align-items-center is-justify-content-flex-start mb-3 mb-last-none'>
+                        {start && <InlineNode node={start} tabManager={props.tabManager} />}
+                        <span className='ml-auto'>
+                            <Button icon='fa-solid fa-shuffle' text='Change' onClick={() => setSelectNodeModal(1)} />
+                        </span>
+                    </div>
+                </fieldset>
 
-        db.query(
-            'MATCH (n) WHERE ' + (isNum ? 'id(n)' : 'elementId(n)') + ' = $id RETURN n',
-            {
-                id: isNum ? db.toInt(this.state.id) : this.state.id,
-            },
-            this.props.database
-        )
+                <fieldset className='box'>
+                    <legend className='tag is-link is-light'>
+                        <i className='fa-solid fa-circle-nodes mr-2' />
+                        End node
+                    </legend>
+                    <div className='is-flex is-align-items-center is-justify-content-flex-start mb-3 mb-last-none'>
+                        {end && <InlineNode node={end} tabManager={props.tabManager} />}
+                        <span className='ml-auto'>
+                            <Button icon='fa-solid fa-shuffle' text='Change' onClick={() => setSelectNodeModal(2)} />
+                        </span>
+                    </div>
+                </fieldset>
+
+                <div className='mb-3' style={{ overflowY: 'auto' }}>
+                    <span className='icon-text is-flex-wrap-nowrap'>
+                        <span className='icon'>
+                            <i className='fa-solid fa-terminal' aria-hidden='true' />
+                        </span>
+                        <span className='is-family-code is-pre-wrap is-copyable' onClick={copy}>
+                            {generateQuery(true).query}
+                        </span>
+                    </span>
+                </div>
+
+                {error && (
+                    <div className='message is-danger'>
+                        <div className='message-header'>
+                            <p>Error</p>
+                            <button className='delete' aria-label='delete' onClick={() => setError(null)} />
+                        </div>
+                        <div className='message-body'>{error}</div>
+                    </div>
+                )}
+
+                <div className='field'>
+                    <div className='control buttons is-justify-content-flex-end'>
+                        <Button
+                            color={'is-success ' + (formPending ? 'is-loading' : '')}
+                            type='submit'
+                            icon='fa-solid fa-check'
+                            text='Execute'
+                            disabled={formPending}
+                        />
+                        {!create && props.stashManager.button(rel, props.database)}
+                        {!create && (
+                            <Button
+                                icon='fa-solid fa-refresh'
+                                text='Reload'
+                                onClick={() => {
+                                    requestData();
+                                    props.tabManager.setChanged(props.tabId, false);
+                                }}
+                            />
+                        )}
+                        <Button
+                            icon='fa-solid fa-xmark'
+                            text='Close'
+                            onClick={e => props.tabManager.close(props.tabId, e)}
+                        />
+                        {!create && (
+                            <Button
+                                icon='fa-regular fa-trash-can'
+                                color='is-danger'
+                                text='Delete'
+                                onClick={() => setDeleteId(db.getId(rel))}
+                            />
+                        )}
+                    </div>
+                </div>
+            </form>
+        </>
+    );
+};
+
+const SelectNodeModal: React.FC<{
+    stashManager: IStashManager;
+    handleNodeSelect: (node: _Node) => void;
+    handleClose: () => void;
+    database: string;
+}> = ({ stashManager, handleNodeSelect, handleClose, database }) => {
+    const [id, setId] = useState<string>('');
+    const [error, setError] = useState<any>(null);
+
+    const handleSubmit = async (): Promise<void> => {
+        const isNum = /^\d+$/.test(id);
+
+        return db
+            .query(
+                'MATCH (n) WHERE ' + (isNum ? 'id(n)' : 'elementId(n)') + ' = $id RETURN n',
+                {
+                    id: isNum ? db.toInt(id) : id,
+                },
+                database
+            )
             .then(response => {
                 if (response.records.length > 0) {
-                    this.props.handleNodeSelect(response.records[0].get('n'));
-                    return true;
+                    handleNodeSelect(response.records[0].get('n'));
                 } else {
-                    this.setState({
-                        error: 'Node not found',
-                    });
-                    return false;
+                    setError('Node not found');
                 }
             })
             .catch(err => {
-                this.setState({
-                    error: '[' + err.name + '] ' + err.message,
-                });
+                setError('[' + err.name + '] ' + err.message);
             });
     };
 
-    render() {
-        return (
-            <Modal title='Select node' icon='fa-regular fa-circle' handleClose={this.props.handleClose} backdrop={true}>
-                <label className='label'>Stashed nodes</label>
-                {this.props.stashManager.get().filter(s => s.value instanceof _Node).length > 0 ? (
-                    <div className='buttons'>
-                        {this.props.stashManager
-                            .get()
-                            .filter(s => s.database === this.props.database && s.value instanceof _Node)
-                            .map(s => (
-                                <Button
-                                    key={s.id}
-                                    text={
-                                        ((s.value as _Node).labels.length > 0
-                                            ? ':' + (s.value as _Node).labels.join(':') + ' '
-                                            : '') +
-                                        '#' +
-                                        db.strInt(s.value.identity)
-                                    }
-                                    onClick={() => this.props.handleNodeSelect(s.value as _Node)}
-                                />
-                            ))}
-                    </div>
-                ) : (
-                    <div className='has-text-grey-light mb-3'>none</div>
-                )}
-                <form onSubmit={this.handleSubmit}>
-                    <label className='label'>Or enter id {db.hasElementId ? 'or elementId' : ''}</label>
-                    <div className='field is-grouped'>
-                        <div className='control is-expanded'>
-                            <input
-                                autoFocus
-                                required
-                                className='input'
-                                type='text'
-                                value={this.state.id}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                    const target = e.currentTarget;
-                                    this.setState({
-                                        id: target.value,
-                                        error: null,
-                                    });
-                                }}
+    const [, formAction, formPending] = useActionState(handleSubmit, null);
+
+    return (
+        <Modal title='Select node' icon='fa-regular fa-circle' handleClose={handleClose} backdrop={true}>
+            <label className='label'>Stashed nodes</label>
+            {stashManager.get().filter(s => s.value instanceof _Node).length > 0 ? (
+                <div className='buttons'>
+                    {stashManager
+                        .get()
+                        .filter(s => s.database === database && s.value instanceof _Node)
+                        .map(s => (
+                            <Button
+                                key={s.id}
+                                text={
+                                    ((s.value as _Node).labels.length > 0
+                                        ? ':' + (s.value as _Node).labels.join(':') + ' '
+                                        : '') +
+                                    '#' +
+                                    db.strInt(s.value.identity)
+                                }
+                                onClick={() => handleNodeSelect(s.value as _Node)}
                             />
-                        </div>
-                        <div className='control'>
-                            <Button icon='fa-solid fa-check' type='submit' />
-                        </div>
+                        ))}
+                </div>
+            ) : (
+                <div className='has-text-grey-light mb-3'>none</div>
+            )}
+            <form action={formAction}>
+                <label className='label'>Or enter id {db.hasElementId ? 'or elementId' : ''}</label>
+                <div className='field is-grouped'>
+                    <div className='control is-expanded'>
+                        <input
+                            autoFocus
+                            required
+                            className='input'
+                            type='text'
+                            value={id}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                const target = e.currentTarget;
+                                setId(target.value);
+                                setError(null);
+                            }}
+                        />
                     </div>
-                    {this.state.error && <div className='notification is-danger'>{this.state.error}</div>}
-                </form>
-            </Modal>
-        );
-    }
-}
+                    <div className='control'>
+                        <Button
+                            icon='fa-solid fa-check'
+                            type='submit'
+                            disabled={formPending}
+                            color={formPending ? 'is-loading' : ''}
+                        />
+                    </div>
+                </div>
+                {error && <div className='notification is-danger'>{error}</div>}
+            </form>
+        </Modal>
+    );
+};
 
 export default Relationship;

@@ -2,9 +2,10 @@ import { Driver, Integer, Node as _Node, QueryResult, Relationship as _Relations
 import { t_Log } from './utils/types';
 import { Ecosystem } from './utils/enums';
 import mixpanel from 'mixpanel-browser';
+import * as neo4j from 'neo4j-driver-lite';
 
 class Db {
-    private _neo4j = require('neo4j-driver-lite');
+    private _neo4j = neo4j;
     private _driver: Driver;
     private activedb: string = undefined;
     private availableDatabases: string[] = [];
@@ -40,36 +41,36 @@ class Db {
         return this.availableDatabases;
     }
 
-    setDriver = (driver: Driver, callback: (error?: Error) => void) => {
-        this._driver = driver;
+    setDriver = (driver: Driver): Promise<void> => {
+        return new Promise((resolve, reject) => {
+            this._driver = driver;
 
-        driver
-            .getServerInfo()
-            .then(r => {
-                this.ecosystem = /memgraph/i.test(r.agent) ? Ecosystem.Memgraph : Ecosystem.Neo4j;
-                this.hasElementId = this.ecosystem === Ecosystem.Neo4j && r['protocolVersion'] >= 5;
+            driver
+                .getServerInfo()
+                .then(r => {
+                    this.ecosystem = /memgraph/i.test(r.agent) ? Ecosystem.Memgraph : Ecosystem.Neo4j;
+                    this.hasElementId = this.ecosystem === Ecosystem.Neo4j && r['protocolVersion'] >= 5;
 
-                this.query('SHOW DATABASES')
-                    .then(response => {
-                        if (this.ecosystem === Ecosystem.Memgraph) {
-                            this.activedb = response.records[0].get('Name');
-                            this.availableDatabases = response.records.map(row => row.get('Name'));
-                        } else {
-                            this.activedb = response.records.find(row => row.get('default')).get('name');
-                            this.availableDatabases = response.records
-                                .filter(row => row.get('type') !== 'system')
-                                .map(row => row.get('name'));
-                        }
-                        const active = localStorage.getItem('activedb');
-                        if (active && this.activedb !== active && this.availableDatabases.includes(active))
-                            this.activedb = active;
-                        callback();
-                    })
-                    .catch(() => {
-                        callback();
-                    });
-            })
-            .catch(callback);
+                    this.query('SHOW DATABASES')
+                        .then(response => {
+                            if (this.ecosystem === Ecosystem.Memgraph) {
+                                this.activedb = response.records[0].get('Name');
+                                this.availableDatabases = response.records.map(row => row.get('Name'));
+                            } else {
+                                this.activedb = response.records.find(row => row.get('default')).get('name');
+                                this.availableDatabases = response.records
+                                    .filter(row => row.get('type') !== 'system')
+                                    .map(row => row.get('name'));
+                            }
+                            const active = localStorage.getItem('activedb');
+                            if (active && this.activedb !== active && this.availableDatabases.includes(active))
+                                this.activedb = active;
+                        })
+                        .catch(console.error)
+                        .finally(resolve);
+                })
+                .catch(reject);
+        });
     };
 
     get driver(): Driver {
@@ -112,7 +113,7 @@ class Db {
     };
 
     strInt = (id: Integer | string): string => {
-        return this.isInt(id) ? this._neo4j.integer.toString(id) : id;
+        return id instanceof Integer ? this._neo4j.integer.toString(id) : id;
     };
 
     fromInt = (val: Integer): number => {

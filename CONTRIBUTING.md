@@ -4,9 +4,9 @@ We appreciate your interest in contributing to cypherGUI! This document outlines
 
 **Prerequisites:**
 
--   Node.js and npm installed on your system.
--   Basic understanding of Git version control.
--   Familiarity with React.js and TypeScript.
+- Node.js and npm installed on your system.
+- Basic understanding of Git version control.
+- Familiarity with React.js and TypeScript.
 
 **Development Setup:**
 
@@ -34,10 +34,10 @@ This will start the development server and open the application in your default 
 
 **Code Style:**
 
--   We follow standard React code style conventions.
--   We use TypeScript for type checking and code clarity. (non-strict)
--   Bulma CSS framework is used for styling.
--   Prettier is used. `npm run format`
+- We follow standard React code style conventions.
+- We use TypeScript for type checking and code clarity. (non-strict)
+- Bulma CSS framework is used for styling.
+- Prettier is used. `npm run format`
 
 **Contributing Code:**
 
@@ -51,18 +51,18 @@ This will start the development server and open the application in your default 
 
 **Pull Request Review:**
 
--   We will review your pull request and provide feedback.
--   Address any comments or suggestions before merging your changes.
+- We will review your pull request and provide feedback.
+- Address any comments or suggestions before merging your changes.
 
 **Testing:**
 
--   Make sure to check project functionality in your browser.
--   Playwright is used. `npx playwright test`
--   Verify your change towards different ecosystems (Neo4j, Memgraph, etc.).
+- Make sure to check project functionality in your browser.
+- Playwright is used. `npx playwright test`
+- Verify your change towards different ecosystems (Neo4j, Memgraph, etc.).
 
 **Licensing:**
 
--   All contributions to cypherGUI are assumed to be licensed under the Apache-2.0 License (see LICENSE file).
+- All contributions to cypherGUI are assumed to be licensed under the Apache-2.0 License (see LICENSE file).
 
 **Thank You!**
 

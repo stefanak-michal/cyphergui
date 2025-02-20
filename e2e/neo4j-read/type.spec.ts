@@ -16,11 +16,14 @@ test.describe('Type tab', { tag: '@neo4j-read' }, () => {
     test('Table view pagination', async ({ page }) => {
         const text = await containerLocator(page, 'table tbody').textContent();
         await expect(containerLocator(page).getByLabel('Goto previous page')).toBeDisabled();
-        await containerLocator(page).getByLabel('Goto page 2').click();
+        await containerLocator(page).getByLabel('Goto page 2', { exact: true }).click();
         await expect(containerLocator(page).getByLabel('Goto previous page')).toBeEnabled();
         await expect(containerLocator(page, 'table tbody')).not.toHaveText(text);
         await containerLocator(page).getByLabel('Goto next page').click();
-        await expect(containerLocator(page).getByLabel('Goto page 3')).toHaveAttribute('aria-current', 'page');
+        await expect(containerLocator(page).getByLabel('Goto page 3', { exact: true })).toHaveAttribute(
+            'aria-current',
+            'page'
+        );
         await containerLocator(page).getByLabel('pagination').getByRole('button', { name: /\d+/ }).last().click();
         await expect(containerLocator(page).getByLabel('Goto next page')).toBeDisabled();
     });

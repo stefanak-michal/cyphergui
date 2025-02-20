@@ -16,6 +16,9 @@ jobs:
   neo4j-read:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.50.1-noble
+
     services:
       neo4j:
         image: neo4j:latest
@@ -25,8 +28,8 @@ jobs:
           - 7687:7687
           - 7474:7474
         options: >-
-          --name "neo4j_service"
           --health-cmd "wget --spider http://localhost:7474 || exit 1"
+
     strategy:
       fail-fast: false
       matrix:
@@ -34,46 +37,34 @@ jobs:
         shardTotal: [8]
 
     steps:
-      - name: Load movies dataset
-        run: |
-          docker exec neo4j_service wget -O /tmp/movies.cypher https://raw.githubusercontent.com/neo4j-graph-examples/movies/main/scripts/movies.cypher
-          docker exec neo4j_service cypher-shell -a bolt://localhost:7687 -u "neo4j" -p "nothing123" "MATCH (n) DETACH DELETE n"
-          docker exec neo4j_service cypher-shell -a bolt://localhost:7687 -u "neo4j" -p "nothing123" -f /tmp/movies.cypher
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: '22'
       - name: Install dependencies
         run: npm ci
+      - name: Load movies dataset
+        run: node e2e/load-dataset.js
+        env:
+          DB_HOSTNAME: 'bolt://neo4j:7687'
+          DB_USERNAME: 'neo4j'
+          DB_PASSWORD: 'nothing123'
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
       - name: Run Playwright tests (neo4j-read)
-        run: npx playwright test --grep @neo4j-read --reporter=blob --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+        run: npx playwright test --grep @neo4j-read --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
         env:
-          DB_HOSTNAME: 'bolt://localhost:7687'
+          DB_HOSTNAME: 'bolt://neo4j:7687'
           DB_USERNAME: 'neo4j'
           DB_PASSWORD: 'nothing123'
-      #      - uses: actions/upload-artifact@v4
-      #        if: ${{ failure() }}
-      #        with:
-      #          name: playwright-report
-      #          path: playwright-report/
-      #          retention-days: 1
-      - name: Upload blob report to GitHub Actions Artifacts
-        if: ${{ failure() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: blob-report-${{ matrix.shardIndex }}
-          path: blob-report
-          retention-days: 1
 
   build:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.44.0-jammy
+      image: mcr.microsoft.com/playwright:v1.50.1-noble
 
     services:
       neo4j:
@@ -109,7 +100,7 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.44.0-jammy
+      image: mcr.microsoft.com/playwright:v1.50.1-noble
 
     services:
       neo4j:
@@ -128,7 +119,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: '22'
       - name: Install dependencies
         run: npm ci
       - name: Install Playwright Browsers
@@ -144,7 +135,7 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.44.0-jammy
+      image: mcr.microsoft.com/playwright:v1.50.1-noble
 
     services:
       neo4j:
@@ -163,7 +154,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: '22'
       - name: Install dependencies
         run: npm ci
       - name: Install Playwright Browsers
@@ -179,7 +170,7 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.44.0-jammy
+      image: mcr.microsoft.com/playwright:v1.50.1-noble
 
     services:
       memgraph:
@@ -195,7 +186,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: '22'
       - name: Install dependencies
         run: npm ci
       - name: Install Playwright Browsers

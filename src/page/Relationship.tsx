@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, useActionState } from 'react';
+import { useState, useEffect, useContext, useActionState, useRef } from 'react';
 import { IPageProps, IStashManager } from '../utils/interfaces';
 import { Node as _Node, Relationship as _Relationship } from 'neo4j-driver-lite';
 import { EPage, EPropertyType } from '../utils/enums';
@@ -29,63 +29,75 @@ const Relationship: React.FC<IRelationshipProps> = props => {
     const [error, setError] = useState<string | null>(null);
     const [deleteId, setDeleteId] = useState<number | string | false>(false);
     const [selectNodeModal, setSelectNodeModal] = useState<number | null>(null);
-
+    const latestRequest = useRef<AbortController>(null);
     const copy = useContext(ClipboardContext);
     const create = props.id === null;
 
-    const requestData = () => {
+    const requestData = async () => {
         if (create) return;
-        db.query('MATCH (a)-[r]->(b) WHERE ' + db.fnId('r') + ' = $id RETURN r, a, b', { id: props.id }, props.database)
-            .then(response => {
-                if (response.records.length === 0) {
-                    props.tabManager.close(props.tabId);
-                    return;
-                }
 
-                const rel: _Relationship = response.records[0].get('r');
-                const formProps: t_FormProperty[] = [];
-                const t = new Date().getTime();
-                for (const key in rel.properties) {
-                    const type = resolvePropertyType(rel.properties[key]);
-                    if (type === EPropertyType.List) {
-                        const subtype = resolvePropertyType(rel.properties[key][0]);
-                        rel.properties[key] = (rel.properties[key] as []).map(p => {
-                            return {
-                                value: p,
-                                type: subtype,
-                                temp: getPropertyAsTemp(subtype, p),
-                            } as t_FormValue;
-                        });
-                    }
-                    if (type === EPropertyType.Map) {
-                        const mapAsFormValue: t_FormValue[] = [];
-                        for (const k in rel.properties[key] as object) {
-                            const subtype = resolvePropertyType(rel.properties[key][k]);
-                            mapAsFormValue.push({
-                                key: k,
-                                value: rel.properties[key][k],
-                                type: subtype,
-                                temp: getPropertyAsTemp(subtype, rel.properties[key][k]),
-                            } as t_FormValue);
-                        }
-                        rel.properties[key] = mapAsFormValue;
-                    }
-                    formProps.push({
-                        name: key + t,
-                        key: key,
-                        value: rel.properties[key],
-                        type: type,
-                        temp: getPropertyAsTemp(type, rel.properties[key]),
+        latestRequest.current?.abort();
+        const ac: AbortController = new AbortController();
+        latestRequest.current = ac;
+
+        try {
+            const response= await db.query('MATCH (a)-[r]->(b) WHERE ' + db.fnId('r') + ' = $id RETURN r, a, b', { id: props.id }, props.database);
+            
+            if (response.records.length === 0) {
+                props.tabManager.close(props.tabId);
+                return;
+            }
+
+            if (ac.signal.aborted) return;
+
+            const rel: _Relationship = response.records[0].get('r');
+            const formProps: t_FormProperty[] = [];
+            const t = new Date().getTime();
+            for (const key in rel.properties) {
+                const type = resolvePropertyType(rel.properties[key]);
+                if (type === EPropertyType.List) {
+                    const subtype = resolvePropertyType(rel.properties[key][0]);
+                    rel.properties[key] = (rel.properties[key] as []).map(p => {
+                        return {
+                            value: p,
+                            type: subtype,
+                            temp: getPropertyAsTemp(subtype, p),
+                        } as t_FormValue;
                     });
                 }
-                formProps.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
-                setRel(rel);
-                setStart(response.records[0].get('a') as _Node);
-                setEnd(response.records[0].get('b') as _Node);
-                setType(rel.type);
-                setProperties(formProps);
-            })
-            .catch(() => props.tabManager.close(props.tabId));
+                if (type === EPropertyType.Map) {
+                    const mapAsFormValue: t_FormValue[] = [];
+                    for (const k in rel.properties[key] as object) {
+                        const subtype = resolvePropertyType(rel.properties[key][k]);
+                        mapAsFormValue.push({
+                            key: k,
+                            value: rel.properties[key][k],
+                            type: subtype,
+                            temp: getPropertyAsTemp(subtype, rel.properties[key][k]),
+                        } as t_FormValue);
+                    }
+                    rel.properties[key] = mapAsFormValue;
+                }
+                formProps.push({
+                    name: key + t,
+                    key: key,
+                    value: rel.properties[key],
+                    type: type,
+                    temp: getPropertyAsTemp(type, rel.properties[key]),
+                });
+            }
+            formProps.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+
+            if (ac.signal.aborted) return;
+            
+            setRel(rel);
+            setStart(response.records[0].get('a') as _Node);
+            setEnd(response.records[0].get('b') as _Node);
+            setType(rel.type);
+            setProperties(formProps);
+        } catch (err) {
+            props.tabManager.close(props.tabId);
+        }
     };
 
     useEffect(() => {

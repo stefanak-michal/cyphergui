@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useRef } from 'react';
 import Pagination from '../components/Pagination';
 import TableSortIcon from '../components/TableSortIcon';
 import { Button, LabelButton } from '../components/form';
@@ -28,11 +28,15 @@ const Label: React.FC<ILabelProps> = props => {
     const [loading, setLoading] = useState(false);
     const [queryTabId, setQueryTabId] = useState<string | undefined>(undefined);
     const clipboardContext = useContext(ClipboardContext);
+    const latestRequest = useRef<AbortController>(null);
     let timeout: NodeJS.Timeout | null = null;
 
-    const requestData = () => {
-        const checkId = search.length ? /^\d+$/.test(search) : false;
+    const requestData = async () => {
+        latestRequest.current?.abort();
+        const ac: AbortController = new AbortController();
+        latestRequest.current = ac;
 
+        const checkId = search.length ? /^\d+$/.test(search) : false;
         let query: string = 'MATCH (' + (props.label.startsWith('*') ? 'n' : 'n:' + props.label) + ')';
         if (search.length) {
             switch (db.ecosystem) {
@@ -49,47 +53,45 @@ const Label: React.FC<ILabelProps> = props => {
             if (checkId) query += ' OR id(n) = $id';
         }
 
-        db.query(
-            query + ' RETURN COUNT(n) AS cnt',
-            {
-                search: search,
-                id: checkId ? db.toInt(search) : null,
-            },
-            props.database
-        )
-            .then(response1 => {
-                const cnt: number = db.fromInt(response1.records[0].get('cnt'));
-                const newPage: number = Math.min(page, Math.ceil(cnt / perPage));
+        try {
+            const response1 = await db.query(
+                query + ' RETURN COUNT(n) AS cnt',
+                {
+                    search: search,
+                    id: checkId ? db.toInt(search) : null,
+                },
+                props.database
+            );
 
-                db.query(
-                    query +
-                        ' RETURN n ' +
-                        (sort.length ? 'ORDER BY ' + sort.join(', ') : '') +
-                        ' SKIP $skip LIMIT $limit',
-                    {
-                        skip: db.toInt(Math.max(newPage - 1, 0) * perPage),
-                        limit: db.toInt(perPage),
-                        search: search,
-                        id: checkId ? db.toInt(search) : null,
-                    },
-                    props.database
-                )
-                    .then(response2 => {
-                        setRows(response2.records.map(record => record.get('n')));
-                        setTotal(cnt);
-                        setPage(Math.max(newPage, 1));
-                    })
-                    .catch(err => {
-                        setError('[' + err.name + '] ' + err.message);
-                    })
-                    .finally(() => {
-                        setLoading(false);
-                    });
-            })
-            .catch(err => {
-                setError('[' + err.name + '] ' + err.message);
-                setLoading(false);
-            });
+            if (ac.signal.aborted) return;
+
+            const cnt: number = db.fromInt(response1.records[0].get('cnt'));
+            const newPage: number = Math.min(page, Math.ceil(cnt / perPage));
+
+            const response2 = await db.query(
+                query +
+                    ' RETURN n ' +
+                    (sort.length ? 'ORDER BY ' + sort.join(', ') : '') +
+                    ' SKIP $skip LIMIT $limit',
+                {
+                    skip: db.toInt(Math.max(newPage - 1, 0) * perPage),
+                    limit: db.toInt(perPage),
+                    search: search,
+                    id: checkId ? db.toInt(search) : null,
+                },
+                props.database
+            );
+
+            if (ac.signal.aborted) return;
+
+            setRows(response2.records.map(record => record.get('n')));
+            setTotal(cnt);
+            setPage(Math.max(newPage, 1));
+            setLoading(false);
+        } catch (err) {
+            setError('[' + err.name + '] ' + err.message);
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -102,11 +104,12 @@ const Label: React.FC<ILabelProps> = props => {
 
     useEffect(() => {
         if (timeout !== null) clearTimeout(timeout);
+        if (!loading) return;
         timeout = setTimeout(() => {
             requestData();
             timeout = null;
         }, 300);
-    }, [search]);
+    }, [search, loading]);
 
     const handleChangePage = (newPage: number) => {
         setPage(newPage);

@@ -46,7 +46,7 @@
     "typescript-eslint": "^8"
   },
   "scripts": {
-    "start": "parcel public/index.html",
+    "start": "parcel public/index.html --no-cache",
     "build": "parcel build public/index.html --dist-dir build --no-source-maps --no-cache --no-scope-hoist --public-url ./",
     "deploy": "gh-pages -d build",
     "format": "npx prettier . --write",

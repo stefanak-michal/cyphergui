@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button, LabelButton, TypeButton } from '../components/form';
 import { EPage } from '../utils/enums';
 import { IPageProps } from '../utils/interfaces';
@@ -9,8 +9,13 @@ const Start: React.FC<IPageProps> = props => {
     const [types, setTypes] = useState<string[]>([]);
     const [serverInfo, setServerInfo] = useState<object>({});
     const [error, setError] = useState<string | null>(null);
+    const latestRequest = useRef<AbortController>(null);
 
     const requestData = () => {
+        latestRequest.current?.abort();
+        const ac: AbortController = new AbortController();
+        latestRequest.current = ac;
+
         Promise.all([
             db.query(
                 'MATCH (n) WITH DISTINCT labels(n) AS ll UNWIND ll AS l RETURN collect(DISTINCT l) AS c',
@@ -21,6 +26,7 @@ const Start: React.FC<IPageProps> = props => {
             db.driver.getServerInfo(),
         ])
             .then(responses => {
+                if (ac.signal.aborted) return;
                 setLabels(responses[0].records[0].get('c'));
                 setTypes(responses[1].records[0].get('c'));
                 setServerInfo(responses[2]);

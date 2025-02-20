@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useRef } from 'react';
 import Pagination from '../components/Pagination';
 import { Relationship as Neo4jRelationship } from 'neo4j-driver-lite';
 import { Button, TypeButton } from '../components/form';
@@ -28,9 +28,14 @@ const Type: React.FC<ITypeProps> = props => {
     const [loading, setLoading] = useState(false);
     const [queryTabId, setQueryTabId] = useState<string | undefined>(undefined);
     const clipboardContext = useContext(ClipboardContext);
+    const latestRequest = useRef<AbortController>(null);
     let timeout: NodeJS.Timeout | null = null;
 
-    const requestData = () => {
+    const requestData = async () => {
+        latestRequest.current?.abort();
+        const ac: AbortController = new AbortController();
+        latestRequest.current = ac;
+
         const checkId = search.length ? /^\d+$/.test(search) : false;
         let query = 'MATCH (a)-[' + (props.type.startsWith('*') ? 'r' : 'r:' + props.type) + ']->(b)';
         if (search.length) {
@@ -48,47 +53,45 @@ const Type: React.FC<ITypeProps> = props => {
             if (checkId) query += ' OR id(r) = $id OR id(a) = $id OR id(b) = $id';
         }
 
-        db.query(
-            query + ' RETURN COUNT(r) AS cnt',
-            {
-                search: search,
-                id: checkId ? db.toInt(search) : null,
-            },
-            props.database
-        )
-            .then(response1 => {
-                const cnt = db.fromInt(response1.records[0].get('cnt'));
-                const newPage = Math.min(page, Math.ceil(cnt / perPage));
+        try {
+            const response1 = await db.query(
+                query + ' RETURN COUNT(r) AS cnt',
+                {
+                    search: search,
+                    id: checkId ? db.toInt(search) : null,
+                },
+                props.database
+            );
 
-                db.query(
-                    query +
-                        ' RETURN r ' +
-                        (sort.length ? 'ORDER BY ' + sort.join(', ') : '') +
-                        ' SKIP $skip LIMIT $limit',
-                    {
-                        skip: db.toInt(Math.max(newPage - 1, 0) * perPage),
-                        limit: db.toInt(perPage),
-                        search: search,
-                        id: checkId ? db.toInt(search) : null,
-                    },
-                    props.database
-                )
-                    .then(response2 => {
-                        setRows(response2.records.map(record => record.get('r')));
-                        setTotal(cnt);
-                        setPage(Math.max(newPage, 1));
-                    })
-                    .catch(err => {
-                        setError('[' + err.name + '] ' + err.message);
-                    })
-                    .finally(() => {
-                        setLoading(false);
-                    });
-            })
-            .catch(err => {
-                setError('[' + err.name + '] ' + err.message);
-                setLoading(false);
-            });
+            if (ac.signal.aborted) return;
+
+            const cnt = db.fromInt(response1.records[0].get('cnt'));
+            const newPage = Math.min(page, Math.ceil(cnt / perPage));
+
+            const response2 = await db.query(
+                query +
+                    ' RETURN r ' +
+                    (sort.length ? 'ORDER BY ' + sort.join(', ') : '') +
+                    ' SKIP $skip LIMIT $limit',
+                {
+                    skip: db.toInt(Math.max(newPage - 1, 0) * perPage),
+                    limit: db.toInt(perPage),
+                    search: search,
+                    id: checkId ? db.toInt(search) : null,
+                },
+                props.database
+            );
+
+            if (ac.signal.aborted) return;
+
+            setRows(response2.records.map(record => record.get('r')));
+            setTotal(cnt);
+            setPage(Math.max(newPage, 1));
+            setLoading(false);
+        } catch (err) {
+            setError('[' + err.name + '] ' + err.message);
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -101,11 +104,12 @@ const Type: React.FC<ITypeProps> = props => {
 
     useEffect(() => {
         if (timeout !== null) clearTimeout(timeout);
+        if (!loading) return;
         timeout = setTimeout(() => {
             requestData();
             timeout = null;
         }, 300);
-    }, [search]);
+    }, [search, loading]);
 
     const handleChangePage = (newPage: number) => {
         setPage(newPage);

@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from 'react';
+import { useCallback, useLayoutEffect, useRef } from 'react';
 import { EPage } from '../utils/enums';
 import { ITabManager } from '../utils/interfaces';
 
@@ -59,7 +59,7 @@ export const Textarea: React.FC<{
         highlightText();
     }, [value]);
 
-    const resize = () => {
+    const resize = useCallback(() => {
         if (autoresize && ref.current) {
             ref.current.style.height = '0px';
             const computed = window.getComputedStyle(ref.current);
@@ -69,9 +69,9 @@ export const Textarea: React.FC<{
                 Math.ceil(parseFloat(computed.getPropertyValue('border-bottom-width'))) +
                 'px';
         }
-    };
+    }, [autoresize]);
 
-    const highlightText = () => {
+    const highlightText = useCallback(() => {
         if (highlight && ref.current && highlightRef.current) {
             let text = ref.current.value;
             for (const color in highlight) {
@@ -84,7 +84,7 @@ export const Textarea: React.FC<{
             }
             highlightRef.current.innerHTML = text;
         }
-    };
+    }, [highlight]);
 
     return (
         <>

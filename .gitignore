@@ -21,7 +21,8 @@ yarn-debug.log*
 yarn-error.log*
 
 /.idea
-/playwright-report/
-/test-results/
+/playwright-report
+/blob-report
+/test-results
 /.vscode
 /.parcel-cache

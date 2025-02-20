@@ -38,16 +38,18 @@ jobs:
         shardTotal: [8]
 
     steps:
+      - name: Set up Neo4j apt repository
+        run: |
+          sudo add-apt-repository universe
+          wget -O - https://debian.neo4j.com/neotechnology.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/neotechnology.gpg
+          echo 'deb [signed-by=/etc/apt/keyrings/neotechnology.gpg] https://debian.neo4j.com stable latest' | sudo tee -a /etc/apt/sources.list.d/neo4j.list
+          sudo apt-get update
+      - name: Install Cypher Shell
+        run: sudo apt-get install -y cypher-shell
       - name: Load movies dataset
         run: |
-          curl -X POST http://localhost:7474/db/neo4j/tx/commit \
-            -H "Accept: application/json;charset=UTF-8" \
-            -H "Content-Type: application/json" \
-            -u neo4j:nothing123 \
-            -d '{"statements":[ \
-              { "statement": "MATCH (n) DETACH DELETE n" }, \
-              { "statement": "LOAD CSV FROM \"https://raw.githubusercontent.com/neo4j-graph-examples/movies/main/scripts/movies.cypher\"" } \
-              ]}'
+          wget -O /tmp/movies.cypher https://raw.githubusercontent.com/neo4j-graph-examples/movies/main/scripts/movies.cypher
+          cypher-shell -a bolt://localhost:7687 -u "neo4j" -p "nothing123" -f /tmp/movies.cypher
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup node

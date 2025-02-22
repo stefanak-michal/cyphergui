@@ -44,6 +44,6 @@ You can access this project on GitHub pages at url [https://stefanak-michal.gith
 
 ## Local instance
 
-You can either install node.js, clone the repository, run `npm install` and `npm start`.
+You can either install node.js, clone the repository, run `npm install` and `npm run start`.
 
 Or you can download branch [gh-pages](https://github.com/stefanak-michal/cyphergui/tree/gh-pages), unpack it and open `index.html` in your favorite browser.

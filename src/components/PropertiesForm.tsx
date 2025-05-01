@@ -522,7 +522,7 @@ const PropertyIntegerInput: React.FC<PropertyInputProps> = ({ name, temp, onValu
                 name={name}
                 className='input'
                 type='number'
-                value={temp}
+                value={temp || '0'}
                 step='1'
                 autoFocus={focus}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -549,7 +549,7 @@ const PropertyFloatInput: React.FC<PropertyInputProps> = ({ name, temp, onValueC
                 name={name}
                 className='input'
                 type='number'
-                value={temp}
+                value={temp || '0'}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     onValueChange(name, e.currentTarget.valueAsNumber || null, e.currentTarget.value)
                 }

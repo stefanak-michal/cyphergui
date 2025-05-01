@@ -172,7 +172,7 @@ const Query: React.FC<IQueryProps> = props => {
                 <div className='field'>
                     <div className='buttons is-justify-content-flex-end'>
                         <Button
-                            color={'is-success ' + ((isPending || formPending) ? 'is-loading' : '')}
+                            color={'is-success ' + (isPending || formPending ? 'is-loading' : '')}
                             type='submit'
                             icon='fa-solid fa-check'
                             text='Execute'

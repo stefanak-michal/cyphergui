@@ -2,8 +2,6 @@ import { useState, useEffect, useContext, useActionState } from 'react';
 import { Button, Checkbox } from './components/form';
 import db from './db';
 import { Driver } from 'neo4j-driver-lite';
-import logo from './assets/logo.png';
-import logo_dark from './assets/logo_dark.png';
 import { ThemeSwitchContext } from './utils/contexts';
 
 interface ILoginProps {
@@ -107,13 +105,16 @@ const Login: React.FC<ILoginProps> = ({ handleLogin, darkMode }) => {
         return false;
     };
 
+    const logo = new URL('./assets/logo.png', import.meta.url);
+    const logo_dark = new URL('./assets/logo_dark.png', import.meta.url);
+
     document.title = 'Login / cypherGUI';
     return (
         <section className='mt-5 container is-fluid'>
             <div className='columns'>
                 <div className='column is-6-desktop is-offset-3-desktop'>
                     <h1 className='has-text-centered'>
-                        <img src={darkMode ? logo_dark : logo} alt='cypherGUI' />
+                        <img src={(darkMode ? logo_dark : logo).toString()} alt='cypherGUI' />
                     </h1>
 
                     <form id='login' className='mt-6 box' action={formAction}>

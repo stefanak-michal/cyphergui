@@ -3,8 +3,6 @@ import db from '../db';
 import { Button } from '../components/form';
 import { ITabManager } from '../utils/interfaces';
 import { EPage } from '../utils/enums';
-import logo from '../assets/logo_small.png';
-import logo_dark from '../assets/logo_small_dark.png';
 
 interface INavbarProps {
     handleLogout: () => void;
@@ -31,11 +29,14 @@ const Navbar: React.FC<INavbarProps> = ({ handleLogout, handleOpenSettings, tabM
         setOpen(!open);
     };
 
+    const logo = new URL('../assets/logo.png', import.meta.url);
+    const logo_dark = new URL('../assets/logo_dark.png', import.meta.url);
+
     return (
         <nav className='navbar' role='navigation' aria-label='main navigation'>
             <div className='navbar-brand'>
                 <span className='navbar-item'>
-                    <img src={darkMode ? logo_dark : logo} alt='cypherGUI' />
+                    <img src={(darkMode ? logo_dark : logo).toString()} alt='cypherGUI' />
                 </span>
 
                 <a

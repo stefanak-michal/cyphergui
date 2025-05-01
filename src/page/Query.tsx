@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, useActionState } from 'react';
+import { useState, useEffect, useContext, useActionState, useTransition } from 'react';
 import { Button, Textarea } from '../components/form';
 import { IPageProps } from '../utils/interfaces';
 import db from '../db';
@@ -82,6 +82,7 @@ const Query: React.FC<IQueryProps> = props => {
     };
 
     const [, formAction, formPending] = useActionState(handleSubmit, null);
+    const [isPending, startTransition] = useTransition();
 
     const changeView = (i: EQueryView) => {
         setView(i);
@@ -114,7 +115,11 @@ const Query: React.FC<IQueryProps> = props => {
                             color='is-family-code is-pre-wrap'
                             focus={true}
                             onKeyDown={(e: React.KeyboardEvent) => {
-                                if (e.key === 'Enter' && e.ctrlKey) formAction();
+                                if (e.key === 'Enter' && e.ctrlKey) {
+                                    startTransition(() => {
+                                        formAction();
+                                    });
+                                }
                             }}
                             highlight={{
                                 mark: [
@@ -167,11 +172,11 @@ const Query: React.FC<IQueryProps> = props => {
                 <div className='field'>
                     <div className='buttons is-justify-content-flex-end'>
                         <Button
-                            color={'is-success ' + (formPending ? 'is-loading' : '')}
+                            color={'is-success ' + ((isPending || formPending) ? 'is-loading' : '')}
                             type='submit'
                             icon='fa-solid fa-check'
                             text='Execute'
-                            disabled={formPending}
+                            disabled={isPending || formPending}
                         />
                         <a
                             href={

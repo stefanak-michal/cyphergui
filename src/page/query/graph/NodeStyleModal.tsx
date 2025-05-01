@@ -2,7 +2,6 @@ import { INodeStyle, NodeShapeType } from '@memgraph/orb';
 import { useEffect, useState } from 'react';
 import Modal from '../../../components/Modal';
 import { Button } from '../../../components/form';
-import hexagon_icon from '../../../assets/hexagon_icon.png';
 
 interface IEdgeStyleModalProps {
     label: string;
@@ -26,6 +25,8 @@ const NodeStyleModal: React.FC<IEdgeStyleModalProps> = ({
             setDefaultColor(prev => ({ ...prev, [label]: currentSettings.color as string }));
         }
     }, [label, currentSettings.color, defaultColor]);
+
+    const hexagon_icon = new URL('../../../assets/hexagon_icon.png', import.meta.url);
 
     return (
         <Modal
@@ -145,7 +146,7 @@ const NodeStyleModal: React.FC<IEdgeStyleModalProps> = ({
                         onClick={() => handleStyleSet(label, 'shape', NodeShapeType.HEXAGON)}
                     >
                         <span className='icon'>
-                            <img src={hexagon_icon} alt='hexagon' />
+                            <img src={hexagon_icon.toString()} alt='hexagon' />
                         </span>
                     </Button>
                 </div>

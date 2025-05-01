@@ -3,7 +3,6 @@ import { IEdgeBase, IEdgeStyle, INodeBase, INodeStyle, NodeShapeType, Orb, OrbEv
 import db from '../../db';
 import { Node as _Node, Record, Relationship as _Relationship } from 'neo4j-driver-lite';
 import { Button } from '../../components/form';
-import orb_logo from '../../assets/orb_logo.png';
 import { IStashManager, ITabManager } from '../../utils/interfaces';
 import { settings } from '../../layout/Settings';
 import NodeStyleModal from './graph/NodeStyleModal';
@@ -320,6 +319,8 @@ const Graph: React.FC<IGraphProps> = ({ rows, tabManager, stashManager, database
         }
     };
 
+    const orb_logo = new URL('../../assets/orb_logo.png', import.meta.url);
+
     return (
         <div className='graph-container is-flex' ref={graphContainer}>
             <div className={'graph ' + (sidebarVisible > 0 ? 'sidebar-visible' : '')} ref={graphElement}>
@@ -389,7 +390,7 @@ const Graph: React.FC<IGraphProps> = ({ rows, tabManager, stashManager, database
             <div className='brand is-flex is-align-items-center'>
                 <span className='is-size-7'>Powered by</span>
                 <a href='https://github.com/memgraph/orb' target='_blank' className='ml-1'>
-                    <img src={orb_logo} alt='ORB' />
+                    <img src={orb_logo.toString()} alt='ORB' />
                 </a>
             </div>
 

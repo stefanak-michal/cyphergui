@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.50.1-noble
+      image: mcr.microsoft.com/playwright:v1.52.0-noble
 
     services:
       neo4j:
@@ -64,7 +64,7 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.50.1-noble
+      image: mcr.microsoft.com/playwright:v1.52.0-noble
 
     services:
       neo4j:
@@ -100,7 +100,7 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.50.1-noble
+      image: mcr.microsoft.com/playwright:v1.52.0-noble
 
     services:
       neo4j:
@@ -135,7 +135,7 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.50.1-noble
+      image: mcr.microsoft.com/playwright:v1.52.0-noble
 
     services:
       neo4j:
@@ -170,7 +170,7 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.50.1-noble
+      image: mcr.microsoft.com/playwright:v1.52.0-noble
 
     services:
       memgraph:

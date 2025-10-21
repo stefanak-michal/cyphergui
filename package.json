@@ -37,7 +37,7 @@
     "@parcel/packager-raw-url": "^2.13.3",
     "@parcel/transformer-sass": "^2.13.3",
     "@parcel/transformer-webmanifest": "^2.13.3",
-    "@playwright/test": "^1.47.1",
+    "@playwright/test": "^1.56.1",
     "dotenv": "^16.4.7",
     "eslint": "^9",
     "parcel": "^2.13.3",

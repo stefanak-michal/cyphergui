@@ -39,6 +39,8 @@ module.exports = {
         new HtmlWebpackPlugin({
             template: './public/index.html',
             filename: 'index.html',
+            inject: 'body',
+            scriptLoading: 'defer',
         }),
         new CopyWebpackPlugin({
             patterns: [{ from: 'public/*.{ico,svg,json,txt}', to: '[name][ext]' }],

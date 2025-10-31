@@ -40,7 +40,7 @@
     "@parcel/packager-raw-url": "^2.13.3",
     "@parcel/transformer-sass": "^2.13.3",
     "@parcel/transformer-webmanifest": "^2.13.3",
-    "@playwright/test": "^1.47.1",
+    "@playwright/test": "^1.56.1",
     "babel-loader": "^10.0.0",
     "copy-webpack-plugin": "^13.0.1",
     "css-loader": "^7.1.2",

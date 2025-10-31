@@ -1,6 +1,6 @@
 {
   "name": "@stefanak-michal/cyphergui",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": false,
   "homepage": ".",
   "license": "Apache-2.0",
@@ -33,39 +33,40 @@
     "typescript": "^5"
   },
   "devDependencies": {
+    "@babel/core": "^7.28.5",
+    "@babel/preset-env": "^7.28.5",
+    "@babel/preset-react": "^7.28.5",
     "@eslint/js": "^9.10.0",
     "@parcel/packager-raw-url": "^2.13.3",
     "@parcel/transformer-sass": "^2.13.3",
     "@parcel/transformer-webmanifest": "^2.13.3",
     "@playwright/test": "^1.56.1",
+    "babel-loader": "^10.0.0",
+    "copy-webpack-plugin": "^13.0.1",
+    "css-loader": "^7.1.2",
     "dotenv": "^16.4.7",
     "eslint": "^9",
-    "parcel": "^2.13.3",
+    "html-webpack-plugin": "^5.6.4",
     "prettier": "^3.3.3",
     "process": "^0.11.10",
-    "typescript-eslint": "^8"
+    "sass-loader": "^16.0.6",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.4",
+    "typescript-eslint": "^8",
+    "webpack": "^5.102.1",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.2"
   },
   "scripts": {
-    "start": "parcel public/index.html --no-cache",
-    "build": "parcel build public/index.html --dist-dir build --no-source-maps --no-cache --no-scope-hoist --public-url ./",
+    "start": "webpack serve --mode development",
+    "build": "webpack --mode production",
     "deploy": "gh-pages -d build",
     "format": "npx prettier . --write",
     "prettier-check": "npx prettier . --check",
     "lint": "npx eslint src",
     "playwright:ui": "npx playwright test --ui"
   },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
+  "browserslist": "> 0.5%, last 2 versions, not dead",
   "prettier": {
     "trailingComma": "es5",
     "tabWidth": 4,

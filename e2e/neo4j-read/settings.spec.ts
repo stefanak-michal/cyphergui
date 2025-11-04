@@ -34,7 +34,7 @@ test.describe('Settings', { tag: '@neo4j-read' }, () => {
         // execute and check
         await containerLocator(page).getByRole('button', { name: 'Execute' }).click();
         await checkNotification(page, 'Node updated');
-        await checkActiveTab(page, /Node#\d+/);
+        await checkActiveTab(page, /:Person#\d+/);
     });
 
     test('Force naming recommendations', async ({ page }) => {

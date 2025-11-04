@@ -333,7 +333,7 @@ const Label: React.FC<ILabelProps> = props => {
                                         onClick={() =>
                                             props.tabManager.add(
                                                 {
-                                                    prefix: 'Node',
+                                                    prefix: row.labels.length > 0 ? ':' + row.labels.join(':') : 'Node',
                                                     i: row.identity,
                                                 },
                                                 'fa-solid fa-pen-to-square',

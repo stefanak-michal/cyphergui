@@ -26,10 +26,18 @@ const InlineNode: React.FC<{
             ))}
             <Button
                 onClick={() =>
-                    tabManager.add({ prefix: 'Node', i: node.identity }, 'fa-solid fa-pen-to-square', EPage.Node, {
-                        id: db.getId(node),
-                        database: database || db.database,
-                    })
+                    tabManager.add(
+                        {
+                            prefix: node.labels.length > 0 ? ':' + node.labels.join(':') : 'Node',
+                            i: node.identity,
+                        },
+                        'fa-solid fa-pen-to-square',
+                        EPage.Node,
+                        {
+                            id: db.getId(node),
+                            database: database || db.database,
+                        }
+                    )
                 }
                 icon='fa-solid fa-pen-clip'
                 color={small ? 'is-small' : ''}

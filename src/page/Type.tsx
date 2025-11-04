@@ -350,7 +350,7 @@ const Type: React.FC<ITypeProps> = props => {
                                         onClick={() =>
                                             props.tabManager.add(
                                                 {
-                                                    prefix: 'Rel',
+                                                    prefix: row.type || 'Rel',
                                                     i: row.identity,
                                                 },
                                                 'fa-regular fa-pen-to-square',

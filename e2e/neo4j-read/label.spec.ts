@@ -68,7 +68,7 @@ test.describe('Label tab', { tag: '@neo4j-read' }, () => {
             .getByRole('row', { name: 'Keanu Reeves' })
             .getByRole('button', { name: /#\d+/ })
             .click();
-        await checkActiveTab(page, /Node#\d+/);
+        await checkActiveTab(page, /:Person#\d+/);
     });
 
     test('Add to stash btn', async ({ page }) => {

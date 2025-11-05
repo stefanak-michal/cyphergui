@@ -207,7 +207,10 @@ const Node: React.FC<INodeProps> = props => {
                 if (create) {
                     const node = response.records[0].get('n');
                     props.tabManager.add(
-                        { prefix: 'Node', i: node.identity },
+                        {
+                            prefix: node.labels.length > 0 ? ':' + node.labels.join(':') : 'Node',
+                            i: node.identity,
+                        },
                         'fa-solid fa-pen-to-square',
                         EPage.Node,
                         {

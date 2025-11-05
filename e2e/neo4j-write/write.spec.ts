@@ -179,7 +179,7 @@ test.describe('Write flow', { tag: '@neo4j-write' }, () => {
         await test.step('Edit node 1', async () => {
             // we should be on label Test tab
             await containerLocator(page, 'table tbody tr').first().getByRole('button', { name: /#\d+/ }).click();
-            await checkActiveTab(page, /Node#\d+/);
+            await checkActiveTab(page, /:Test#\d+/);
             // edit some properties
             await propertyLocatorByKey(page, 'key_int').getByPlaceholder('Value').fill('54352');
             await propertyLocatorByKey(page, 'key_bool').locator('.switch span').click();
@@ -272,7 +272,7 @@ test.describe('Write flow', { tag: '@neo4j-write' }, () => {
         await test.step('Update relationship 1', async () => {
             // we should be on type HAS tab
             await containerLocator(page).getByRole('button', { name: /#\d+/ }).first().click();
-            await checkActiveTab(page, /Rel#\d+/);
+            await checkActiveTab(page, /:HAS#\d+/);
             // edit some properties
             await propertyLocatorByKey(page, 'key_int').getByPlaceholder('Value').fill('54352');
             await propertyLocatorByKey(page, 'key_bool').locator('.switch span').click();

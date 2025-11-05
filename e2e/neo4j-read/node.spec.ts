@@ -22,7 +22,7 @@ test.describe('Node tab', { tag: '@neo4j-read' }, () => {
         }).toPass();
 
         await containerLocator(page).getByRole('button', { name: /#\d+/ }).click();
-        await checkActiveTab(page, /Node#\d+/);
+        await checkActiveTab(page, /:Person#\d+/);
     });
 
     test('Visual check', async ({ page }) => {
@@ -189,7 +189,7 @@ test.describe('Node tab', { tag: '@neo4j-read' }, () => {
                 .getByRole('button', { name: /#\d+/ })
                 .first()
                 .click();
-            await checkActiveTab(page, /Rel#\d+/);
+            await checkActiveTab(page, /:ACTED_IN#\d+/);
         });
 
         test('Rel properties click', async ({ page }) => {
@@ -218,7 +218,7 @@ test.describe('Node tab', { tag: '@neo4j-read' }, () => {
                 .getByRole('button', { name: /#\d+/ })
                 .nth(1)
                 .click();
-            await checkActiveTab(page, /Node#\d+/);
+            await checkActiveTab(page, /:Movie#\d+/);
         });
 
         test('Node properties click', async ({ page }) => {
@@ -252,7 +252,7 @@ test.describe('Node tab', { tag: '@neo4j-read' }, () => {
         test('Cancel', async ({ page }) => {
             await modalLocator(page).getByRole('button', { name: "Don't close" }).click();
             await expect(modalLocator(page)).toHaveCount(0);
-            await checkActiveTab(page, /Node#\d+/);
+            await checkActiveTab(page, /:Person#\d+/);
         });
     });
 });

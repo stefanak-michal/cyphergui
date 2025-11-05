@@ -100,6 +100,7 @@ const SidebarContent: React.FC<ISidebarProps> = props => {
     }
 
     if (props.detail instanceof _Node) {
+        const node = props.detail as _Node;
         return (
             <>
                 <div className='buttons mb-3'>
@@ -107,32 +108,30 @@ const SidebarContent: React.FC<ISidebarProps> = props => {
                         onClick={() =>
                             props.tabManager.add(
                                 {
-                                    prefix: 'Node',
-                                    i: props.detail.identity,
+                                    prefix: node.labels.length > 0 ? ':' + node.labels.join(':') : 'Node',
+                                    i: node.identity,
                                 },
                                 'fa-solid fa-pen-to-square',
                                 EPage.Node,
                                 {
-                                    id: db.getId(props.detail),
+                                    id: db.getId(node),
                                     database: props.database,
                                 }
                             )
                         }
                         icon='fa-solid fa-pen-clip'
-                        text={'#' + db.strInt(props.detail.identity)}
+                        text={'#' + db.strInt(node.identity)}
                     />
-                    {props.stashManager.button(props.detail, props.database)}
+                    {props.stashManager.button(node, props.database)}
                 </div>
 
-                <div className='buttons mb-0'>
-                    {(props.detail as _Node).labels.map(label => labelButton(label, false))}
-                </div>
+                <div className='buttons mb-0'>{node.labels.map(label => labelButton(label, false))}</div>
 
                 {db.hasElementId && (
                     <>
                         <p className='subtitle is-5 mt-3 mb-1'>ElementId</p>
                         <span className='is-copyable' onClick={copy}>
-                            {props.detail.elementId}
+                            {node.elementId}
                         </span>
                     </>
                 )}
@@ -146,11 +145,11 @@ const SidebarContent: React.FC<ISidebarProps> = props => {
                         </tr>
                     </thead>
                     <tbody>
-                        {Object.keys(props.detail.properties).map(key => (
+                        {Object.keys(node.properties).map(key => (
                             <tr key={key}>
                                 <td>{key}</td>
                                 <td className='is-copyable' onClick={copy}>
-                                    {printProperty(props.detail.properties[key])}
+                                    {printProperty(node.properties[key])}
                                 </td>
                             </tr>
                         ))}
@@ -161,6 +160,7 @@ const SidebarContent: React.FC<ISidebarProps> = props => {
     }
 
     if (props.detail instanceof _Relationship) {
+        const rel = props.detail as _Relationship;
         return (
             <>
                 <div className='buttons mb-3'>
@@ -168,30 +168,30 @@ const SidebarContent: React.FC<ISidebarProps> = props => {
                         onClick={() =>
                             props.tabManager.add(
                                 {
-                                    prefix: 'Rel',
-                                    i: props.detail.identity,
+                                    prefix: rel.type ? ':' + rel.type : 'Rel',
+                                    i: rel.identity,
                                 },
                                 'fa-solid fa-pen-to-square',
                                 EPage.Rel,
                                 {
-                                    id: db.getId(props.detail),
+                                    id: db.getId(rel),
                                     database: props.database,
                                 }
                             )
                         }
                         icon='fa-solid fa-pen-clip'
-                        text={'#' + db.strInt(props.detail.identity)}
+                        text={'#' + db.strInt(rel.identity)}
                     />
-                    {props.stashManager.button(props.detail, props.database)}
+                    {props.stashManager.button(rel, props.database)}
                 </div>
 
-                <div className='buttons mb-0'>{typeButton((props.detail as _Relationship).type, false)}</div>
+                <div className='buttons mb-0'>{typeButton(rel.type, false)}</div>
 
                 {db.hasElementId && (
                     <>
                         <p className='subtitle is-5 mt-3 mb-1'>ElementId</p>
                         <span className='is-copyable' onClick={copy}>
-                            {props.detail.elementId}
+                            {rel.elementId}
                         </span>
                     </>
                 )}
@@ -205,11 +205,11 @@ const SidebarContent: React.FC<ISidebarProps> = props => {
                         </tr>
                     </thead>
                     <tbody>
-                        {Object.keys(props.detail.properties).map(key => (
+                        {Object.keys(rel.properties).map(key => (
                             <tr key={key}>
                                 <td>{key}</td>
                                 <td className='is-copyable' onClick={copy}>
-                                    {printProperty(props.detail.properties[key])}
+                                    {printProperty(rel.properties[key])}
                                 </td>
                             </tr>
                         ))}

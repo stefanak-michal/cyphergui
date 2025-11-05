@@ -70,7 +70,7 @@ test.describe('Query tab', { tag: '@neo4j-read' }, () => {
 
             test('Edit node', async ({ page }) => {
                 await containerLocator(page, 'table').getByRole('button', { name: /#\d+/ }).first().click();
-                await checkActiveTab(page, /Node#\d+/);
+                await checkActiveTab(page, /:Person#\d+/);
             });
 
             test('Properties', async ({ page }) => {

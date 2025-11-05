@@ -23,10 +23,18 @@ const InlineRelationship: React.FC<{
             />
             <Button
                 onClick={() =>
-                    tabManager.add({ prefix: 'Rel', i: rel.identity }, 'fa-regular fa-pen-to-square', EPage.Rel, {
-                        id: db.getId(rel),
-                        database: db.database,
-                    })
+                    tabManager.add(
+                        {
+                            prefix: rel.type ? ':' + rel.type : 'Rel',
+                            i: rel.identity,
+                        },
+                        'fa-regular fa-pen-to-square',
+                        EPage.Rel,
+                        {
+                            id: db.getId(rel),
+                            database: db.database,
+                        }
+                    )
                 }
                 icon='fa-solid fa-pen-clip'
                 color={small ? 'is-small' : ''}

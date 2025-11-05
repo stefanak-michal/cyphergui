@@ -6,18 +6,19 @@ After comprehensive research, **unified RBAC implementation is feasible for Neo4
 
 ## Database RBAC Support Matrix
 
-| Database | RBAC Support | Query Compatibility | Implementation Priority |
-|----------|-------------|---------------------|------------------------|
-| **Neo4j** | ✅ Enterprise Only | High (Standard queries) | **Priority 1** |
-| **Memgraph** | ✅ Enterprise Only | High (Similar to Neo4j) | **Priority 1** |
-| **Amazon Neptune** | ⚠️ AWS IAM Only | Low (External IAM) | Priority 3 |
-| **DozerDB** | ❌ Not Available | None | Priority 3 |
+| Database           | RBAC Support       | Query Compatibility     | Implementation Priority |
+| ------------------ | ------------------ | ----------------------- | ----------------------- |
+| **Neo4j**          | ✅ Enterprise Only | High (Standard queries) | **Priority 1**          |
+| **Memgraph**       | ✅ Enterprise Only | High (Similar to Neo4j) | **Priority 1**          |
+| **Amazon Neptune** | ⚠️ AWS IAM Only    | Low (External IAM)      | Priority 3              |
+| **DozerDB**        | ❌ Not Available   | None                    | Priority 3              |
 
 ## Key Findings
 
 ### ✅ **Unified Implementation IS Possible for Neo4j + Memgraph**
 
 Both databases share:
+
 - Similar RBAC models (User → Role → Privilege)
 - Compatible query syntax (`SHOW CURRENT USER`, `SHOW PRIVILEGES`)
 - Similar privilege types (MATCH, CREATE, DELETE, SET, REMOVE)
@@ -33,35 +34,37 @@ Both databases share:
 ### Phase 1: Core RBAC Support (Neo4j & Memgraph)
 
 1. **Add RBAC detection on connection:**
-   ```typescript
-   async detectRBAC() {
-     try {
-       await db.query('SHOW CURRENT USER');
-       return true; // RBAC supported
-     } catch {
-       return false; // Community Edition or no RBAC
-     }
-   }
-   ```
+
+    ```typescript
+    async detectRBAC() {
+      try {
+        await db.query('SHOW CURRENT USER');
+        return true; // RBAC supported
+      } catch {
+        return false; // Community Edition or no RBAC
+      }
+    }
+    ```
 
 2. **Query user privileges:**
-   ```cypher
-   SHOW CURRENT USER          -- Get user and roles
-   SHOW USER PRIVILEGES       -- Get current user privileges
-   ```
+
+    ```cypher
+    SHOW CURRENT USER          -- Get user and roles
+    SHOW USER PRIVILEGES       -- Get current user privileges
+    ```
 
 3. **Map privileges to UI features:**
-   - `CREATE` privilege → Enable "Add Node/Relationship" buttons
-   - `DELETE` privilege → Enable "Delete" buttons
-   - `SET/REMOVE` privilege → Enable "Edit" features
-   - `MATCH` privilege → Allow viewing data
-   - No write privileges → Make editors read-only
+    - `CREATE` privilege → Enable "Add Node/Relationship" buttons
+    - `DELETE` privilege → Enable "Delete" buttons
+    - `SET/REMOVE` privilege → Enable "Edit" features
+    - `MATCH` privilege → Allow viewing data
+    - No write privileges → Make editors read-only
 
 4. **UI Adjustments:**
-   - Show user role in header/profile
-   - Disable/hide buttons based on privileges
-   - Show helpful error messages on permission failures
-   - Add tooltip explaining why feature is disabled
+    - Show user role in header/profile
+    - Disable/hide buttons based on privileges
+    - Show helpful error messages on permission failures
+    - Add tooltip explaining why feature is disabled
 
 ### Phase 2: Enhanced UX
 
@@ -83,30 +86,30 @@ Both databases share:
 ```typescript
 // In db.ts or new rbac.ts module
 interface UserPrivileges {
-  canRead: boolean;
-  canWrite: boolean;
-  canCreate: boolean;
-  canDelete: boolean;
-  canAdmin: boolean;
-  roles: string[];
+    canRead: boolean;
+    canWrite: boolean;
+    canCreate: boolean;
+    canDelete: boolean;
+    canAdmin: boolean;
+    roles: string[];
 }
 
 async function getUserPrivileges(): Promise<UserPrivileges | null> {
-  // Return null if RBAC not supported
-  if (ecosystem === Ecosystem.Neptune || ecosystem === Ecosystem.DozerDB) {
-    return null; // Not supported
-  }
-  
-  try {
-    const userResult = await query('SHOW CURRENT USER');
-    const privResult = await query('SHOW USER PRIVILEGES');
-    
-    // Parse results and return privilege object
-    return parsePrivileges(userResult, privResult);
-  } catch (error) {
-    // Community Edition or error
-    return null;
-  }
+    // Return null if RBAC not supported
+    if (ecosystem === Ecosystem.Neptune || ecosystem === Ecosystem.DozerDB) {
+        return null; // Not supported
+    }
+
+    try {
+        const userResult = await query('SHOW CURRENT USER');
+        const privResult = await query('SHOW USER PRIVILEGES');
+
+        // Parse results and return privilege object
+        return parsePrivileges(userResult, privResult);
+    } catch (error) {
+        // Community Edition or error
+        return null;
+    }
 }
 ```
 
@@ -175,15 +178,15 @@ async function getUserPrivileges(): Promise<UserPrivileges | null> {
 
 ### Neo4j/Memgraph Privileges → CypherGUI Features
 
-| Database Privilege | CypherGUI Feature |
-|-------------------|-------------------|
-| `MATCH` | View nodes/relationships, Query execution |
-| `CREATE` | Create new nodes/relationships |
-| `DELETE` | Delete nodes/relationships |
-| `SET` | Edit properties |
-| `REMOVE` | Remove properties/labels |
-| `WRITE` | General write operations |
-| `ALL DBMS PRIVILEGES` | Admin features (databases, users) |
+| Database Privilege    | CypherGUI Feature                         |
+| --------------------- | ----------------------------------------- |
+| `MATCH`               | View nodes/relationships, Query execution |
+| `CREATE`              | Create new nodes/relationships            |
+| `DELETE`              | Delete nodes/relationships                |
+| `SET`                 | Edit properties                           |
+| `REMOVE`              | Remove properties/labels                  |
+| `WRITE`               | General write operations                  |
+| `ALL DBMS PRIVILEGES` | Admin features (databases, users)         |
 
 ## References
 
@@ -195,6 +198,7 @@ async function getUserPrivileges(): Promise<UserPrivileges | null> {
 ---
 
 **Next Steps:**
+
 1. Review and approve this plan
 2. Create feature branch for implementation
 3. Implement Phase 1 (Core RBAC Support)

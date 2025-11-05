@@ -125,9 +125,7 @@ const SidebarContent: React.FC<ISidebarProps> = props => {
                     {props.stashManager.button(node, props.database)}
                 </div>
 
-                <div className='buttons mb-0'>
-                    {node.labels.map(label => labelButton(label, false))}
-                </div>
+                <div className='buttons mb-0'>{node.labels.map(label => labelButton(label, false))}</div>
 
                 {db.hasElementId && (
                     <>

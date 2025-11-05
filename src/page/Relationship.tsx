@@ -197,7 +197,7 @@ const Relationship: React.FC<IRelationshipProps> = props => {
                     const rel = response.records[0].get('r');
                     props.tabManager.add(
                         {
-                            prefix: rel.type || 'Rel',
+                            prefix: rel.type ? ':' + rel.type : 'Rel',
                             i: rel.identity,
                         },
                         'fa-solid fa-pen-to-square',

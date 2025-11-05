@@ -189,7 +189,7 @@ test.describe('Node tab', { tag: '@neo4j-read' }, () => {
                 .getByRole('button', { name: /#\d+/ })
                 .first()
                 .click();
-            await checkActiveTab(page, /Rel#\d+/);
+            await checkActiveTab(page, /:ACTED_IN#\d+/);
         });
 
         test('Rel properties click', async ({ page }) => {

@@ -25,7 +25,7 @@ const InlineRelationship: React.FC<{
                 onClick={() =>
                     tabManager.add(
                         {
-                            prefix: rel.type || 'Rel',
+                            prefix: rel.type ? ':' + rel.type : 'Rel',
                             i: rel.identity,
                         },
                         'fa-regular fa-pen-to-square',

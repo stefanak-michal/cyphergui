@@ -53,7 +53,7 @@ test.describe('Stash', { tag: '@neo4j-read' }, () => {
         await stash.open();
         // edit node click
         await stash.getEntryLocator(id).getByRole('button', { name: /#\d+/ }).click();
-        await checkActiveTab(page, /ACTED_IN#\d+/);
+        await checkActiveTab(page, /:ACTED_IN#\d+/);
         // label click
         await stash.getEntryLocator(id).getByRole('button', { name: ':ACTED_IN' }).click();
         await checkActiveTab(page, 'ACTED_IN');

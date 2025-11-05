@@ -15,7 +15,7 @@ test.describe('Relationship tab', { tag: '@neo4j-read' }, () => {
             .getByRole('button', { name: /#\d+/ })
             .first()
             .click();
-        await checkActiveTab(page, /ACTED_IN#\d+/);
+        await checkActiveTab(page, /:ACTED_IN#\d+/);
     });
 
     test('Visual check', async ({ page }) => {
@@ -228,7 +228,7 @@ test.describe('Relationship tab', { tag: '@neo4j-read' }, () => {
         test('Cancel', async ({ page }) => {
             await modalLocator(page).getByRole('button', { name: "Don't close" }).click();
             await expect(modalLocator(page)).toHaveCount(0);
-            await checkActiveTab(page, /ACTED_IN#\d+/);
+            await checkActiveTab(page, /:ACTED_IN#\d+/);
         });
     });
 });

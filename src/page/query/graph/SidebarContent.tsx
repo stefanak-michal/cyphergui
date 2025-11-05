@@ -170,7 +170,7 @@ const SidebarContent: React.FC<ISidebarProps> = props => {
                         onClick={() =>
                             props.tabManager.add(
                                 {
-                                    prefix: rel.type || 'Rel',
+                                    prefix: rel.type ? ':' + rel.type : 'Rel',
                                     i: rel.identity,
                                 },
                                 'fa-solid fa-pen-to-square',

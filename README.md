@@ -24,6 +24,7 @@ Available in [wiki](https://github.com/stefanak-michal/cyphergui/wiki/Screenshot
 ## :heavy_multiplication_x: Not supported
 
 - [ONgDB](https://graphfoundation.org/projects/ongdb/) - Latest version v1.0.5 not supported because is based on old version which requires Bolt v2. This library use official javascript driver which dropped support for an old version already.
+- [FalkorDB](https://www.falkordb.com/) - For more info check [issue#118](https://github.com/stefanak-michal/cyphergui/issues/118)
 
 ## :label: Features
 

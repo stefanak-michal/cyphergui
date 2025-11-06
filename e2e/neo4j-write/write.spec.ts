@@ -374,9 +374,7 @@ test.describe('Write', { tag: '@neo4j-write' }, () => {
             await page.getByRole('button', { name: 'Query' }).click();
             await checkActiveTab(page, /Query#\d+/);
 
-            await containerLocator(page, 'textarea[name="query"]').fill(
-                'MATCH (n:AutoPopulateTest) DETACH DELETE n'
-            );
+            await containerLocator(page, 'textarea[name="query"]').fill('MATCH (n:AutoPopulateTest) DETACH DELETE n');
             await containerLocator(page).getByRole('button', { name: 'Execute' }).click();
             await containerLocator(page).getByRole('button', { name: 'Close' }).click();
             await checkActiveTab(page, 'Start');
@@ -421,9 +419,7 @@ test.describe('Write', { tag: '@neo4j-write' }, () => {
 
             // Check that properties were auto-populated (should have property fields)
             await expect(
-                containerLocator(page)
-                    .getByRole('group', { name: 'Properties' })
-                    .locator('> .field')
+                containerLocator(page).getByRole('group', { name: 'Properties' }).locator('> .field')
             ).not.toHaveCount(0);
 
             // Close tab
@@ -434,9 +430,7 @@ test.describe('Write', { tag: '@neo4j-write' }, () => {
 
         await test.step('Disable auto-populate in settings', async () => {
             await page.getByTitle('Open settings').click();
-            await modalLocator(page)
-                .getByText('Auto-populate properties when creating node/relationship')
-                .click();
+            await modalLocator(page).getByText('Auto-populate properties when creating node/relationship').click();
             await modalLocator(page).getByRole('button', { name: 'Close' }).last().click();
             await expect(modalLocator(page)).toHaveCount(0);
         });
@@ -455,9 +449,7 @@ test.describe('Write', { tag: '@neo4j-write' }, () => {
 
             // Check that no properties were auto-populated (should have no property fields)
             await expect(
-                containerLocator(page)
-                    .getByRole('group', { name: 'Properties' })
-                    .locator('> .field')
+                containerLocator(page).getByRole('group', { name: 'Properties' }).locator('> .field')
             ).toHaveCount(0);
 
             // Close tab
@@ -468,9 +460,7 @@ test.describe('Write', { tag: '@neo4j-write' }, () => {
 
         await test.step('Re-enable auto-populate in settings', async () => {
             await page.getByTitle('Open settings').click();
-            await modalLocator(page)
-                .getByText('Auto-populate properties when creating node/relationship')
-                .click();
+            await modalLocator(page).getByText('Auto-populate properties when creating node/relationship').click();
             await modalLocator(page).getByRole('button', { name: 'Close' }).last().click();
             await expect(modalLocator(page)).toHaveCount(0);
         });
@@ -479,9 +469,7 @@ test.describe('Write', { tag: '@neo4j-write' }, () => {
             await page.getByRole('button', { name: 'Query' }).click();
             await checkActiveTab(page, /Query#\d+/);
 
-            await containerLocator(page, 'textarea[name="query"]').fill(
-                'MATCH (n:AutoPopulateTest) DETACH DELETE n'
-            );
+            await containerLocator(page, 'textarea[name="query"]').fill('MATCH (n:AutoPopulateTest) DETACH DELETE n');
             await containerLocator(page).getByRole('button', { name: 'Execute' }).click();
             await containerLocator(page).getByRole('button', { name: 'Close' }).click();
             await checkActiveTab(page, 'Start');

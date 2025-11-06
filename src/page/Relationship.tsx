@@ -10,7 +10,13 @@ import { settings } from '../layout/Settings';
 import InlineNode from '../components/InlineNode';
 import PropertiesForm from '../components/PropertiesForm';
 import { t_FormProperty, t_FormValue } from '../utils/types';
-import { getPropertyAsTemp, cypherPrintProperties, resolvePropertyType, sanitizeFormValues, getPropertyDefaultValue } from '../utils/fn';
+import {
+    getPropertyAsTemp,
+    cypherPrintProperties,
+    resolvePropertyType,
+    sanitizeFormValues,
+    getPropertyDefaultValue,
+} from '../utils/fn';
 
 interface IRelationshipProps extends IPageProps {
     database: string;

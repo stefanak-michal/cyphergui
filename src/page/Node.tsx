@@ -11,7 +11,13 @@ import InlineRelationship from '../components/InlineRelationship';
 import InlineNode from '../components/InlineNode';
 import { t_FormProperty, t_FormValue } from '../utils/types';
 import PropertiesForm from '../components/PropertiesForm';
-import { getPropertyAsTemp, cypherPrintProperties, resolvePropertyType, sanitizeFormValues } from '../utils/fn';
+import {
+    getPropertyAsTemp,
+    cypherPrintProperties,
+    resolvePropertyType,
+    sanitizeFormValues,
+    getPropertyDefaultValue,
+} from '../utils/fn';
 
 interface INodeProps extends IPageProps {
     database: string;
@@ -144,13 +150,52 @@ const Node: React.FC<INodeProps> = props => {
             .catch(err => setError('[' + err.name + '] ' + err.message));
     };
 
-    const handleLabelSelect = (label: string) => {
+    const handleLabelSelect = (label: string, isExistingLabel: boolean = false) => {
         setLabels(state => {
             return !state.includes(label) ? state.concat(label) : state;
         });
         setLabelModal(false);
         setLabelModalInput('');
         markChanged();
+
+        // If creating a new node and an existing label was selected, fetch and add properties
+        if (create && isExistingLabel && settings().autoPopulateProperties) {
+            db.query('MATCH (n:' + label + ') RETURN n LIMIT 1', {}, props.database)
+                .then(response => {
+                    if (response.records.length === 0) return;
+
+                    const node: _Node = response.records[0].get('n');
+                    const existingKeys = properties.map(p => p.key);
+                    const newProperties: t_FormProperty[] = [];
+                    const t = new Date().getTime();
+                    let timestampOffset = 0;
+
+                    for (const key in node.properties) {
+                        if (!existingKeys.includes(key)) {
+                            const type = resolvePropertyType(node.properties[key]);
+                            const timestamp = t + timestampOffset++;
+                            const value = getPropertyDefaultValue(type);
+
+                            newProperties.push({
+                                name: key + timestamp,
+                                key: key,
+                                value: value,
+                                type: type,
+                                temp: getPropertyAsTemp(type, value),
+                            });
+                        }
+                    }
+
+                    if (newProperties.length > 0) {
+                        setProperties(state => {
+                            const combined = [...state, ...newProperties];
+                            combined.sort((a, b) => a.key.toLowerCase().localeCompare(b.key.toLowerCase()));
+                            return combined;
+                        });
+                    }
+                })
+                .catch(err => console.error('Failed to fetch node with label:', err));
+        }
     };
 
     const [, labelModalAction, labelModalPending] = useActionState(() => {
@@ -313,7 +358,7 @@ const Node: React.FC<INodeProps> = props => {
                                 text={label}
                                 color='is-link is-rounded tag is-medium'
                                 key={label}
-                                onClick={() => handleLabelSelect(label)}
+                                onClick={() => handleLabelSelect(label, true)}
                             />
                         ))}
                     </div>

@@ -124,10 +124,10 @@ async function addProperties(page: Page) {
     await propertyLocator.getByTitle('Duration', { exact: true }).fill('P1Y2M3DT5H6M7S');
 }
 
-test.describe('Write flow', { tag: '@neo4j-write' }, () => {
+test.describe('Write', { tag: '@neo4j-write' }, () => {
     test.use({ viewport: { width: 1920, height: 1800 } });
 
-    test('Run', async ({ page }) => {
+    test('Main flow', async ({ page }) => {
         await test.step('Clean nodes first', async () => {
             await page.getByRole('button', { name: 'Query' }).click();
             await checkActiveTab(page, /Query#\d+/);
@@ -366,6 +366,113 @@ test.describe('Write flow', { tag: '@neo4j-write' }, () => {
             await modalLocator(page).getByRole('button', { name: 'Confirm' }).click();
             await expect(modalLocator(page)).toHaveCount(0);
             await checkNotification(page, 'Node deleted');
+        });
+    });
+
+    test('Auto-populate properties', async ({ page }) => {
+        await test.step('Clean AutoPopulateTest nodes first', async () => {
+            await page.getByRole('button', { name: 'Query' }).click();
+            await checkActiveTab(page, /Query#\d+/);
+
+            await containerLocator(page, 'textarea[name="query"]').fill('MATCH (n:AutoPopulateTest) DETACH DELETE n');
+            await containerLocator(page).getByRole('button', { name: 'Execute' }).click();
+            await containerLocator(page).getByRole('button', { name: 'Close' }).click();
+            await checkActiveTab(page, 'Start');
+        });
+
+        await test.step('Create node with AutoPopulateTest label and properties', async () => {
+            await containerLocator(page).getByRole('button', { name: 'Create node' }).click();
+            await checkActiveTab(page, /New node#\d+/);
+
+            // Add label
+            await containerLocator(page)
+                .getByRole('group', { name: 'Labels' })
+                .getByRole('button', { name: '+', exact: true })
+                .click();
+            await modalLocator(page).getByRole('textbox').fill('AutoPopulateTest');
+            await modalLocator(page).locator('button[type="submit"]').click();
+            await expect(modalLocator(page)).toHaveCount(0);
+            await expect(containerLocator(page).getByRole('group', { name: 'Labels' })).toContainText(
+                'AutoPopulateTest'
+            );
+
+            // Add properties using the addProperties helper
+            await addProperties(page);
+
+            // Save the node
+            await containerLocator(page).getByRole('button', { name: 'Execute' }).click();
+            await checkNotification(page, 'Node created');
+        });
+
+        await test.step('Create new node with existing label - properties should auto-populate', async () => {
+            await switchToTab(page, 'Start');
+            await containerLocator(page).getByRole('button', { name: 'Create node' }).click();
+            await checkActiveTab(page, /New node#\d+/);
+
+            // Add existing label from modal
+            await containerLocator(page)
+                .getByRole('group', { name: 'Labels' })
+                .getByRole('button', { name: '+', exact: true })
+                .click();
+            await modalLocator(page).getByRole('button', { name: 'AutoPopulateTest' }).click();
+            await expect(modalLocator(page)).toHaveCount(0);
+
+            // Check that properties were auto-populated (should have property fields)
+            await expect(
+                containerLocator(page).getByRole('group', { name: 'Properties' }).locator('> .field')
+            ).not.toHaveCount(0);
+
+            // Close tab
+            await containerLocator(page).getByRole('button', { name: 'Close' }).click();
+            await modalLocator(page).getByRole('button', { name: 'Close anyway' }).click();
+            await checkActiveTab(page, 'Start');
+        });
+
+        await test.step('Disable auto-populate in settings', async () => {
+            await page.getByTitle('Open settings').click();
+            await modalLocator(page).getByText('Auto-populate properties when creating node/relationship').click();
+            await modalLocator(page).getByRole('button', { name: 'Close' }).last().click();
+            await expect(modalLocator(page)).toHaveCount(0);
+        });
+
+        await test.step('Create new node with existing label - properties should NOT auto-populate', async () => {
+            await containerLocator(page).getByRole('button', { name: 'Create node' }).click();
+            await checkActiveTab(page, /New node#\d+/);
+
+            // Add existing label from modal
+            await containerLocator(page)
+                .getByRole('group', { name: 'Labels' })
+                .getByRole('button', { name: '+', exact: true })
+                .click();
+            await modalLocator(page).getByRole('button', { name: 'AutoPopulateTest' }).click();
+            await expect(modalLocator(page)).toHaveCount(0);
+
+            // Check that no properties were auto-populated (should have no property fields)
+            await expect(
+                containerLocator(page).getByRole('group', { name: 'Properties' }).locator('> .field')
+            ).toHaveCount(0);
+
+            // Close tab
+            await containerLocator(page).getByRole('button', { name: 'Close' }).click();
+            await modalLocator(page).getByRole('button', { name: 'Close anyway' }).click();
+            await checkActiveTab(page, 'Start');
+        });
+
+        await test.step('Re-enable auto-populate in settings', async () => {
+            await page.getByTitle('Open settings').click();
+            await modalLocator(page).getByText('Auto-populate properties when creating node/relationship').click();
+            await modalLocator(page).getByRole('button', { name: 'Close' }).last().click();
+            await expect(modalLocator(page)).toHaveCount(0);
+        });
+
+        await test.step('Clean up AutoPopulateTest nodes', async () => {
+            await page.getByRole('button', { name: 'Query' }).click();
+            await checkActiveTab(page, /Query#\d+/);
+
+            await containerLocator(page, 'textarea[name="query"]').fill('MATCH (n:AutoPopulateTest) DETACH DELETE n');
+            await containerLocator(page).getByRole('button', { name: 'Execute' }).click();
+            await containerLocator(page).getByRole('button', { name: 'Close' }).click();
+            await checkActiveTab(page, 'Start');
         });
     });
 });

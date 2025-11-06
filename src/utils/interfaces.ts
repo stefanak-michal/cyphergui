@@ -27,6 +27,7 @@ export interface ISettings {
     darkMode: boolean;
     confirmCloseUnsavedChanges: boolean;
     rememberOpenTabs: boolean;
+    autoPopulateProperties: boolean;
 }
 
 export interface IStashManager {

@@ -84,6 +84,16 @@ const Settings: React.FC<{ handleClose: () => void }> = ({ handleClose }) => {
                     help='After successful login app will try open remembered tabs.'
                 />
             </div>
+            <div className='mb-3'>
+                <Checkbox
+                    name='autoPopulateProperties'
+                    onChange={handleChange}
+                    label='Auto-populate properties when creating node/relationship'
+                    checked={_settings.autoPopulateProperties}
+                    color='is-link'
+                    help='When selecting an existing label or type, automatically add property fields based on existing data.'
+                />
+            </div>
             <div className='field'>
                 <label className='label'>Method when printing out temporal values</label>
                 <div className='control'>
@@ -118,6 +128,7 @@ export function settings(): ISettings {
         darkMode: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches,
         confirmCloseUnsavedChanges: true,
         rememberOpenTabs: true,
+        autoPopulateProperties: true,
         ...(localStorage.getItem('settings') ? JSON.parse(localStorage.getItem('settings')) : {}),
     };
 }

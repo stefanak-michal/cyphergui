@@ -10,7 +10,13 @@ import { settings } from '../layout/Settings';
 import InlineNode from '../components/InlineNode';
 import PropertiesForm from '../components/PropertiesForm';
 import { t_FormProperty, t_FormValue } from '../utils/types';
-import { getPropertyAsTemp, cypherPrintProperties, resolvePropertyType, sanitizeFormValues } from '../utils/fn';
+import {
+    getPropertyAsTemp,
+    cypherPrintProperties,
+    resolvePropertyType,
+    sanitizeFormValues,
+    getPropertyDefaultValue,
+} from '../utils/fn';
 
 interface IRelationshipProps extends IPageProps {
     database: string;
@@ -133,11 +139,50 @@ const Relationship: React.FC<IRelationshipProps> = props => {
             .catch(err => setError('[' + err.name + '] ' + err.message));
     };
 
-    const handleTypeSelect = (type: string) => {
-        setType(type);
+    const handleTypeSelect = (relType: string, isExistingType: boolean = false) => {
+        setType(relType);
         setTypeModal(false);
         setTypeModalInput('');
         markChanged();
+
+        // If creating a new relationship and an existing type was selected, fetch and add properties
+        if (create && isExistingType && settings().autoPopulateProperties) {
+            db.query('MATCH ()-[r:' + relType + ']->() RETURN r LIMIT 1', {}, props.database)
+                .then(response => {
+                    if (response.records.length === 0) return;
+
+                    const rel: _Relationship = response.records[0].get('r');
+                    const existingKeys = properties.map(p => p.key);
+                    const newProperties: t_FormProperty[] = [];
+                    const t = new Date().getTime();
+                    let timestampOffset = 0;
+
+                    for (const key in rel.properties) {
+                        if (!existingKeys.includes(key)) {
+                            const propType = resolvePropertyType(rel.properties[key]);
+                            const timestamp = t + timestampOffset++;
+                            const value = getPropertyDefaultValue(propType);
+
+                            newProperties.push({
+                                name: key + timestamp,
+                                key: key,
+                                value: value,
+                                type: propType,
+                                temp: getPropertyAsTemp(propType, value),
+                            });
+                        }
+                    }
+
+                    if (newProperties.length > 0) {
+                        setProperties(state => {
+                            const combined = [...state, ...newProperties];
+                            combined.sort((a, b) => a.key.toLowerCase().localeCompare(b.key.toLowerCase()));
+                            return combined;
+                        });
+                    }
+                })
+                .catch(err => console.error('Failed to fetch relationship with type:', err));
+        }
     };
 
     const [, typeModalAction, typeModalPending] = useActionState(() => {
@@ -309,7 +354,7 @@ const Relationship: React.FC<IRelationshipProps> = props => {
                                 text={type}
                                 color='is-info is-rounded tag is-medium has-text-white'
                                 key={type}
-                                onClick={() => handleTypeSelect(type)}
+                                onClick={() => handleTypeSelect(type, true)}
                             />
                         ))}
                     </div>

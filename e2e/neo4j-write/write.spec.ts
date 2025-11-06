@@ -368,4 +368,178 @@ test.describe('Write flow', { tag: '@neo4j-write' }, () => {
             await checkNotification(page, 'Node deleted');
         });
     });
+
+    test('Auto-populate properties', async ({ page }) => {
+        await test.step('Clean AutoPopulateTest nodes first', async () => {
+            await page.getByRole('button', { name: 'Query' }).click();
+            await checkActiveTab(page, /Query#\d+/);
+
+            await containerLocator(page, 'textarea[name="query"]').fill(
+                'MATCH (n:AutoPopulateTest) DETACH DELETE n'
+            );
+            await containerLocator(page).getByRole('button', { name: 'Execute' }).click();
+            await containerLocator(page).getByRole('button', { name: 'Close' }).click();
+            await checkActiveTab(page, 'Start');
+        });
+
+        await test.step('Create node with AutoPopulateTest label and properties', async () => {
+            await containerLocator(page).getByRole('button', { name: 'Create node' }).click();
+            await checkActiveTab(page, /New node#\d+/);
+
+            // Add label
+            await containerLocator(page)
+                .getByRole('group', { name: 'Labels' })
+                .getByRole('button', { name: '+', exact: true })
+                .click();
+            await modalLocator(page).getByRole('textbox').fill('AutoPopulateTest');
+            await modalLocator(page).locator('button[type="submit"]').click();
+            await expect(modalLocator(page)).toHaveCount(0);
+            await expect(containerLocator(page).getByRole('group', { name: 'Labels' })).toContainText(
+                'AutoPopulateTest'
+            );
+
+            // Add properties manually
+            const addPropertyBtn = containerLocator(page)
+                .getByRole('group', { name: 'Properties' })
+                .getByRole('button', { name: 'Add property' });
+            const propertyLocator = containerLocator(page)
+                .getByRole('group', { name: 'Properties' })
+                .locator('> .field')
+                .last();
+
+            // Add string property
+            await addPropertyBtn.click();
+            await propertyLocator.getByPlaceholder('Key').fill('testString');
+            await propertyLocator.getByPlaceholder('Value').fill('test value');
+
+            // Add integer property
+            await addPropertyBtn.click();
+            await containerLocator(page)
+                .getByRole('group', { name: 'Properties' })
+                .locator('> .field')
+                .last()
+                .getByTitle('Property type')
+                .selectOption('Integer');
+            await containerLocator(page)
+                .getByRole('group', { name: 'Properties' })
+                .locator('> .field')
+                .last()
+                .getByPlaceholder('Key')
+                .fill('testInt');
+            await containerLocator(page)
+                .getByRole('group', { name: 'Properties' })
+                .locator('> .field')
+                .last()
+                .getByPlaceholder('Value')
+                .fill('42');
+
+            // Add boolean property
+            await addPropertyBtn.click();
+            await containerLocator(page)
+                .getByRole('group', { name: 'Properties' })
+                .locator('> .field')
+                .last()
+                .getByTitle('Property type')
+                .selectOption('Boolean');
+            await containerLocator(page)
+                .getByRole('group', { name: 'Properties' })
+                .locator('> .field')
+                .last()
+                .getByPlaceholder('Key')
+                .fill('testBool');
+            await containerLocator(page)
+                .getByRole('group', { name: 'Properties' })
+                .locator('> .field')
+                .last()
+                .locator('.switch span')
+                .click();
+
+            // Save the node
+            await containerLocator(page).getByRole('button', { name: 'Execute' }).click();
+            await checkNotification(page, 'Node created');
+        });
+
+        await test.step('Create new node with existing label - properties should auto-populate', async () => {
+            await switchToTab(page, 'Start');
+            await containerLocator(page).getByRole('button', { name: 'Create node' }).click();
+            await checkActiveTab(page, /New node#\d+/);
+
+            // Add existing label from modal
+            await containerLocator(page)
+                .getByRole('group', { name: 'Labels' })
+                .getByRole('button', { name: '+', exact: true })
+                .click();
+            await modalLocator(page).getByRole('button', { name: 'AutoPopulateTest' }).click();
+            await expect(modalLocator(page)).toHaveCount(0);
+
+            // Check that properties were auto-populated by checking for property fields with the keys
+            const propertiesGroup = containerLocator(page).getByRole('group', { name: 'Properties' });
+            await expect(propertiesGroup.locator('input[value="testBool"]')).toHaveCount(1);
+            await expect(propertiesGroup.locator('input[value="testInt"]')).toHaveCount(1);
+            await expect(propertiesGroup.locator('input[value="testString"]')).toHaveCount(1);
+
+            // Close tab
+            await containerLocator(page).getByRole('button', { name: 'Close' }).click();
+            await checkActiveTab(page, 'Start');
+        });
+
+        await test.step('Disable auto-populate in settings', async () => {
+            await page.getByTitle('Open settings').click();
+            await modalLocator(page)
+                .getByText('Auto-populate properties when creating nodes/relationships')
+                .click();
+            await modalLocator(page).getByRole('button', { name: 'Close' }).last().click();
+            await expect(modalLocator(page)).toHaveCount(0);
+        });
+
+        await test.step('Create new node with existing label - properties should NOT auto-populate', async () => {
+            await containerLocator(page).getByRole('button', { name: 'Create node' }).click();
+            await checkActiveTab(page, /New node#\d+/);
+
+            // Add existing label from modal
+            await containerLocator(page)
+                .getByRole('group', { name: 'Labels' })
+                .getByRole('button', { name: '+', exact: true })
+                .click();
+            await modalLocator(page).getByRole('button', { name: 'AutoPopulateTest' }).click();
+            await expect(modalLocator(page)).toHaveCount(0);
+
+            // Check that no properties were auto-populated - only "Add property" button should exist
+            await expect(
+                containerLocator(page)
+                    .getByRole('group', { name: 'Properties' })
+                    .locator('> .field')
+            ).toHaveCount(0);
+            await expect(
+                containerLocator(page)
+                    .getByRole('group', { name: 'Properties' })
+                    .getByRole('button', { name: 'Add property' })
+            ).toHaveCount(1);
+
+            // Close tab
+            await containerLocator(page).getByRole('button', { name: 'Close' }).click();
+            await checkActiveTab(page, 'Start');
+        });
+
+        await test.step('Re-enable auto-populate in settings', async () => {
+            await page.getByTitle('Open settings').click();
+            await modalLocator(page)
+                .getByText('Auto-populate properties when creating nodes/relationships')
+                .click();
+            await modalLocator(page).getByRole('button', { name: 'Close' }).last().click();
+            await expect(modalLocator(page)).toHaveCount(0);
+        });
+
+        await test.step('Clean up AutoPopulateTest nodes', async () => {
+            await page.getByRole('button', { name: 'Query' }).click();
+            await checkActiveTab(page, /Query#\d+/);
+
+            await containerLocator(page, 'textarea[name="query"]').fill(
+                'MATCH (n:AutoPopulateTest) DETACH DELETE n'
+            );
+            await containerLocator(page).getByRole('button', { name: 'Execute' }).click();
+            await containerLocator(page).getByRole('button', { name: 'Close' }).click();
+            await checkActiveTab(page, 'Start');
+        });
+    });
 });

@@ -124,10 +124,10 @@ async function addProperties(page: Page) {
     await propertyLocator.getByTitle('Duration', { exact: true }).fill('P1Y2M3DT5H6M7S');
 }
 
-test.describe('Write flow', { tag: '@neo4j-write' }, () => {
+test.describe('Write', { tag: '@neo4j-write' }, () => {
     test.use({ viewport: { width: 1920, height: 1800 } });
 
-    test('Run', async ({ page }) => {
+    test('Main flow', async ({ page }) => {
         await test.step('Clean nodes first', async () => {
             await page.getByRole('button', { name: 'Query' }).click();
             await checkActiveTab(page, /Query#\d+/);
@@ -428,13 +428,14 @@ test.describe('Write flow', { tag: '@neo4j-write' }, () => {
 
             // Close tab
             await containerLocator(page).getByRole('button', { name: 'Close' }).click();
+            await modalLocator(page).getByRole('button', { name: 'Close anyway' }).click();
             await checkActiveTab(page, 'Start');
         });
 
         await test.step('Disable auto-populate in settings', async () => {
             await page.getByTitle('Open settings').click();
             await modalLocator(page)
-                .getByText('Auto-populate properties when creating nodes/relationships')
+                .getByText('Auto-populate properties when creating node/relationship')
                 .click();
             await modalLocator(page).getByRole('button', { name: 'Close' }).last().click();
             await expect(modalLocator(page)).toHaveCount(0);
@@ -461,13 +462,14 @@ test.describe('Write flow', { tag: '@neo4j-write' }, () => {
 
             // Close tab
             await containerLocator(page).getByRole('button', { name: 'Close' }).click();
+            await modalLocator(page).getByRole('button', { name: 'Close anyway' }).click();
             await checkActiveTab(page, 'Start');
         });
 
         await test.step('Re-enable auto-populate in settings', async () => {
             await page.getByTitle('Open settings').click();
             await modalLocator(page)
-                .getByText('Auto-populate properties when creating nodes/relationships')
+                .getByText('Auto-populate properties when creating node/relationship')
                 .click();
             await modalLocator(page).getByRole('button', { name: 'Close' }).last().click();
             await expect(modalLocator(page)).toHaveCount(0);

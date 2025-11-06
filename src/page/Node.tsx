@@ -154,19 +154,27 @@ const Node: React.FC<INodeProps> = props => {
 
         // If creating a new node and an existing label was selected, fetch and add properties
         if (create && isExistingLabel) {
+            // Validate label to prevent injection (labels must match pattern from input validation)
+            if (!/^[A-Za-z][A-Za-z_0-9]*$/.test(label)) {
+                console.error('Invalid label name:', label);
+                return;
+            }
+
             db.query(
-                'MATCH (n:' + label + ') UNWIND keys(n) AS key RETURN DISTINCT key',
+                'MATCH (n:`' + label + '`) UNWIND keys(n) AS key RETURN DISTINCT key',
                 {},
                 props.database
             )
                 .then(response => {
                     const existingKeys = properties.map(p => p.key);
                     const newProperties: t_FormProperty[] = [];
+                    let timestampOffset = 0;
 
                     response.records.forEach(record => {
                         const key = record.get('key');
                         if (!existingKeys.includes(key)) {
-                            const timestamp = new Date().getTime();
+                            // Use incrementing offset to ensure unique names
+                            const timestamp = new Date().getTime() + timestampOffset++;
                             newProperties.push({
                                 name: key + timestamp,
                                 key: key,

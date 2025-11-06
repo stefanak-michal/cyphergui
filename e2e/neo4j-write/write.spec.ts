@@ -486,7 +486,7 @@ test.describe('Write flow', { tag: '@neo4j-write' }, () => {
         await test.step('Disable auto-populate in settings', async () => {
             await page.getByTitle('Open settings').click();
             await modalLocator(page)
-                .getByText('Auto-populate properties when creating nodes/relationships')
+                .getByText('Auto-populate properties when creating node/relationship')
                 .click();
             await modalLocator(page).getByRole('button', { name: 'Close' }).last().click();
             await expect(modalLocator(page)).toHaveCount(0);
@@ -524,7 +524,7 @@ test.describe('Write flow', { tag: '@neo4j-write' }, () => {
         await test.step('Re-enable auto-populate in settings', async () => {
             await page.getByTitle('Open settings').click();
             await modalLocator(page)
-                .getByText('Auto-populate properties when creating nodes/relationships')
+                .getByText('Auto-populate properties when creating node/relationship')
                 .click();
             await modalLocator(page).getByRole('button', { name: 'Close' }).last().click();
             await expect(modalLocator(page)).toHaveCount(0);

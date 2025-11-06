@@ -88,7 +88,7 @@ const Settings: React.FC<{ handleClose: () => void }> = ({ handleClose }) => {
                 <Checkbox
                     name='autoPopulateProperties'
                     onChange={handleChange}
-                    label='Auto-populate properties when creating nodes/relationships'
+                    label='Auto-populate properties when creating node/relationship'
                     checked={_settings.autoPopulateProperties}
                     color='is-link'
                     help='When selecting an existing label or type, automatically add property fields based on existing data.'

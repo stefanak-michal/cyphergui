@@ -140,7 +140,7 @@ const Relationship: React.FC<IRelationshipProps> = props => {
         markChanged();
 
         // If creating a new relationship and an existing type was selected, fetch and add properties
-        if (create && isExistingType) {
+        if (create && isExistingType && settings().autoPopulateProperties) {
             db.query('MATCH ()-[r:' + relType + ']->() RETURN r LIMIT 1', {}, props.database)
                 .then(response => {
                     if (response.records.length === 0) return;

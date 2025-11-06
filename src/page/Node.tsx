@@ -159,7 +159,7 @@ const Node: React.FC<INodeProps> = props => {
         markChanged();
 
         // If creating a new node and an existing label was selected, fetch and add properties
-        if (create && isExistingLabel) {
+        if (create && isExistingLabel && settings().autoPopulateProperties) {
             db.query('MATCH (n:' + label + ') RETURN n LIMIT 1', {}, props.database)
                 .then(response => {
                     if (response.records.length === 0) return;

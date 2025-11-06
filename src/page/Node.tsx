@@ -154,35 +154,54 @@ const Node: React.FC<INodeProps> = props => {
 
         // If creating a new node and an existing label was selected, fetch and add properties
         if (create && isExistingLabel) {
-            // Validate label to prevent injection (labels must match pattern from input validation)
-            if (!/^[A-Za-z][A-Za-z_0-9]*$/.test(label)) {
-                console.error('Invalid label name:', label);
-                return;
-            }
-
-            db.query(
-                'MATCH (n:`' + label + '`) UNWIND keys(n) AS key RETURN DISTINCT key',
-                {},
-                props.database
-            )
+            db.query('MATCH (n:' + label + ') RETURN n LIMIT 1', {}, props.database)
                 .then(response => {
+                    if (response.records.length === 0) return;
+
+                    const node: _Node = response.records[0].get('n');
                     const existingKeys = properties.map(p => p.key);
                     const newProperties: t_FormProperty[] = [];
+                    const t = new Date().getTime();
                     let timestampOffset = 0;
 
-                    response.records.forEach(record => {
-                        const key = record.get('key');
+                    for (const key in node.properties) {
                         if (!existingKeys.includes(key)) {
-                            // Use incrementing offset to ensure unique names
-                            const timestamp = new Date().getTime() + timestampOffset++;
+                            const type = resolvePropertyType(node.properties[key]);
+                            const timestamp = t + timestampOffset++;
+                            let value = node.properties[key];
+
+                            if (type === EPropertyType.List) {
+                                const subtype = resolvePropertyType(node.properties[key][0]);
+                                value = (node.properties[key] as []).map(p => {
+                                    return {
+                                        value: p,
+                                        type: subtype,
+                                        temp: getPropertyAsTemp(subtype, p),
+                                    } as t_FormValue;
+                                });
+                            } else if (type === EPropertyType.Map) {
+                                const mapAsFormValue: t_FormValue[] = [];
+                                for (const k in node.properties[key] as object) {
+                                    const subtype = resolvePropertyType(node.properties[key][k]);
+                                    mapAsFormValue.push({
+                                        key: k,
+                                        value: node.properties[key][k],
+                                        type: subtype,
+                                        temp: getPropertyAsTemp(subtype, node.properties[key][k]),
+                                    } as t_FormValue);
+                                }
+                                value = mapAsFormValue;
+                            }
+
                             newProperties.push({
                                 name: key + timestamp,
                                 key: key,
-                                value: '',
-                                type: EPropertyType.String,
+                                value: value,
+                                type: type,
+                                temp: getPropertyAsTemp(type, value),
                             });
                         }
-                    });
+                    }
 
                     if (newProperties.length > 0) {
                         setProperties(state => {
@@ -192,7 +211,7 @@ const Node: React.FC<INodeProps> = props => {
                         });
                     }
                 })
-                .catch(err => console.error('Failed to fetch property keys:', err));
+                .catch(err => console.error('Failed to fetch properties:', err));
         }
     };
 

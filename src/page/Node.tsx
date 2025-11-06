@@ -1,6 +1,16 @@
 import { useState, useEffect, useContext, useActionState, useRef } from 'react';
 import { Button } from '../components/form';
-import { Node as _Node, Relationship as _Relationship } from 'neo4j-driver-lite';
+import {
+    Node as _Node,
+    Relationship as _Relationship,
+    Date as _Date,
+    DateTime as _DateTime,
+    Duration as _Duration,
+    LocalDateTime as _LocalDateTime,
+    LocalTime as _LocalTime,
+    Point as _Point,
+    Time as _Time,
+} from 'neo4j-driver-lite';
 import { EPage, EPropertyType } from '../utils/enums';
 import { IPageProps } from '../utils/interfaces';
 import db from '../db';
@@ -33,6 +43,37 @@ const Node: React.FC<INodeProps> = props => {
     const latestRequest = useRef<AbortController>(null);
     const copy = useContext(ClipboardContext);
     const create: boolean = props.id === null;
+
+    const getDefaultValue = (type: EPropertyType): any => {
+        const int0 = db.toInt(0);
+        switch (type) {
+            case EPropertyType.String:
+                return '';
+            case EPropertyType.Boolean:
+                return false;
+            case EPropertyType.Integer:
+                return int0;
+            case EPropertyType.Float:
+                return 0;
+            case EPropertyType.List:
+            case EPropertyType.Map:
+                return [] as t_FormValue[];
+            case EPropertyType.Time:
+                return _Time.fromStandardDate(new Date());
+            case EPropertyType.Date:
+                return _Date.fromStandardDate(new Date());
+            case EPropertyType.DateTime:
+                return _DateTime.fromStandardDate(new Date());
+            case EPropertyType.LocalTime:
+                return _LocalTime.fromStandardDate(new Date());
+            case EPropertyType.LocalDateTime:
+                return _LocalDateTime.fromStandardDate(new Date());
+            case EPropertyType.Point:
+                return new _Point(int0, 0, 0, 0);
+            case EPropertyType.Duration:
+                return new _Duration(int0, int0, int0, int0);
+        }
+    };
 
     const requestData = async () => {
         if (create) return;
@@ -168,30 +209,7 @@ const Node: React.FC<INodeProps> = props => {
                         if (!existingKeys.includes(key)) {
                             const type = resolvePropertyType(node.properties[key]);
                             const timestamp = t + timestampOffset++;
-                            let value = node.properties[key];
-
-                            if (type === EPropertyType.List) {
-                                const subtype = resolvePropertyType(node.properties[key][0]);
-                                value = (node.properties[key] as []).map(p => {
-                                    return {
-                                        value: p,
-                                        type: subtype,
-                                        temp: getPropertyAsTemp(subtype, p),
-                                    } as t_FormValue;
-                                });
-                            } else if (type === EPropertyType.Map) {
-                                const mapAsFormValue: t_FormValue[] = [];
-                                for (const k in node.properties[key] as object) {
-                                    const subtype = resolvePropertyType(node.properties[key][k]);
-                                    mapAsFormValue.push({
-                                        key: k,
-                                        value: node.properties[key][k],
-                                        type: subtype,
-                                        temp: getPropertyAsTemp(subtype, node.properties[key][k]),
-                                    } as t_FormValue);
-                                }
-                                value = mapAsFormValue;
-                            }
+                            const value = getDefaultValue(type);
 
                             newProperties.push({
                                 name: key + timestamp,
@@ -211,7 +229,7 @@ const Node: React.FC<INodeProps> = props => {
                         });
                     }
                 })
-                .catch(err => console.error('Failed to fetch properties:', err));
+                .catch(err => console.error('Failed to fetch node with label:', err));
         }
     };
 

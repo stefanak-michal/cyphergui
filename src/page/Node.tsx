@@ -144,13 +144,48 @@ const Node: React.FC<INodeProps> = props => {
             .catch(err => setError('[' + err.name + '] ' + err.message));
     };
 
-    const handleLabelSelect = (label: string) => {
+    const handleLabelSelect = (label: string, isExistingLabel: boolean = false) => {
         setLabels(state => {
             return !state.includes(label) ? state.concat(label) : state;
         });
         setLabelModal(false);
         setLabelModalInput('');
         markChanged();
+
+        // If creating a new node and an existing label was selected, fetch and add properties
+        if (create && isExistingLabel) {
+            db.query(
+                'MATCH (n:' + label + ') UNWIND keys(n) AS key RETURN DISTINCT key',
+                {},
+                props.database
+            )
+                .then(response => {
+                    const existingKeys = properties.map(p => p.key);
+                    const newProperties: t_FormProperty[] = [];
+
+                    response.records.forEach(record => {
+                        const key = record.get('key');
+                        if (!existingKeys.includes(key)) {
+                            const timestamp = new Date().getTime();
+                            newProperties.push({
+                                name: key + timestamp,
+                                key: key,
+                                value: '',
+                                type: EPropertyType.String,
+                            });
+                        }
+                    });
+
+                    if (newProperties.length > 0) {
+                        setProperties(state => {
+                            const combined = [...state, ...newProperties];
+                            combined.sort((a, b) => a.key.toLowerCase().localeCompare(b.key.toLowerCase()));
+                            return combined;
+                        });
+                    }
+                })
+                .catch(err => console.error('Failed to fetch property keys:', err));
+        }
     };
 
     const [, labelModalAction, labelModalPending] = useActionState(() => {
@@ -313,7 +348,7 @@ const Node: React.FC<INodeProps> = props => {
                                 text={label}
                                 color='is-link is-rounded tag is-medium'
                                 key={label}
-                                onClick={() => handleLabelSelect(label)}
+                                onClick={() => handleLabelSelect(label, true)}
                             />
                         ))}
                     </div>

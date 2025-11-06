@@ -7,13 +7,12 @@ import { ClipboardContext } from '../utils/contexts';
 import {
     Date as _Date,
     DateTime as _DateTime,
-    Duration as _Duration,
     LocalDateTime as _LocalDateTime,
     LocalTime as _LocalTime,
     Point as _Point,
     Time as _Time,
 } from 'neo4j-driver-lite';
-import { getPropertyAsTemp, stringToDuration } from '../utils/fn';
+import { getPropertyAsTemp, stringToDuration, getPropertyDefaultValue } from '../utils/fn';
 
 interface IPropertiesFormProps {
     properties: t_FormProperty[];
@@ -63,7 +62,7 @@ const PropertiesForm: React.FC<IPropertiesFormProps> = ({ properties, updateProp
 
     const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const target = e.currentTarget;
-        const value = getDefaultValue(EPropertyType[target.value]);
+        const value = getPropertyDefaultValue(EPropertyType[target.value]);
         const temp = getPropertyAsTemp(EPropertyType[target.value], value);
         const props = [...properties];
         let i = props.findIndex(p => 'type.' + p.name === target.name);
@@ -102,37 +101,6 @@ const PropertiesForm: React.FC<IPropertiesFormProps> = ({ properties, updateProp
         }
     };
 
-    const getDefaultValue = (type: EPropertyType): any => {
-        const int0 = db.toInt(0);
-        switch (type) {
-            case EPropertyType.String:
-                return '';
-            case EPropertyType.Boolean:
-                return false;
-            case EPropertyType.Integer:
-                return int0;
-            case EPropertyType.Float:
-                return 0;
-            case EPropertyType.List:
-            case EPropertyType.Map:
-                return [] as t_FormValue[];
-            case EPropertyType.Time:
-                return _Time.fromStandardDate(new Date());
-            case EPropertyType.Date:
-                return _Date.fromStandardDate(new Date());
-            case EPropertyType.DateTime:
-                return _DateTime.fromStandardDate(new Date());
-            case EPropertyType.LocalTime:
-                return _LocalTime.fromStandardDate(new Date());
-            case EPropertyType.LocalDateTime:
-                return _LocalDateTime.fromStandardDate(new Date());
-            case EPropertyType.Point:
-                return new _Point(int0, 0, 0, 0);
-            case EPropertyType.Duration:
-                return new _Duration(int0, int0, int0, int0);
-        }
-    };
-
     const handleDelete = (name: string) => {
         const props = [...properties];
         let i = props.findIndex(p => p.name === name);
@@ -157,7 +125,7 @@ const PropertiesForm: React.FC<IPropertiesFormProps> = ({ properties, updateProp
             const i = props.findIndex(p => p.name === target.value);
             if (i > -1) {
                 const valueType = (props[i].value as t_FormValue[])[props[i].value.length - 1].type;
-                const value = getDefaultValue(valueType);
+                const value = getPropertyDefaultValue(valueType);
                 (props[i].value as t_FormValue[]).push({
                     type: valueType,
                     value: value,

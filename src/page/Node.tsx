@@ -1,16 +1,6 @@
 import { useState, useEffect, useContext, useActionState, useRef } from 'react';
 import { Button } from '../components/form';
-import {
-    Node as _Node,
-    Relationship as _Relationship,
-    Date as _Date,
-    DateTime as _DateTime,
-    Duration as _Duration,
-    LocalDateTime as _LocalDateTime,
-    LocalTime as _LocalTime,
-    Point as _Point,
-    Time as _Time,
-} from 'neo4j-driver-lite';
+import { Node as _Node, Relationship as _Relationship } from 'neo4j-driver-lite';
 import { EPage, EPropertyType } from '../utils/enums';
 import { IPageProps } from '../utils/interfaces';
 import db from '../db';
@@ -21,7 +11,13 @@ import InlineRelationship from '../components/InlineRelationship';
 import InlineNode from '../components/InlineNode';
 import { t_FormProperty, t_FormValue } from '../utils/types';
 import PropertiesForm from '../components/PropertiesForm';
-import { getPropertyAsTemp, cypherPrintProperties, resolvePropertyType, sanitizeFormValues } from '../utils/fn';
+import {
+    getPropertyAsTemp,
+    cypherPrintProperties,
+    resolvePropertyType,
+    sanitizeFormValues,
+    getPropertyDefaultValue,
+} from '../utils/fn';
 
 interface INodeProps extends IPageProps {
     database: string;
@@ -43,37 +39,6 @@ const Node: React.FC<INodeProps> = props => {
     const latestRequest = useRef<AbortController>(null);
     const copy = useContext(ClipboardContext);
     const create: boolean = props.id === null;
-
-    const getDefaultValue = (type: EPropertyType): any => {
-        const int0 = db.toInt(0);
-        switch (type) {
-            case EPropertyType.String:
-                return '';
-            case EPropertyType.Boolean:
-                return false;
-            case EPropertyType.Integer:
-                return int0;
-            case EPropertyType.Float:
-                return 0;
-            case EPropertyType.List:
-            case EPropertyType.Map:
-                return [] as t_FormValue[];
-            case EPropertyType.Time:
-                return _Time.fromStandardDate(new Date());
-            case EPropertyType.Date:
-                return _Date.fromStandardDate(new Date());
-            case EPropertyType.DateTime:
-                return _DateTime.fromStandardDate(new Date());
-            case EPropertyType.LocalTime:
-                return _LocalTime.fromStandardDate(new Date());
-            case EPropertyType.LocalDateTime:
-                return _LocalDateTime.fromStandardDate(new Date());
-            case EPropertyType.Point:
-                return new _Point(int0, 0, 0, 0);
-            case EPropertyType.Duration:
-                return new _Duration(int0, int0, int0, int0);
-        }
-    };
 
     const requestData = async () => {
         if (create) return;
@@ -209,7 +174,7 @@ const Node: React.FC<INodeProps> = props => {
                         if (!existingKeys.includes(key)) {
                             const type = resolvePropertyType(node.properties[key]);
                             const timestamp = t + timestampOffset++;
-                            const value = getDefaultValue(type);
+                            const value = getPropertyDefaultValue(type);
 
                             newProperties.push({
                                 name: key + timestamp,

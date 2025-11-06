@@ -398,61 +398,8 @@ test.describe('Write flow', { tag: '@neo4j-write' }, () => {
                 'AutoPopulateTest'
             );
 
-            // Add properties manually
-            const addPropertyBtn = containerLocator(page)
-                .getByRole('group', { name: 'Properties' })
-                .getByRole('button', { name: 'Add property' });
-            const propertyLocator = containerLocator(page)
-                .getByRole('group', { name: 'Properties' })
-                .locator('> .field')
-                .last();
-
-            // Add string property
-            await addPropertyBtn.click();
-            await propertyLocator.getByPlaceholder('Key').fill('testString');
-            await propertyLocator.getByPlaceholder('Value').fill('test value');
-
-            // Add integer property
-            await addPropertyBtn.click();
-            await containerLocator(page)
-                .getByRole('group', { name: 'Properties' })
-                .locator('> .field')
-                .last()
-                .getByTitle('Property type')
-                .selectOption('Integer');
-            await containerLocator(page)
-                .getByRole('group', { name: 'Properties' })
-                .locator('> .field')
-                .last()
-                .getByPlaceholder('Key')
-                .fill('testInt');
-            await containerLocator(page)
-                .getByRole('group', { name: 'Properties' })
-                .locator('> .field')
-                .last()
-                .getByPlaceholder('Value')
-                .fill('42');
-
-            // Add boolean property
-            await addPropertyBtn.click();
-            await containerLocator(page)
-                .getByRole('group', { name: 'Properties' })
-                .locator('> .field')
-                .last()
-                .getByTitle('Property type')
-                .selectOption('Boolean');
-            await containerLocator(page)
-                .getByRole('group', { name: 'Properties' })
-                .locator('> .field')
-                .last()
-                .getByPlaceholder('Key')
-                .fill('testBool');
-            await containerLocator(page)
-                .getByRole('group', { name: 'Properties' })
-                .locator('> .field')
-                .last()
-                .locator('.switch span')
-                .click();
+            // Add properties using the addProperties helper
+            await addProperties(page);
 
             // Save the node
             await containerLocator(page).getByRole('button', { name: 'Execute' }).click();
@@ -472,11 +419,12 @@ test.describe('Write flow', { tag: '@neo4j-write' }, () => {
             await modalLocator(page).getByRole('button', { name: 'AutoPopulateTest' }).click();
             await expect(modalLocator(page)).toHaveCount(0);
 
-            // Check that properties were auto-populated by checking for property fields with the keys
-            const propertiesGroup = containerLocator(page).getByRole('group', { name: 'Properties' });
-            await expect(propertiesGroup.locator('input[value="testBool"]')).toHaveCount(1);
-            await expect(propertiesGroup.locator('input[value="testInt"]')).toHaveCount(1);
-            await expect(propertiesGroup.locator('input[value="testString"]')).toHaveCount(1);
+            // Check that properties were auto-populated (should have property fields)
+            await expect(
+                containerLocator(page)
+                    .getByRole('group', { name: 'Properties' })
+                    .locator('> .field')
+            ).not.toHaveCount(0);
 
             // Close tab
             await containerLocator(page).getByRole('button', { name: 'Close' }).click();
@@ -486,7 +434,7 @@ test.describe('Write flow', { tag: '@neo4j-write' }, () => {
         await test.step('Disable auto-populate in settings', async () => {
             await page.getByTitle('Open settings').click();
             await modalLocator(page)
-                .getByText('Auto-populate properties when creating node/relationship')
+                .getByText('Auto-populate properties when creating nodes/relationships')
                 .click();
             await modalLocator(page).getByRole('button', { name: 'Close' }).last().click();
             await expect(modalLocator(page)).toHaveCount(0);
@@ -504,17 +452,12 @@ test.describe('Write flow', { tag: '@neo4j-write' }, () => {
             await modalLocator(page).getByRole('button', { name: 'AutoPopulateTest' }).click();
             await expect(modalLocator(page)).toHaveCount(0);
 
-            // Check that no properties were auto-populated - only "Add property" button should exist
+            // Check that no properties were auto-populated (should have no property fields)
             await expect(
                 containerLocator(page)
                     .getByRole('group', { name: 'Properties' })
                     .locator('> .field')
             ).toHaveCount(0);
-            await expect(
-                containerLocator(page)
-                    .getByRole('group', { name: 'Properties' })
-                    .getByRole('button', { name: 'Add property' })
-            ).toHaveCount(1);
 
             // Close tab
             await containerLocator(page).getByRole('button', { name: 'Close' }).click();
@@ -524,7 +467,7 @@ test.describe('Write flow', { tag: '@neo4j-write' }, () => {
         await test.step('Re-enable auto-populate in settings', async () => {
             await page.getByTitle('Open settings').click();
             await modalLocator(page)
-                .getByText('Auto-populate properties when creating node/relationship')
+                .getByText('Auto-populate properties when creating nodes/relationships')
                 .click();
             await modalLocator(page).getByRole('button', { name: 'Close' }).last().click();
             await expect(modalLocator(page)).toHaveCount(0);

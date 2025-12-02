@@ -96,6 +96,10 @@ test.describe('Label tab', { tag: '@neo4j-read' }, () => {
     });
 
     test('Table sort', async ({ page }) => {
+        // Wait for table to be fully populated before interacting
+        await expect(containerLocator(page, 'table tbody tr')).toHaveCount(20);
+        await page.waitForLoadState('networkidle');
+
         await containerLocator(page).getByRole('cell', { name: 'born' }).click();
         await expect(
             containerLocator(page, 'table tbody').getByRole('row').first().getByRole('cell').nth(4)

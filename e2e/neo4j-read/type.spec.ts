@@ -102,7 +102,7 @@ test.describe('Type tab', { tag: '@neo4j-read' }, () => {
         await expect(containerLocator(page, 'table tbody tr')).toHaveCount(20);
         await page.waitForLoadState('networkidle');
 
-        await containerLocator(page).getByRole('cell', { name: 'roles' }).click();
+        await containerLocator(page).getByRole('columnheader', { name: 'roles' }).click();
         await expect(containerLocator(page, 'table tbody').getByRole('cell')).toContainText([
             '["All the Way" Mae Mordabito]',
             '["Wild Bill" Wharton]',

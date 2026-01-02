@@ -29,7 +29,7 @@
     "neo4j-driver-lite": "^5.24.1",
     "react": "^19",
     "react-dom": "^19",
-    "sass": "^1.78.0",
+    "sass": "1.94.3",
     "typescript": "^5"
   },
   "devDependencies": {

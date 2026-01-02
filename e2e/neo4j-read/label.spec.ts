@@ -100,7 +100,7 @@ test.describe('Label tab', { tag: '@neo4j-read' }, () => {
         await expect(containerLocator(page, 'table tbody tr')).toHaveCount(20);
         await page.waitForLoadState('networkidle');
 
-        await containerLocator(page).getByRole('cell', { name: 'born' }).click();
+        await containerLocator(page).getByRole('columnheader', { name: 'born' }).click();
         await expect(
             containerLocator(page, 'table tbody').getByRole('row').first().getByRole('cell').nth(4)
         ).toHaveText('1929');
@@ -116,8 +116,8 @@ test.describe('Label tab', { tag: '@neo4j-read' }, () => {
             last = year;
         }
 
-        await containerLocator(page).getByRole('cell', { name: 'name' }).click();
-        await containerLocator(page).getByRole('cell', { name: 'name' }).click();
+        await containerLocator(page).getByRole('columnheader', { name: 'name' }).click();
+        await containerLocator(page).getByRole('columnheader', { name: 'name' }).click();
         await expect(containerLocator(page, 'table tbody').getByRole('cell')).toContainText([
             'Richard Harris',
             'Gene Hackman',

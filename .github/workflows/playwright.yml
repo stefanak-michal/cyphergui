@@ -38,11 +38,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
+          cache: 'npm'
       - name: Install dependencies
         run: npm ci
       - name: Load movies dataset
@@ -78,11 +79,12 @@ jobs:
           --health-cmd "wget --spider http://localhost:7474 || exit 1"
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
+          cache: 'npm'
       - name: Install dependencies
         run: npm ci
       - name: Install Playwright Browsers
@@ -115,11 +117,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
+          cache: 'npm'
       - name: Install dependencies
         run: npm ci
       - name: Install Playwright Browsers
@@ -150,11 +153,12 @@ jobs:
           --health-cmd "wget --spider http://localhost:7474 || exit 1"
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
+          cache: 'npm'
       - name: Install dependencies
         run: npm ci
       - name: Install Playwright Browsers
@@ -182,11 +186,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
+          cache: 'npm'
       - name: Install dependencies
         run: npm ci
       - name: Install Playwright Browsers

@@ -5,6 +5,7 @@
   "homepage": ".",
   "license": "Apache-2.0",
   "author": {
+   "email":"747357766@qq.com",
     "name": "Michal Stefanak",
     "url": "https://www.linkedin.com/in/michalstefanak/"
   },
@@ -13,6 +14,7 @@
     "node": ">=22"
   },
   "type": "module",
+  "main": "electron/main.cjs",
   "repository": {
     "type": "git",
     "url": "https://github.com/stefanak-michal/cyphergui.git"
@@ -42,9 +44,13 @@
     "@parcel/transformer-webmanifest": "^2.13.3",
     "@playwright/test": "^1.56.1",
     "babel-loader": "^10.0.0",
+    "concurrently": "^9.2.1",
     "copy-webpack-plugin": "^14",
+    "cross-env": "^10.1.0",
     "css-loader": "^7.1.2",
     "dotenv": "^16.4.7",
+    "electron": "^41.0.3",
+    "electron-builder": "^26.8.1",
     "eslint": "^9",
     "html-webpack-plugin": "^5.6.4",
     "prettier": "^3.3.3",
@@ -53,6 +59,7 @@
     "style-loader": "^4.0.0",
     "ts-loader": "^9.5.4",
     "typescript-eslint": "^8",
+    "wait-on": "^9.0.4",
     "webpack": "^5.102.1",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.2"
@@ -64,9 +71,36 @@
     "format": "npx prettier . --write",
     "prettier-check": "npx prettier . --check",
     "lint": "npx eslint src",
-    "playwright:ui": "npx playwright test --ui"
+    "playwright:ui": "npx playwright test --ui",
+    "electron:dev": "cross-env NODE_ENV=development wait-on http://localhost:1234 && electron .",
+    "electron:build": "pnpm run build && electron-builder"
   },
   "browserslist": "> 0.5%, last 2 versions, not dead",
+  "build": {
+    "appId": "com.stefanak-michal.cyphergui",
+    "productName": "CypherGUI",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "build/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Utility"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
+    }
+  },
   "prettier": {
     "trailingComma": "es5",
     "tabWidth": 4,

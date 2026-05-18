@@ -5,6 +5,7 @@ import Logged from './Logged';
 import db from './db';
 import { setSetting, settings } from './layout/Settings';
 import { ThemeSwitchContext } from './utils/contexts';
+import mixpanel from 'mixpanel-browser';
 
 const App: React.FC = () => {
     const [logged, setLogged] = useState(false);
@@ -53,6 +54,7 @@ const App: React.FC = () => {
                             href='https://github.com/stefanak-michal/cyphergui'
                             target='_blank'
                             className='button is-small'
+                            onClick={() => { mixpanel.track('Clicked GitHub button'); }}
                         >
                             <span className='icon'>
                                 <i className='fa-brands fa-github' />
@@ -63,6 +65,7 @@ const App: React.FC = () => {
                             href='https://www.linkedin.com/in/michalstefanak/'
                             target='_blank'
                             className='button is-small'
+                            onClick={() => { mixpanel.track('Clicked LinkedIn button'); }}
                         >
                             <span className='icon'>
                                 <i className='fa-brands fa-linkedin' />
@@ -73,6 +76,7 @@ const App: React.FC = () => {
                             href='https://eu.mixpanel.com/p/XtoyTU92SmmpUaweP7DUAn'
                             target='_blank'
                             className='button is-small'
+                            onClick={() => { mixpanel.track('Clicked Analytics button'); }}
                         >
                             <span className='icon'>
                                 <i className='fa-solid fa-chart-simple' />

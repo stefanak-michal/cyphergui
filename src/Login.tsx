@@ -224,12 +224,17 @@ const Login: React.FC<ILoginProps> = ({ handleLogin, darkMode }) => {
 
                     <div className='mt-3 box'>
                         <h2 className='subtitle mb-2'>Upgrade to Team/Desktop version</h2>
-                        <p>Are you looking for standalone version? Do you want to share server configurations and query libraries with your team?</p>
+                        <p>
+                            Are you looking for standalone version? Do you want to share server configurations and query
+                            libraries with your team?
+                        </p>
                         <a
                             href='https://forms.gle/E4A58tLv6jNGh6gD8'
                             target='_blank'
                             className='button is-link mt-3'
-                            onClick={() => { mixpanel.track('Clicked waitlist form button'); }}
+                            onClick={() => {
+                                mixpanel.track('Clicked waitlist form button');
+                            }}
                         >
                             <span className='icon'>
                                 <i className='fa-solid fa-file-signature' />

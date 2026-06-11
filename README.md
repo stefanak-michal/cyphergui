@@ -14,6 +14,10 @@ User friendly GUI administration tool for graph databases with bolt protocol sup
 
 Available in [wiki](https://github.com/stefanak-michal/cyphergui/wiki/Screenshots).
 
+## Pro version
+
+I'm thinking about what more capable version of cypherGUI could look like. Not sure yet what that means exactly. If you use cypherGUI in professional environment and have a minute to spend, please fill out this [form](https://forms.gle/E4A58tLv6jNGh6gD8).
+
 ## :heavy_check_mark: Supported databases
 
 - [Neo4j](https://neo4j.com/)
